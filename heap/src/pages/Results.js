@@ -1,0 +1,42 @@
+// src/pages/Results.js
+import React, { useState, useEffect } from 'react';
+import Sidebar from '../components/Sidebar';
+import Plot from 'react-plotly.js';
+import { Link } from 'react-router-dom';
+
+function Results() {
+  const [data, setData] = useState({
+    x: [1, 2, 3, 4],
+    y: [10, 11, 12, 13],
+    type: 'scatter',
+    mode: 'lines+markers',
+    marker: { color: 'blue' },
+  });
+
+  return (
+    <div className="flex p-6">
+      <Sidebar /> {/* Sidebar on the left */}
+      <div className="flex-1">
+        <h2 className="text-2xl font-bold">Results</h2>
+        <div className="mt-4">
+          <Plot
+            data={[data]}
+            layout={{
+              title: 'Prediction Data',
+              xaxis: { title: 'X-Axis' },
+              yaxis: { title: 'Y-Axis' },
+            }}
+          />
+        </div>
+        
+        {/* Link to navigate back to Home */}
+        <div className="mt-4">
+          <Link to="/" className="text-blue-500 hover:text-blue-700">Back to Home</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Results;
+
