@@ -4,8 +4,10 @@ import React from 'react';
 const Home = () => {
   return (
     <div className="content">
-      <h1>Welcome to HEAP: Exposome and Proteomics</h1>
-      <p>This is the home page.</p>
+      <h1>Welcome to HEAP!</h1>
+      <p>This webpage provides HEAP summary statistics generated from:</p>
+      <p>UK Biobank Genetics, Exposures, and Proteomics</p>
+      <img src="/HEAP_summ.tif" alt="HEAP Logo" style={{ width: '5000px', marginTop: '20px' }} />
     </div>
   );
 };
