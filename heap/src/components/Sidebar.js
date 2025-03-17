@@ -1,32 +1,17 @@
-// src/components/Sidebar.js
-import { Drawer, List, ListItem, ListItemText } from '@mui/material';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Sidebar() {
+const Sidebar = () => {
   return (
-    <Drawer
-      sx={{
-        width: 240,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: 240,
-          boxSizing: 'border-box',
-        },
-      }}
-      variant="permanent"
-      anchor="left"
-    >
-      <List>
-        <ListItem button component={Link} to="/">
-          <ListItemText primary="Home" />
-        </ListItem>
-        <ListItem button component={Link} to="/results">
-          <ListItemText primary="Results" />
-        </ListItem>
-      </List>
-    </Drawer>
+    <aside className="sidebar">
+      <ul>
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/results">Results</Link></li>
+        {/* Add more links as needed */}
+      </ul>
+    </aside>
   );
-}
+};
 
 export default Sidebar;
 

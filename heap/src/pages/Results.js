@@ -1,6 +1,5 @@
 // src/pages/Results.js
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
 import TableComponent from '../components/TableComponent';  // Import the TableComponent
@@ -16,8 +15,6 @@ function Results() {
 
   return (
     <div className="flex p-6">
-      <Sidebar /> {/* Sidebar on the left */}
-      
       <div className="flex-1">
         <h2 className="text-2xl font-bold">Results</h2>
         
