@@ -6,7 +6,7 @@ function Header() {
   return (
     <AppBar position="static" className="header">
       <Toolbar>
-        <Typography variant="h6">
+        <Typography variant="h6" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
           <strong>HEAP: </strong> 
           <strong>H</strong>uman <strong>E</strong>xposomic <strong>A</strong>rchitecture of the <strong>P</strong>roteome
         </Typography>

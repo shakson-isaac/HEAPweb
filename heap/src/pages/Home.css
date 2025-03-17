@@ -1,41 +1,51 @@
 .container {
-  padding: 20px;
+  padding: 16px;
   line-height: 1.6;
-  font-family: 'Arial', sans-serif; /* Use a consistent font family */
+  font-family: 'Inter', sans-serif;
+  background-color: #f7fafc;
 }
 
 .heading {
-  margin-bottom: 20px;
-  font-size: 2.5em; /* Increase font size for the main heading */
+  margin-bottom: 16px;
+  font-size: 2em;
   font-weight: bold;
+  color: #1a202c;
+  text-align: center; /* Center the heading */
 }
 
 .paragraph {
-  margin-bottom: 15px;
-  font-size: 1.2em; /* Increase font size for paragraphs */
+  margin-bottom: 12px;
+  font-size: 1em;
+  color: #2d3748;
 }
 
 .list {
-  margin-bottom: 15px;
-  padding-left: 20px; /* Indent the list */
-  list-style-type: disc; /* Use dots for list items */
+  margin-bottom: 12px;
+  padding-left: 20px;
+  list-style-type: disc;
 }
 
 .list-item {
   margin-bottom: 10px;
-  text-indent: -20px; /* Adjust text indent to align with bullets */
-  padding-left: 20px; /* Align text with bullets */
-  font-size: 1.1em; /* Increase font size for list items */
+  text-indent: -20px;
+  padding-left: 20px;
+  font-size: 1em;
+  color: #4a5568;
 }
 
 .section {
-  margin-bottom: 30px; /* Add more spacing between sections */
+  margin-bottom: 20px;
   padding: 15px;
-  border: 1px solid #ddd; /* Add a border to sections */
-  background-color: #f9f9f9; /* Add a background color to sections */
+  border: 1px solid #ddd;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .image {
-  width: 5000px; /* Correct the width of the image */
-  margin-top: 20px;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 10px;
+  border-radius: 8px;
+  display: block; /* Center the image */
+  margin: 0 auto; /* Center the image */
 }
