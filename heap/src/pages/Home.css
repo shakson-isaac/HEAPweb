@@ -1,0 +1,41 @@
+.container {
+  padding: 20px;
+  line-height: 1.6;
+  font-family: 'Arial', sans-serif; /* Use a consistent font family */
+}
+
+.heading {
+  margin-bottom: 20px;
+  font-size: 2.5em; /* Increase font size for the main heading */
+  font-weight: bold;
+}
+
+.paragraph {
+  margin-bottom: 15px;
+  font-size: 1.2em; /* Increase font size for paragraphs */
+}
+
+.list {
+  margin-bottom: 15px;
+  padding-left: 20px; /* Indent the list */
+  list-style-type: disc; /* Use dots for list items */
+}
+
+.list-item {
+  margin-bottom: 10px;
+  text-indent: -20px; /* Adjust text indent to align with bullets */
+  padding-left: 20px; /* Align text with bullets */
+  font-size: 1.1em; /* Increase font size for list items */
+}
+
+.section {
+  margin-bottom: 30px; /* Add more spacing between sections */
+  padding: 15px;
+  border: 1px solid #ddd; /* Add a border to sections */
+  background-color: #f9f9f9; /* Add a background color to sections */
+}
+
+.image {
+  width: 5000px; /* Correct the width of the image */
+  margin-top: 20px;
+}

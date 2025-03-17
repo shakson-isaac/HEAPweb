@@ -31,3 +31,23 @@ body {
   flex: 1;
   padding: 10px;
 }
+
+/* Add styles for links */
+a {
+  color: blue;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: darkblue;
+}
+
+.sidebar a {
+  color: inherit; /* Inherit color from parent */
+  text-decoration: none; /* Remove underline */
+}
+
+.sidebar a:hover {
+  color: inherit; /* Inherit color from parent on hover */
+  text-decoration: none; /* Remove underline on hover */
+}
