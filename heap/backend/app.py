@@ -1,8 +1,13 @@
 from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
 import pandas as pd
 import os
 
+# Define the Flaks app
 app = Flask(__name__)
+
+# Enable CORS for the app
+CORS(app)
 
 # Define the path to the CSV file inside the 'data' folder
 data_path = os.path.join(os.path.dirname(__file__), '../data/example.csv')
@@ -31,6 +36,9 @@ def fetch_data():
     # Filter the data based on the search term
     filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
     
+    # Drop unnecessary columns (if they exist)
+    filtered_df = filtered_df.dropna(axis=1, how='all')  # This removes columns where all values are NaN    
+
     # Paginate the filtered data
     paginated_df = filtered_df.iloc[start:start + length]
 

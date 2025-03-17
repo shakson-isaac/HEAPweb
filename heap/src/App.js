@@ -1,8 +1,9 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import Results from './pages/Results';
+import Home from './pages/Home';  // Assuming you will create a Home component
+import Results from './pages/Results';  // The Results page will render the TableComponent
+import TableComponent from './components/TableComponent';  // Import the TableComponent
 
 function App() {
   return (
@@ -15,7 +16,10 @@ function App() {
         </nav>
 
         <Routes>
+          {/* Home route */}
           <Route path="/" element={<Home />} />
+
+          {/* Results route where TableComponent is displayed */}
           <Route path="/results" element={<Results />} />
         </Routes>
       </div>
@@ -24,3 +28,4 @@ function App() {
 }
 
 export default App;
+

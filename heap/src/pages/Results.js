@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
+import TableComponent from '../components/TableComponent';  // Import the TableComponent
 
 function Results() {
   const [data, setData] = useState({
@@ -16,8 +17,11 @@ function Results() {
   return (
     <div className="flex p-6">
       <Sidebar /> {/* Sidebar on the left */}
+      
       <div className="flex-1">
         <h2 className="text-2xl font-bold">Results</h2>
+        
+        {/* Plotly chart */}
         <div className="mt-4">
           <Plot
             data={[data]}
@@ -27,6 +31,12 @@ function Results() {
               yaxis: { title: 'Y-Axis' },
             }}
           />
+        </div>
+        
+        {/* Interactive Table */}
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold">Omics Data Table</h3>
+          <TableComponent />  {/* Display the interactive table */}
         </div>
         
         {/* Link to navigate back to Home */}
