@@ -54,10 +54,10 @@ const TableComponent = () => {
 
   // Define columns for the DataTable
   const columns = [
-    { name: 'Disease', selector: 'Disease', sortable: true },
-    { name: 'Gene', selector: 'Gene', sortable: true },
-    { name: 'Protein', selector: 'Protein', sortable: true },
-    { name: 'Score', selector: 'Score', sortable: true }
+    { name: 'Disease', selector: row => row.Disease, sortable: true },
+    { name: 'Gene', selector: row => row.Gene, sortable: true },
+    { name: 'Protein', selector: row => row.Protein, sortable: true },
+    { name: 'Score', selector: row => row.Score, sortable: true }
   ];
 
   return (
