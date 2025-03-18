@@ -42,13 +42,13 @@ function Header() {
         </div>
         <nav className="nav-links" style={{ display: 'flex', gap: '20px', marginLeft: '20px' }}>
           <Link to="/">Home</Link>
+          <div onClick={handleDocMenuClick} style={{ cursor: 'pointer' }}>
+            Documentation <span style={{ fontSize: '0.7em', marginLeft: '-3px', display: 'inline-block', transform: 'scaleY(0.7)', verticalAlign: '0.2em' }}>▼</span>
+          </div>
           <div onClick={handleMenuClick} style={{ cursor: 'pointer' }}>
-            Results
+            Results <span style={{ fontSize: '0.7em', marginLeft: '-3px', display: 'inline-block', transform: 'scaleY(0.7)', verticalAlign: '0.2em' }}>▼</span>
           </div>
           <Link to="/downloads">Downloads</Link>
-          <div onClick={handleDocMenuClick} style={{ cursor: 'pointer' }}>
-            Documentation
-          </div>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}

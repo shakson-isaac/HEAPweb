@@ -11,8 +11,8 @@ body {
 }
 
 .header {
-  background-color: #1a202c;
-  color: white;
+  background-color: #f7fafc; /* Revert to original header background color */
+  color: white; /* Revert to original header text color */
   padding: 10px;
   text-align: center;
 }
@@ -29,34 +29,34 @@ body {
 }
 
 .nav-links a {
-  color: white;
+  color: white; /* Revert to original link color */
   text-decoration: none;
   font-size: 1em;
 }
 
 .nav-links a:hover {
   text-decoration: underline;
-  color: #2b6cb0;
+  color: #2b6cb0; /* Revert to original link hover color */
 }
 
 .nav-links div {
-  color: white;
+  color: white; /* Revert to original div text color */
   font-size: 1em;
 }
 
 .nav-links div:hover {
   text-decoration: underline;
-  color: #2b6cb0;
+  color: #2b6cb0; /* Revert to original div hover color */
 }
 
 /* Remove sidebar styles */
 
 /* Add styles for links */
 a {
-  color: #3182ce;
+  color: #3182ce; /* Revert to original link color */
   text-decoration: underline;
 }
 
 a:hover {
-  color: #2b6cb0;
+  color: #2b6cb0; /* Revert to original link hover color */
 }
