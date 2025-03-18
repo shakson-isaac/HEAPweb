@@ -75,13 +75,13 @@ def fetch_data():
 
     return jsonify(response)
 
-# Obtain any files from data folder
+
+# Obtain HTML interactive files from data folder
 # Define the path to the HTML Files inside the 'data' folder
 HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)
-
 
 
 ### Protein ID dropdown ###
@@ -114,6 +114,7 @@ def read_proteins_from_file(file_path):
         print(f"Error reading file: {e}")
         return []
 
+
 # Obtain Gene List to display in the dropdown
 @app.route('/api/proteins', methods=['GET'])
 def get_protlist():
@@ -123,10 +124,21 @@ def get_protlist():
 
 
 
+# Path to Download Data Files
+@app.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    try:
+        # Directly return the file from the download folder
+        return send_from_directory('../data/download/', filename, as_attachment=True)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+
+
 # Custom 404 error handler
 @app.errorhandler(404)
 def page_not_found(e):
     return jsonify(error="Page not found"), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)
