@@ -3,6 +3,9 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import MainResults from '../components/MainResults';
 import HeapSummary from '../components/HeapSummary';
+import Associations from '../components/Associations';
+import Mediation from '../components/Mediation';
+import Intervention from '../components/Intervention';
 
 function Results() {
   return (
@@ -12,6 +15,9 @@ function Results() {
         <Routes>
           <Route path="main" element={<MainResults />} />
           <Route path="summary" element={<HeapSummary />} />
+          <Route path="associations" element={<Associations />} />
+          <Route path="mediation" element={<Mediation />} />
+          <Route path="intervention" element={<Intervention />} />
         </Routes>
       </div>
     </div>

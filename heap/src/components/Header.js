@@ -41,6 +41,9 @@ function Header() {
           >
             <MenuItem onClick={() => handleMenuClose('main')}>Main Results</MenuItem>
             <MenuItem onClick={() => handleMenuClose('summary')}>HEAP Summary</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('associations')}>Associations</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('mediation')}>Mediation</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('intervention')}>Intervention</MenuItem>
           </Menu>
         </nav>
       </Toolbar>
