@@ -1,6 +1,6 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
-import TableComponent from './TableComponent';
+import TableComponent from '../../components/TableComponent';
 
 function MainResults() {
   return (

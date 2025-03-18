@@ -1,11 +1,11 @@
 // src/pages/Results.js
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import MainResults from '../components/MainResults';
-import HeapSummary from '../components/HeapSummary';
-import Associations from '../components/Associations';
-import Mediation from '../components/Mediation';
-import Intervention from '../components/Intervention';
+import MainResults from './subpages/MainResults';
+import HeapSummary from './subpages/HeapSummary';
+import Associations from './subpages/Associations';
+import Mediation from './subpages/Mediation';
+import Intervention from './subpages/Intervention';
 
 function Results() {
   return (
