@@ -75,6 +75,14 @@ def fetch_data():
 
     return jsonify(response)
 
+# Obtain any files from data folder
+# Define the path to the HTML Files inside the 'data' folder
+HTMLfold = os.path.join(os.path.dirname(__file__), '../data/')
+@app.route('/data/<path:filename>')
+def serve_file(filename):
+    return send_from_directory(HTMLfold, filename)
+
+
 # Custom 404 error handler
 @app.errorhandler(404)
 def page_not_found(e):

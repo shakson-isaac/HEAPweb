@@ -10,14 +10,6 @@ body {
   height: 100vh;
 }
 
-/* .app-bar {
-  background-color: #559f55eb;
-  color: white;
-  padding: 10px;
-  text-align: center;
-}
- */
-
 .MuiAppBar-root.app-bar {
   background-color: #124533db; /* !important; /* Adding !important as a last resort */
   color: white;
