@@ -33,6 +33,7 @@ function Header() {
           <div onClick={handleMenuClick} style={{ cursor: 'pointer' }}>
             Results
           </div>
+          <Link to="/downloads">Downloads</Link>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
