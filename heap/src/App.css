@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
   background-color: #f7fafc;
 }
 
@@ -10,11 +10,20 @@ body {
   height: 100vh;
 }
 
-.header {
-  background-color: #f7fafc; /* Revert to original header background color */
-  color: white; /* Revert to original header text color */
+/* .app-bar {
+  background-color: #559f55eb;
+  color: white;
   padding: 10px;
   text-align: center;
+}
+ */
+
+.MuiAppBar-root.app-bar {
+  background-color: #124533db; /* !important; /* Adding !important as a last resort */
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 .main-content {
@@ -26,37 +35,41 @@ body {
   display: flex;
   gap: 20px;
   margin-left: auto;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 .nav-links a {
-  color: white; /* Revert to original link color */
+  color: white;
   text-decoration: none;
   font-size: 1em;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 .nav-links a:hover {
   text-decoration: underline;
-  color: #2b6cb0; /* Revert to original link hover color */
+  color: #2b6cb0;
 }
 
 .nav-links div {
-  color: white; /* Revert to original div text color */
+  color: white;
   font-size: 1em;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 .nav-links div:hover {
   text-decoration: underline;
-  color: #2b6cb0; /* Revert to original div hover color */
+  color: #2b6cb0;
 }
 
 /* Remove sidebar styles */
 
 /* Add styles for links */
 a {
-  color: #3182ce; /* Revert to original link color */
+  color: #3182ce;
   text-decoration: underline;
+  font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 a:hover {
-  color: #2b6cb0; /* Revert to original link hover color */
+  color: #2b6cb0;
 }

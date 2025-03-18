@@ -12,9 +12,7 @@ const App = () => {
   return (
     <div className="app-container">
       <Router>
-        <header className="header">
-          <Header />
-        </header>
+        <Header /> {/* Remove the surrounding <header> tag */}
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />

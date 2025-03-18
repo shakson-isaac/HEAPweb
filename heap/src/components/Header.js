@@ -32,7 +32,7 @@ function Header() {
   };
 
   return (
-    <AppBar position="static" className="header">
+    <AppBar position="static" className="app-bar"> {/* Ensure the class name matches */}
       <Toolbar style={{ justifyContent: 'flex-start' }}>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <img src={heapLogo} alt="HEAP Logo" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
