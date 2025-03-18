@@ -7,6 +7,7 @@ const heapLogo = `${process.env.PUBLIC_URL}/HEAPlogo.png`;
 function Header() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [docAnchorEl, setDocAnchorEl] = useState(null); // State for documentation menu
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -16,6 +17,17 @@ function Header() {
     setAnchorEl(null);
     if (page) {
       navigate(`/results/${page}`);
+    }
+  };
+
+  const handleDocMenuClick = (event) => {
+    setDocAnchorEl(event.currentTarget);
+  };
+
+  const handleDocMenuClose = (page) => {
+    setDocAnchorEl(null);
+    if (page) {
+      navigate(`/documentation/${page}`);
     }
   };
 
@@ -34,6 +46,9 @@ function Header() {
             Results
           </div>
           <Link to="/downloads">Downloads</Link>
+          <div onClick={handleDocMenuClick} style={{ cursor: 'pointer' }}>
+            Documentation
+          </div>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -44,6 +59,15 @@ function Header() {
             <MenuItem onClick={() => handleMenuClose('associations')}>Associations</MenuItem>
             <MenuItem onClick={() => handleMenuClose('mediation')}>Mediation</MenuItem>
             <MenuItem onClick={() => handleMenuClose('intervention')}>Intervention</MenuItem>
+          </Menu>
+          <Menu
+            anchorEl={docAnchorEl}
+            open={Boolean(docAnchorEl)}
+            onClose={() => handleDocMenuClose(null)}
+          >
+            <MenuItem onClick={() => handleDocMenuClose('about')}>About HEAP</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('methods')}>Detailed Methods</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('faqs')}>FAQs</MenuItem>
           </Menu>
         </nav>
       </Toolbar>
