@@ -39,6 +39,11 @@
   border: 1px solid #ddd;
   background-color: #ffffff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 1000px; /* Set a reasonable max-width for the sections */
+  width: calc(100% - 32px); /* Ensure the section takes full width minus padding */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  margin-left: auto; /* Center the section */
+  margin-right: auto; /* Center the section */
 }
 
 .image {
