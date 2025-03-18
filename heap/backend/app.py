@@ -77,10 +77,50 @@ def fetch_data():
 
 # Obtain any files from data folder
 # Define the path to the HTML Files inside the 'data' folder
-HTMLfold = os.path.join(os.path.dirname(__file__), '../data/')
+HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)
+
+
+
+### Protein ID dropdown ###
+# Function to read prot from the txt file and return a list
+def read_proteins_from_file(file_path):
+    try:
+        gene_list = []
+        with open(file_path, 'r') as file:
+            # Skip header and parse the rest of the lines
+            for line in file.readlines()[1:]:  # Skip the header line
+                line = line.strip()  # Remove leading/trailing whitespace
+                if line:
+                    # Split by tab to get coding and meaning columns
+                    parts = line.split("\t")
+                    if len(parts) == 2:  # Ensure there are exactly 2 columns
+                        coding = parts[0].strip()  # Protein ID (coding column)
+                        meaning = parts[1].strip()  # Protein Name (meaning column)
+                        
+                        # Split the meaning part by ";" to separate protein ID and name
+                        gene_info = meaning.split(";")
+                        if len(gene_info) == 2:
+                            protein_id = gene_info[0].strip().replace("-", "_")  # Protein ID (replacing "-" with "_")
+                            protein_name = gene_info[1].strip()  # Protein Name
+
+                            # Append the processed gene info to the list
+                            gene_list.append({'id': protein_id, 'name': protein_name})
+        
+        return gene_list
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return []
+
+# Obtain Gene List to display in the dropdown
+@app.route('/api/proteins', methods=['GET'])
+def get_protlist():
+    # Specify the path to your gene list text file
+    prot_list = read_proteins_from_file('../data/protIDs/protlist.txt')
+    return jsonify(prot_list)
+
 
 
 # Custom 404 error handler
