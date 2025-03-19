@@ -35,12 +35,12 @@ function Header() {
     <AppBar position="static" className="app-bar"> {/* Ensure the class name matches */}
       <Toolbar style={{ justifyContent: 'flex-start' }}>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src={heapLogo} alt="HEAP Logo" style={{ width: '30px', height: '30px', marginRight: '10px' }} />
+          <img src={heapLogo} alt="HEAP Logo" style={{ width: '40px', height: '40px', marginRight: '10px' }} />
           <Typography variant="h6" style={{ fontFamily: 'Inter, Arial, sans-serif', marginRight: '20px' }}>
             <strong>HEAP</strong>
           </Typography>
         </div>
-        <nav className="nav-links" style={{ display: 'flex', gap: '20px', marginLeft: '20px' }}>
+        <nav className="nav-links" style={{ display: 'flex', gap: '20px', marginLeft: '30px' }}>
           <Link to="/">Home</Link>
           <div onClick={handleDocMenuClick} style={{ cursor: 'pointer' }}>
             Documentation <span style={{ fontSize: '0.7em', marginLeft: '-3px', display: 'inline-block', transform: 'scaleY(0.7)', verticalAlign: '0.2em' }}>▼</span>

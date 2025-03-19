@@ -13,14 +13,14 @@ body {
 .MuiAppBar-root.app-bar {
   background-color: #124533db; /* !important; /* Adding !important as a last resort */
   color: white;
-  padding: 10px;
+  padding: 0px;
   text-align: center;
   font-family: 'Inter', sans-serif; /* Change this to your desired font */
 }
 
 .main-content {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
 }
 
 .nav-links {

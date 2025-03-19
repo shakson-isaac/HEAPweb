@@ -12,7 +12,7 @@ function Associations() {
       .then((response) => response.json())
       .then((data) => {
         setProteins(data);  // Store the protein list in state
-        setSelectedProtein(data[0]);  // Set the first protein as the default selection
+        setSelectedProtein(data[1571]);  // Set the first protein as the default selection
       })
       .catch((error) => console.error('Error fetching protein list:', error));
   }, []);
