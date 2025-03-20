@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, TextField, CircularProgress } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, TextField, CircularProgress, Button } from '@mui/material';
 
 const TableComponent = ({ csvFilePath }) => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -18,11 +19,12 @@ const TableComponent = ({ csvFilePath }) => {
     try {
       const response = await axios.get(csvFilePath, {
         params: {
-          search: searchTerm,
+          search: currentSearchTerm,
           sortColumn,
           sortDirection,
           page,
           rowsPerPage,
+          searchTrigger: true
         },
       });
       console.log('Fetched data:', response.data); // Log the fetched data
@@ -33,10 +35,14 @@ const TableComponent = ({ csvFilePath }) => {
       console.error('Error fetching data:', error);
     }
     setLoading(false);
-  }, [csvFilePath, searchTerm, sortColumn, sortDirection, page, rowsPerPage]);
+  }, [csvFilePath, currentSearchTerm, sortColumn, sortDirection, page, rowsPerPage]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleSearchClick = () => {
+    setCurrentSearchTerm(searchTerm);
   };
 
   const handleSort = (column) => {
@@ -60,13 +66,18 @@ const TableComponent = ({ csvFilePath }) => {
 
   return (
     <Paper>
-      <TextField
-        value={searchTerm}
-        onChange={handleSearchChange}
-        placeholder="Search..."
-        fullWidth
-        margin="normal"
-      />
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px' }}>
+        <TextField
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search..."
+          fullWidth
+          margin="normal"
+        />
+        <Button onClick={handleSearchClick} variant="contained" color="primary" style={{ marginLeft: '16px' }}>
+          Search
+        </Button>
+      </div>
       {loading ? (
         <CircularProgress />
       ) : (

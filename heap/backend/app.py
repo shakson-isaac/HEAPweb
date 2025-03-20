@@ -38,9 +38,10 @@ def fetch_data(filename):
     search_term = request.args.get('search', '')
     sort_column = request.args.get('sortColumn', '')
     sort_direction = request.args.get('sortDirection', 'asc')
+    search_trigger = request.args.get('searchTrigger', 'false').lower() == 'true'
 
-    # Filter the data based on the search term
-    if search_term:
+    # Filter the data based on the search term only if searchTrigger is true
+    if search_term and search_trigger:
         filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
     else:
         filtered_df = df

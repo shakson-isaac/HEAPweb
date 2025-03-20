@@ -1,6 +1,9 @@
 # MacOS files
 .DS_Store
 
+#Do not store data in backend
+data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
