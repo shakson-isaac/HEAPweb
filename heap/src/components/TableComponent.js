@@ -1,107 +1,112 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import DataTable from 'react-data-table-component';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, TextField, CircularProgress } from '@mui/material';
 
-const TableComponent = () => {
-  const [data, setData] = useState([]);  // Data to display in the table
-  const [columns, setColumns] = useState([]);  // Columns for the table
-  const [loading, setLoading] = useState(true);  // Loading state
-  const [page, setPage] = useState(1);  // Current page
-  const [rowsPerPage, setRowsPerPage] = useState(5);  // Rows per page
-  const [totalRows, setTotalRows] = useState(0);  // Total number of rows
-  const [searchTerm, setSearchTerm] = useState('');  // Search term for filtering
-  const [sortColumn, setSortColumn] = useState('Gene');  // Sort column
-  const [sortDirection, setSortDirection] = useState('asc');  // Sort direction
+const TableComponent = ({ csvFilePath }) => {
+  const [data, setData] = useState([]);
+  const [columns, setColumns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [totalRows, setTotalRows] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc');
 
-  // Memoize fetchData to avoid unnecessary re-renders
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:5000/fetch_data', {
+      const response = await axios.get(csvFilePath, {
         params: {
-          start: (page - 1) * rowsPerPage,  // Page offset for pagination
-          length: rowsPerPage,  // Rows per page
-          'search[value]': searchTerm,  // Search term for filtering
-          'order[0][column]': sortColumn,  // Sorting column
-          'order[0][dir]': sortDirection  // Sorting direction
-        }
+          search: searchTerm,
+          sortColumn,
+          sortDirection,
+          page,
+          rowsPerPage,
+        },
       });
-
-      console.log('Response data:', response.data);  // Log the response data
-      console.log('Data structure:', response.data.data);  // Log the data structure
-
-      setData(response.data.data);  // Update the table data
-      setTotalRows(response.data.recordsTotal);  // Update the total rows for pagination
-
-      // Dynamically generate columns based on the data structure
-      const dynamicColumns = response.data.columns.map(column => ({
-        name: column,
-        selector: row => row[column],
-        sortable: true
-      }));
-      setColumns(dynamicColumns);
+      console.log('Fetched data:', response.data); // Log the fetched data
+      setColumns(response.data.columns);
+      setData(response.data.data); // Ensure this matches the response structure
+      setTotalRows(response.data.recordsFiltered); // Ensure this matches the response structure
     } catch (error) {
       console.error('Error fetching data:', error);
     }
     setLoading(false);
-  }, [page, rowsPerPage, searchTerm, sortColumn, sortDirection]); // Dependencies
+  }, [csvFilePath, searchTerm, sortColumn, sortDirection, page, rowsPerPage]);
 
-  // Handle pagination change
-  const handlePageChange = (page) => {
-    console.log('Page changed:', page);  // Log page change
-    setPage(page);
-  };
-
-  // Handle rows per page change
-  const handleRowsPerPageChange = (newPerPage) => {
-    console.log('Rows per page changed:', newPerPage);  // Log rows per page change
-    setRowsPerPage(newPerPage);
-  };
-
-  // Handle search input change
   const handleSearchChange = (e) => {
-    console.log('Search term changed:', e.target.value);  // Log search term change
     setSearchTerm(e.target.value);
   };
 
-  // Handle column sort change
-  const handleSort = (column, sortDirection) => {
-    console.log('Sort column changed:', column.name);  // Log sort column change
-    console.log('Sort direction changed:', sortDirection);  // Log sort direction change
-    setSortColumn(column.name);
-    setSortDirection(sortDirection);
+  const handleSort = (column) => {
+    const isAsc = sortColumn === column && sortDirection === 'asc';
+    setSortDirection(isAsc ? 'desc' : 'asc');
+    setSortColumn(column);
   };
 
-  // Fetch data when pagination, search term, or sorting changes
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   useEffect(() => {
     fetchData();
-  }, [page, rowsPerPage, searchTerm, sortColumn, sortDirection, fetchData]); // Now `fetchData` is included safely
+  }, [fetchData]);
 
   return (
-    <div>
-      <input
-        type="text"
+    <Paper>
+      <TextField
         value={searchTerm}
         onChange={handleSearchChange}
         placeholder="Search..."
+        fullWidth
+        margin="normal"
       />
-      {data && data.length > 0 ? (
-        <DataTable
-          title="Omics Data"
-          columns={columns}
-          data={data}
-          progressPending={loading}
-          pagination
-          paginationServer
-          paginationTotalRows={totalRows}
-          onChangePage={handlePageChange}
-          onChangeRowsPerPage={handleRowsPerPageChange}
-          onSort={handleSort}
-        />
+      {loading ? (
+        <CircularProgress />
       ) : (
-        <p>There are no records to display</p>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column}
+                    sortDirection={sortColumn === column ? sortDirection : false}
+                    onClick={() => handleSort(column)}
+                  >
+                    {column}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.map((row, index) => (
+                <TableRow key={index}>
+                  {columns.map((column) => (
+                    <TableCell key={column}>{row[column]}</TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 50]}
+        component="div"
+        count={totalRows}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </Paper>
   );
 };
 

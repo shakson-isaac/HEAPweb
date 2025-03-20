@@ -10,12 +10,6 @@ app = Flask(__name__)
 # Enable CORS for the app
 CORS(app)
 
-# Define the path to the CSV file inside the 'data' folder
-data_path = os.path.join(os.path.dirname(__file__), '../data/example.csv')
-
-# Load the large CSV data
-df = pd.read_csv(data_path)
-
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,45 +23,51 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
-# Fetch data route with pagination, search, and sorting
-@app.route('/fetch_data', methods=['GET'])
-def fetch_data():
-    # Get pagination, search, and sorting params from the request
-    start = int(request.args.get('start', 0))  # The start index for pagination
-    length = int(request.args.get('length', 10))  # Number of rows per page
-    search_term = request.args.get('search[value]', '')  # Search term for filtering
-    sort_column = request.args.get('order[0][column]', 'Gene')  # Column to sort by
-    sort_direction = request.args.get('order[0][dir]', 'asc')  # Sort direction (asc or desc)
+# Fetch data from any CSV file in the /data/table/ directory with pagination, search, and sorting
+@app.route('/fetch_data/<filename>', methods=['GET'])
+def fetch_data(filename):
+    file_path = os.path.join(os.path.dirname(__file__), '../data/table/', filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
 
-    # Ensure the sort_column is a valid column in the DataFrame
-    if sort_column not in df.columns:
-        sort_column = 'Gene'  # Default to 'Gene' if the column is not valid
+    df = pd.read_csv(file_path)
+
+    # Get pagination, search, and sorting params from the request
+    page = int(request.args.get('page', 0))
+    rows_per_page = int(request.args.get('rowsPerPage', 10))
+    search_term = request.args.get('search', '')
+    sort_column = request.args.get('sortColumn', '')
+    sort_direction = request.args.get('sortDirection', 'asc')
 
     # Filter the data based on the search term
-    filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
-    
+    if search_term:
+        filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
+    else:
+        filtered_df = df
+
     # Drop unnecessary columns (if they exist)
     filtered_df = filtered_df.dropna(axis=1, how='all')  # This removes columns where all values are NaN    
 
     # Sort the filtered data
-    if sort_column == 'Score':
-        filtered_df = filtered_df.sort_values(by=sort_column, ascending=(sort_direction == 'asc'), key=pd.to_numeric)
-    else:
-        filtered_df = filtered_df.sort_values(by=sort_column, ascending=(sort_direction == 'asc'))
+    if sort_column:
+        if sort_column in filtered_df.columns:
+            if sort_direction == 'asc':
+                filtered_df = filtered_df.sort_values(by=sort_column, ascending=True)
+            else:
+                filtered_df = filtered_df.sort_values(by=sort_column, ascending=False)
 
     # Paginate the sorted data
-    paginated_df = filtered_df.iloc[start:start + length]
+    paginated_df = filtered_df.iloc[page * rows_per_page:(page + 1) * rows_per_page]
 
     # Convert the DataFrame to a dictionary format that the frontend can consume
     data = paginated_df.to_dict(orient='records')
     columns = list(df.columns)
     
     response = {
-        'draw': int(request.args.get('draw', 1)),
+        'data': data,
+        'columns': columns,
         'recordsTotal': len(df),
         'recordsFiltered': len(filtered_df),
-        'data': data,
-        'columns': columns
     }
 
     # Log the response data
@@ -75,16 +75,13 @@ def fetch_data():
 
     return jsonify(response)
 
-
 # Obtain HTML interactive files from data folder
-# Define the path to the HTML Files inside the 'data' folder
 HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/A2/')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)
 
-
-#HTML file generic (A1) data folder:
+# HTML file generic (A1) data folder:
 HTMLfoldA1 = os.path.join(os.path.dirname(__file__), '../data/interactive/A1/')
 @app.route('/data/generic/<path:filename>')
 def serve_fileA1(filename):
@@ -120,15 +117,12 @@ def read_proteins_from_file(file_path):
         print(f"Error reading file: {e}")
         return []
 
-
 # Obtain Gene List to display in the dropdown
 @app.route('/api/proteins', methods=['GET'])
 def get_protlist():
     # Specify the path to your gene list text file
     prot_list = read_proteins_from_file('../data/protIDs/protlist.txt')
     return jsonify(prot_list)
-
-
 
 # Path to Download Data Files
 @app.route('/download/<filename>', methods=['GET'])
@@ -139,12 +133,10 @@ def download_file(filename):
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
 
-
 # Custom 404 error handler
 @app.errorhandler(404)
 def page_not_found(e):
     return jsonify(error="Page not found"), 404
-
 
 if __name__ == '__main__':
     app.run(debug=True)
