@@ -78,11 +78,17 @@ def fetch_data():
 
 # Obtain HTML interactive files from data folder
 # Define the path to the HTML Files inside the 'data' folder
-HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/')
+HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/A2/')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)
 
+
+#HTML file generic (A1) data folder:
+HTMLfoldA1 = os.path.join(os.path.dirname(__file__), '../data/interactive/A1/')
+@app.route('/data/generic/<path:filename>')
+def serve_fileA1(filename):
+    return send_from_directory(HTMLfoldA1, filename)
 
 ### Protein ID dropdown ###
 # Function to read prot from the txt file and return a list
