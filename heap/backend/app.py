@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+import sqlite3
 import pandas as pd
 import os
 import logging
@@ -23,14 +24,29 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
-# Fetch data from any CSV file in the /data/table/ directory with pagination, search, and sorting
+# Function to convert CSV to SQLite table
+def csv_to_sqlite(csv_file, db_file, table_name):
+    df = pd.read_csv(csv_file)
+    conn = sqlite3.connect(db_file)
+    df.to_sql(table_name, conn, if_exists='replace', index=False)
+    conn.close()
+
+# Fetch data from SQLite database with pagination, search, and sorting
 @app.route('/fetch_data/<filename>', methods=['GET'])
 def fetch_data(filename):
-    file_path = os.path.join(os.path.dirname(__file__), '../data/table/', filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"}), 404
+    db_file = os.path.join(os.path.dirname(__file__), '../data/table/', 'data.db')
+    table_name = filename.split('.')[0]
 
-    df = pd.read_csv(file_path)
+    # Convert CSV to SQLite table if it doesn't exist
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'")
+    if cursor.fetchone() is None:
+        csv_file = os.path.join(os.path.dirname(__file__), '../data/table/', filename)
+        if not os.path.exists(csv_file):
+            conn.close()
+            return jsonify({"error": "File not found"}), 404
+        csv_to_sqlite(csv_file, db_file, table_name)
 
     # Get pagination, search, and sorting params from the request
     page = int(request.args.get('page', 0))
@@ -40,35 +56,54 @@ def fetch_data(filename):
     sort_direction = request.args.get('sortDirection', 'asc')
     search_trigger = request.args.get('searchTrigger', 'false').lower() == 'true'
 
-    # Filter the data based on the search term only if searchTrigger is true
+    # Build the SQL query
+    query = f"SELECT * FROM \"{table_name}\""
+    params = []
+    search_conditions = []
+
+    # Add search condition if searchTrigger is true
     if search_term and search_trigger:
-        filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
-    else:
-        filtered_df = df
+        search_term = f"%{search_term.lower()}%"
+        columns_info = cursor.execute(f"PRAGMA table_info(\"{table_name}\")").fetchall()
+        search_conditions = [f"LOWER(\"{col[1]}\") LIKE ?" for col in columns_info]
+        query += " WHERE " + " OR ".join(search_conditions)
+        params.extend([search_term] * len(search_conditions))
 
-    # Drop unnecessary columns (if they exist)
-    filtered_df = filtered_df.dropna(axis=1, how='all')  # This removes columns where all values are NaN    
+    # Get total records count after search filter
+    count_query = f"SELECT COUNT(*) FROM \"{table_name}\""
+    if search_conditions:
+        count_query += " WHERE " + " OR ".join(search_conditions)
+    cursor.execute(count_query, params[:len(search_conditions)])
+    total_filtered_records = cursor.fetchone()[0]
 
-    # Sort the filtered data
+    # Add sorting
     if sort_column:
-        if sort_column in filtered_df.columns:
-            if sort_direction == 'asc':
-                filtered_df = filtered_df.sort_values(by=sort_column, ascending=True)
-            else:
-                filtered_df = filtered_df.sort_values(by=sort_column, ascending=False)
+        query += f" ORDER BY \"{sort_column}\" {sort_direction.upper()}"
 
-    # Paginate the sorted data
-    paginated_df = filtered_df.iloc[page * rows_per_page:(page + 1) * rows_per_page]
+    # Add pagination
+    query += f" LIMIT ? OFFSET ?"
+    params.extend([rows_per_page, page * rows_per_page])
 
-    # Convert the DataFrame to a dictionary format that the frontend can consume
-    data = paginated_df.to_dict(orient='records')
-    columns = list(df.columns)
-    
+    # Execute the query
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+
+    # Get column names
+    columns = [description[0] for description in cursor.description]
+
+    # Get total records count
+    cursor.execute(f"SELECT COUNT(*) FROM \"{table_name}\"")
+    total_records = cursor.fetchone()[0]
+
+    conn.close()
+
+    # Prepare the response
+    data = [dict(zip(columns, row)) for row in rows]
     response = {
         'data': data,
         'columns': columns,
-        'recordsTotal': len(df),
-        'recordsFiltered': len(filtered_df),
+        'recordsTotal': total_records,
+        'recordsFiltered': total_filtered_records,
     }
 
     # Log the response data

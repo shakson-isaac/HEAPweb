@@ -43,6 +43,7 @@ const TableComponent = ({ csvFilePath }) => {
 
   const handleSearchClick = () => {
     setCurrentSearchTerm(searchTerm);
+    setPage(0); // Reset to the first page when a new search is triggered
   };
 
   const handleSort = (column) => {
