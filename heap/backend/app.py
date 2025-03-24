@@ -112,7 +112,7 @@ def fetch_data(filename):
     return jsonify(response)
 
 # Obtain HTML interactive files from data folder
-HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/A2/')
+HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/A2/Type6/')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)

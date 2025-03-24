@@ -24,7 +24,7 @@ function Associations() {
 
   // Construct the iframe src dynamically based on the selected protein's id
   const iframeSrc = selectedProtein
-    ? `http://127.0.0.1:5000/data/${selectedProtein.id}_Type5assoc.html`
+    ? `http://127.0.0.1:5000/data/${selectedProtein.id}_Type6assoc.html`
     : '';  // Default empty src until a protein is selected
 
   // Log iframeSrc to the console for debugging
