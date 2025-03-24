@@ -123,6 +123,12 @@ HTMLfoldA1 = os.path.join(os.path.dirname(__file__), '../data/interactive/A1/')
 def serve_fileA1(filename):
     return send_from_directory(HTMLfoldA1, filename)
 
+# HTML file intervention (A3) data folder:
+HTMLfoldA3 = os.path.join(os.path.dirname(__file__), '../data/interactive/A3/')
+@app.route('/data/intervention/<path:filename>')
+def serve_fileA3(filename):
+    return send_from_directory(HTMLfoldA3, filename)
+
 ### Protein ID dropdown ###
 # Function to read prot from the txt file and return a list
 def read_proteins_from_file(file_path):
