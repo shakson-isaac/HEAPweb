@@ -1,21 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Downloads = () => {
-  const handleDownload = async () => {
+  const [files, setFiles] = useState([]);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/downloads');
+        if (!response.ok) {
+          throw new Error('Failed to fetch files');
+        }
+        const data = await response.json();
+        setFiles(data);
+      } catch (error) {
+        console.error('Error fetching files:', error);
+      }
+    };
+
+    fetchFiles();
+  }, []);
+
+  const handleDownload = async (filename) => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/download/GEMdownload.csv', {
-        method: 'GET'
+      const response = await fetch(`http://127.0.0.1:5000/download/${filename}`, {
+        method: 'GET',
       });
 
       if (!response.ok) {
         throw new Error('Failed to download file');
       }
 
-      // Create a Blob from the response data
       const blob = await response.blob();
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'GEMproteins.csv';
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -28,9 +46,17 @@ const Downloads = () => {
     <div className="flex p-6">
       <div className="flex-1">
         <h2 className="text-2xl font-bold">Downloads</h2>
-        <button onClick={handleDownload} className="mt-4 p-2 bg-blue-500 text-white rounded">
-          Download GEMproteins.csv
-        </button>
+        <div className="mt-4">
+          {files.map((file) => (
+            <button
+              key={file}
+              onClick={() => handleDownload(file)}
+              className="m-2 p-2 bg-blue-500 text-white rounded"
+            >
+              Download {file}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

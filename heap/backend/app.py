@@ -177,15 +177,6 @@ def get_protlist():
     prot_list = read_proteins_from_file('../data/protIDs/protlist.txt')
     return jsonify(prot_list)
 
-# Path to Download Data Files
-@app.route('/download/<filename>', methods=['GET'])
-def download_file(filename):
-    try:
-        # Directly return the file from the download folder
-        return send_from_directory('../data/download/', filename, as_attachment=True)
-    except FileNotFoundError:
-        return jsonify({"error": "File not found"}), 404
-
 # API to list .png files in the interactions folder
 @app.route('/api/interactions', methods=['GET'])
 def list_interactions():
@@ -201,6 +192,28 @@ def list_interactions():
         app.logger.error(f"Error listing interaction files: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Define the download folder path once
+DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '../data/download/')
+
+@app.route('/api/downloads', methods=['GET'])
+def list_downloads():
+    try:
+        # List all files in the download folder
+        files = [f for f in os.listdir(DOWNLOAD_FOLDER) if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f))]
+        return jsonify(files)
+    except Exception as e:
+        app.logger.error(f"Error listing download files: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    try:
+        # Serve the file as an attachment for download
+        return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
+    except FileNotFoundError:
+        app.logger.error(f"File not found: {filename}")
+        return jsonify({"error": "File not found"}), 404
+
 # Custom 404 error handler
 @app.errorhandler(404)
 def page_not_found(e):
@@ -208,4 +221,3 @@ def page_not_found(e):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
