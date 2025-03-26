@@ -6,6 +6,7 @@ import HeapSummary from './subpages/HeapSummary';
 import Associations from './subpages/Associations';
 import Mediation from './subpages/Mediation';
 import Intervention from './subpages/Intervention';
+import Interactions from './subpages/Interactions';
 
 function Results() {
   return (
@@ -18,6 +19,7 @@ function Results() {
           <Route path="associations" element={<Associations />} />
           <Route path="mediation" element={<Mediation />} />
           <Route path="intervention" element={<Intervention />} />
+          <Route path="interactions" element={<Interactions />} />
         </Routes>
       </div>
     </div>

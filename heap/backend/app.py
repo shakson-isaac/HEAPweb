@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 import os
 import logging
+import glob
 
 # Define the Flask app
 app = Flask(__name__)
@@ -129,6 +130,16 @@ HTMLfoldA3 = os.path.join(os.path.dirname(__file__), '../data/interactive/A3/')
 def serve_fileA3(filename):
     return send_from_directory(HTMLfoldA3, filename)
 
+# Path to serve interaction images
+HTMLfoldP1 = os.path.join(os.path.dirname(__file__), '../data/interactive/P1/')
+@app.route('/data/interactions/<path:filename>')
+def serve_interaction_file(filename):
+    try:
+        return send_from_directory(HTMLfoldP1, filename)
+    except FileNotFoundError:
+        app.logger.error(f"File not found: {filename}")
+        return jsonify({"error": "File not found"}), 404
+
 ### Protein ID dropdown ###
 # Function to read prot from the txt file and return a list
 def read_proteins_from_file(file_path):
@@ -174,6 +185,21 @@ def download_file(filename):
         return send_from_directory('../data/download/', filename, as_attachment=True)
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
+
+# API to list .png files in the interactions folder
+@app.route('/api/interactions', methods=['GET'])
+def list_interactions():
+    interactions_folder = os.path.join(os.path.dirname(__file__), '../data/interactive/P1/')
+    try:
+        if not os.path.exists(interactions_folder):
+            raise FileNotFoundError("Interactions folder not found.")
+        files = [os.path.basename(file) for file in glob.glob(os.path.join(interactions_folder, '*.png'))]
+        if not files:
+            raise FileNotFoundError("No .png files found in the interactions folder.")
+        return jsonify(files)
+    except Exception as e:
+        app.logger.error(f"Error listing interaction files: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # Custom 404 error handler
 @app.errorhandler(404)

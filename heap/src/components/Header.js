@@ -59,6 +59,7 @@ function Header() {
             <MenuItem onClick={() => handleMenuClose('associations')}>Associations</MenuItem>
             <MenuItem onClick={() => handleMenuClose('mediation')}>Mediation</MenuItem>
             <MenuItem onClick={() => handleMenuClose('intervention')}>Intervention</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('interactions')}>Interactions</MenuItem>
           </Menu>
           <Menu
             anchorEl={docAnchorEl}
