@@ -16,7 +16,7 @@ function MainResults() {
       
       {/* Interactive Table of GvE table */}
       <div className="mt-8">
-        <h3 className="text-xl font-semibold">Partitioned R2: Genetics, Exposures, and its Interactions</h3>
+        <h3 className="text-xl font-semibold">Partitioned R<sup>2</sup>: Genetics, Exposures, and its Interactions</h3>
         <TableComponent csvFilePath="http://127.0.0.1:5000/fetch_data/GxE_R2table.csv" />
       </div>
     </div>
