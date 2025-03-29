@@ -9,11 +9,14 @@ import glob
 # Define the Flask app
 app = Flask(__name__)
 
-# Enable CORS for the app
-CORS(app)
+# Enable CORS for the app, allowing requests from the frontend service
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for now; restrict later if needed
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Use an environment variable to set the data folder path, with a default for local development
+DATA_FOLDER = os.getenv('DATA_FOLDER', './data')
 
 # Route for the root URL
 @app.route('/')
@@ -35,7 +38,7 @@ def csv_to_sqlite(csv_file, db_file, table_name):
 # Fetch data from SQLite database with pagination, search, and sorting
 @app.route('/fetch_data/<filename>', methods=['GET'])
 def fetch_data(filename):
-    db_file = os.path.join(os.path.dirname(__file__), '../data/table/', 'data.db')
+    db_file = os.path.join(DATA_FOLDER, 'table', 'data.db')
     table_name = filename.split('.')[0]
 
     # Convert CSV to SQLite table if it doesn't exist
@@ -43,7 +46,7 @@ def fetch_data(filename):
     cursor = conn.cursor()
     cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'")
     if cursor.fetchone() is None:
-        csv_file = os.path.join(os.path.dirname(__file__), '../data/table/', filename)
+        csv_file = os.path.join(DATA_FOLDER, 'table', filename)
         if not os.path.exists(csv_file):
             conn.close()
             return jsonify({"error": "File not found"}), 404
@@ -113,25 +116,25 @@ def fetch_data(filename):
     return jsonify(response)
 
 # Obtain HTML interactive files from data folder
-HTMLfold = os.path.join(os.path.dirname(__file__), '../data/interactive/A2/Type6/')
+HTMLfold = os.path.join(DATA_FOLDER, 'interactive', 'A2', 'Type6')
 @app.route('/data/<path:filename>')
 def serve_file(filename):
     return send_from_directory(HTMLfold, filename)
 
 # HTML file generic (A1) data folder:
-HTMLfoldA1 = os.path.join(os.path.dirname(__file__), '../data/interactive/A1/')
+HTMLfoldA1 = os.path.join(DATA_FOLDER, 'interactive', 'A1')
 @app.route('/data/generic/<path:filename>')
 def serve_fileA1(filename):
     return send_from_directory(HTMLfoldA1, filename)
 
 # HTML file intervention (A3) data folder:
-HTMLfoldA3 = os.path.join(os.path.dirname(__file__), '../data/interactive/A3/')
+HTMLfoldA3 = os.path.join(DATA_FOLDER, 'interactive', 'A3')
 @app.route('/data/intervention/<path:filename>')
 def serve_fileA3(filename):
     return send_from_directory(HTMLfoldA3, filename)
 
 # Path to serve interaction images
-HTMLfoldP1 = os.path.join(os.path.dirname(__file__), '../data/interactive/P1/')
+HTMLfoldP1 = os.path.join(DATA_FOLDER, 'interactive', 'P1')
 @app.route('/data/interactions/<path:filename>')
 def serve_interaction_file(filename):
     try:
@@ -174,13 +177,13 @@ def read_proteins_from_file(file_path):
 @app.route('/api/proteins', methods=['GET'])
 def get_protlist():
     # Specify the path to your gene list text file
-    prot_list = read_proteins_from_file('../data/protIDs/protlist.txt')
+    prot_list = read_proteins_from_file(os.path.join(DATA_FOLDER, 'protIDs', 'protlist.txt'))
     return jsonify(prot_list)
 
 # API to list .png files in the interactions folder
 @app.route('/api/interactions', methods=['GET'])
 def list_interactions():
-    interactions_folder = os.path.join(os.path.dirname(__file__), '../data/interactive/P1/')
+    interactions_folder = os.path.join(DATA_FOLDER, 'interactive', 'P1')
     try:
         if not os.path.exists(interactions_folder):
             raise FileNotFoundError("Interactions folder not found.")
@@ -193,7 +196,7 @@ def list_interactions():
         return jsonify({"error": str(e)}), 500
 
 # Define the download folder path once
-DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '../data/download/')
+DOWNLOAD_FOLDER = os.path.join(DATA_FOLDER, 'download')
 
 @app.route('/api/downloads', methods=['GET'])
 def list_downloads():

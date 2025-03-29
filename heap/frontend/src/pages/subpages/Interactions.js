@@ -9,7 +9,7 @@ const Interactions = () => {
   useEffect(() => {
     const fetchInteractionOptions = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/interactions');
+        const response = await fetch(`/api/interactions`); // Use relative URL
         if (!response.ok) {
           throw new Error(`Error fetching interactions: ${response.statusText}`);
         }
@@ -55,7 +55,7 @@ const Interactions = () => {
       {selectedInteraction && (
         <div className="interactive-plot mt-8">
           <img
-            src={`http://127.0.0.1:5000/data/interactions/${encodeURIComponent(selectedInteraction.value)}`}
+            src={`/data/interactions/${encodeURIComponent(selectedInteraction.value)}`} // Use relative URL
             alt={selectedInteraction.label}
             style={{ width: '1000px', maxHeight: '600px', objectFit: 'contain' }}
           />

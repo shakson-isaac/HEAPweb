@@ -1,5 +1,5 @@
 import React from 'react';
-import TableComponent from '../../components/TableComponent'; // Add this import
+import TableComponent from '../../components/TableComponent';
 
 function Mediation() {
   return (
@@ -13,9 +13,9 @@ function Mediation() {
       <div className="interactive-plot">
         <iframe
           title="Interactive Plot"
-          src={`http://127.0.0.1:5000/data/generic/GEMplot.html`}
+          src={`/data/generic/GEMplot.html`} // Use relative URL
           width="1200px"
-          height="600px" 
+          height="600px"
           frameBorder="0"
         />
       </div>
@@ -23,7 +23,9 @@ function Mediation() {
       {/* Interactive Table of GvE table */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Mediation Results for the Proteome</h3>
-        <TableComponent csvFilePath="http://127.0.0.1:5000/fetch_data/MediationResults.csv" />
+        <TableComponent
+          csvFilePath={`/fetch_data/MediationResults.csv`} // Use relative URL
+        />
       </div>
     </div>
   );

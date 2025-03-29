@@ -6,7 +6,7 @@ function Intervention() {
   const [selectedIntervention, setSelectedIntervention] = useState(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/data/intervention/exposure_interv.csv')
+    fetch(`/data/intervention/exposure_interv.csv`) // Use relative URL
       .then((response) => response.text())
       .then((data) => {
         const parsedData = data.split('\n').slice(1).map((line) => {
@@ -27,7 +27,6 @@ function Intervention() {
     <div className="mt-8">
       <h3 className="text-xl font-semibold">Intervention</h3>
       <p>Here you can provide details about the intervention studies...</p>
-      {/* Add more content for the Intervention page */}
       
       <div className="mt-4">
         <label htmlFor="intervention-select" className="mr-2">Select Intervention:</label>
@@ -46,7 +45,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 1"
-              src={`http://127.0.0.1:5000/data/intervention/${selectedIntervention.value}_HERITAGE.html`}
+              src={`/data/intervention/${selectedIntervention.value}_HERITAGE.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"
@@ -55,7 +54,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 2"
-              src={`http://127.0.0.1:5000/data/intervention/${selectedIntervention.value}_GLP1_STEP1.html`}
+              src={`/data/intervention/${selectedIntervention.value}_GLP1_STEP1.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"
@@ -64,7 +63,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 3"
-              src={`http://127.0.0.1:5000/data/intervention/${selectedIntervention.value}_GLP1_STEP2.html`}
+              src={`/data/intervention/${selectedIntervention.value}_GLP1_STEP2.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"

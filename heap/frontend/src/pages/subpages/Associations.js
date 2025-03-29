@@ -8,7 +8,7 @@ function Associations() {
   
   // Fetch the proteins from the backend when the component mounts
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/proteins')  // Flask API endpoint
+    fetch(`/api/proteins`)  // Flask API endpoint
       .then((response) => response.json())
       .then((data) => {
         setProteins(data);  // Store the protein list in state
@@ -24,7 +24,7 @@ function Associations() {
 
   // Construct the iframe src dynamically based on the selected protein's id
   const iframeSrc = selectedProtein
-    ? `http://127.0.0.1:5000/data/${selectedProtein.id}_Type6assoc.html`
+    ? `/data/${selectedProtein.id}_Type6assoc.html`
     : '';  // Default empty src until a protein is selected
 
   // Log iframeSrc to the console for debugging
