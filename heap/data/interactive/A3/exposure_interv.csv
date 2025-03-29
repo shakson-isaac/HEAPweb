@@ -1,0 +1,13 @@
+origID,sID,name
+bread_type_f1448_0_0_White,E1,White Bread Intake
+types_of_physical_activity_in_last_4_weeks_f6164_0_0.multi_Other_exercises_.eg._swimming._cycling._keep_fit._bowling.,E2,"Exercise: Swimming, Cycling, etc."
+alcohol_intake_versus_10_years_previously_f1628_0_03,E3,Incr. Alcohol Intake (vs. 10 yrs ago)
+cereal_intake_f1458_0_0,E4,Cereal Intake
+past_tobacco_smoking_f1249_0_04,E5,Former Daily Smoking
+fresh_fruit_intake_f1309_0_0,E6,Fresh Fruit Intake
+ever_smoked_f20160_0_0,E7,Smoked in Lifetime (Yes)
+smoking_status_f20116_0_0_Never,E8,Never Smoked
+beef_intake_f1369_0_03,E9,Beef Intake 1x/WK
+met_minutes_per_week_for_vigorous_activity_f22039_0_0,E10,MET min/WK of Vigorous Activity
+number_of_days_week_of_vigorous_physical_activity_10_plus_minutes_f904_0_0,E11,# Days/WK of Vigorous Activity
+types_of_physical_activity_in_last_4_weeks_f6164_0_0.multi_Strenuous_sports,E12,Exercise: Strenuous Sports

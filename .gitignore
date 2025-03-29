@@ -2,7 +2,7 @@
 .DS_Store
 
 #Do not store data in backend
-data/
+#data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
