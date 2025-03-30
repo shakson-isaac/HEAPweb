@@ -6,7 +6,7 @@ const Downloads = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch(`/api/downloads`);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/downloads`);
         if (!response.ok) {
           throw new Error('Failed to fetch files');
         }
@@ -22,7 +22,7 @@ const Downloads = () => {
 
   const handleDownload = async (filename) => {
     try {
-      const response = await fetch(`/download/${filename}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/download/${filename}`, {
         method: 'GET',
       });
 

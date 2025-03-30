@@ -13,7 +13,7 @@ function Mediation() {
       <div className="interactive-plot">
         <iframe
           title="Interactive Plot"
-          src={`/data/generic/GEMplot.html`} // Use relative URL
+          src={`${process.env.REACT_APP_BACKEND_URL}/data/generic/GEMplot.html`} // Use relative URL
           width="1200px"
           height="600px"
           frameBorder="0"
@@ -24,7 +24,7 @@ function Mediation() {
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Mediation Results for the Proteome</h3>
         <TableComponent
-          csvFilePath={`/fetch_data/MediationResults.csv`} // Use relative URL
+          csvFilePath={`${process.env.REACT_APP_BACKEND_URL}/fetch_data/MediationResults.csv`} // Use relative URL
         />
       </div>
     </div>

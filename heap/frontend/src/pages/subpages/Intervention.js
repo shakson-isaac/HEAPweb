@@ -6,7 +6,7 @@ function Intervention() {
   const [selectedIntervention, setSelectedIntervention] = useState(null);
 
   useEffect(() => {
-    fetch(`/data/intervention/exposure_interv.csv`) // Use relative URL
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/data/intervention/exposure_interv.csv`) // Use relative URL
       .then((response) => response.text())
       .then((data) => {
         const parsedData = data.split('\n').slice(1).map((line) => {
@@ -45,7 +45,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 1"
-              src={`/data/intervention/${selectedIntervention.value}_HERITAGE.html`} // Use relative URL
+              src={`${process.env.REACT_APP_BACKEND_URL}/data/intervention/${selectedIntervention.value}_HERITAGE.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"
@@ -54,7 +54,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 2"
-              src={`/data/intervention/${selectedIntervention.value}_GLP1_STEP1.html`} // Use relative URL
+              src={`${process.env.REACT_APP_BACKEND_URL}/data/intervention/${selectedIntervention.value}_GLP1_STEP1.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"
@@ -63,7 +63,7 @@ function Intervention() {
           <div className="interactive-plot">
             <iframe
               title="Interactive Plot 3"
-              src={`/data/intervention/${selectedIntervention.value}_GLP1_STEP2.html`} // Use relative URL
+              src={`${process.env.REACT_APP_BACKEND_URL}/data/intervention/${selectedIntervention.value}_GLP1_STEP2.html`} // Use relative URL
               width="500px"
               height="400px"
               frameBorder="0"

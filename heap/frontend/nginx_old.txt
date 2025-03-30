@@ -1,0 +1,58 @@
+server {
+    listen 3000;
+
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Proxy requests to the backend service
+    location /data/ {
+        proxy_pass http://backend:5050/data/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /fetch_data/ {
+        proxy_pass http://backend:5050/fetch_data/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Add proxying for /api/ requests
+    location /api/ {
+        proxy_pass http://backend:5050/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Add proxying for /download/ requests
+    location /download/ {
+        proxy_pass http://backend:5050/download/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    error_page 404 /index.html;
+
+    location /static/ {
+        expires 1y;
+        add_header Cache-Control "public";
+    }
+}

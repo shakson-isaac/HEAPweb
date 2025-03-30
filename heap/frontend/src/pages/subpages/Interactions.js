@@ -9,7 +9,7 @@ const Interactions = () => {
   useEffect(() => {
     const fetchInteractionOptions = async () => {
       try {
-        const response = await fetch(`/api/interactions`); // Use relative URL
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/interactions`); // Use relative URL
         if (!response.ok) {
           throw new Error(`Error fetching interactions: ${response.statusText}`);
         }
@@ -55,7 +55,7 @@ const Interactions = () => {
       {selectedInteraction && (
         <div className="interactive-plot mt-8">
           <img
-            src={`/data/interactions/${encodeURIComponent(selectedInteraction.value)}`} // Use relative URL
+            src={`${process.env.REACT_APP_BACKEND_URL}/data/interactions/${encodeURIComponent(selectedInteraction.value)}`} // Use relative URL
             alt={selectedInteraction.label}
             style={{ width: '1000px', maxHeight: '600px', objectFit: 'contain' }}
           />

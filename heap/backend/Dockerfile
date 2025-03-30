@@ -25,7 +25,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port for Gunicorn
-EXPOSE 5050
+EXPOSE 8080
 
 # Run Gunicorn bound to the specified port
-CMD ["gunicorn", "--bind", ":5050", "--workers", "4", "--threads", "8", "app:app"]
+CMD ["gunicorn", "--bind", ":8080", "--workers", "4", "--threads", "8", "app:app"]

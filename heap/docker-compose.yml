@@ -4,10 +4,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5050:5050" # Map backend container's port 5000 to host's port 5050
+      - "8080:8080" # Map backend container's port 5000 to host's port 5050
     environment:
       - NODE_ENV=production
-      - PORT=5050
+      - PORT=8080
       - DATA_FOLDER=/app/data
     volumes:
       - ./data:/app/data  # Map the internal data folder to /app/data in the container
@@ -19,9 +19,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "4040:3000" # Map frontend container's port 3000 to host's port 4040
+      - "4040:3000" # Map frontend container's port 3000 to host's port 4040;; FOR Google Cloud everything is 8080 for now!
     environment:
-      - REACT_APP_BACKEND_URL=http://backend:5050  # Use Docker service name for backend
+      - REACT_APP_BACKEND_URL=http://backend:8080  # Use Docker service name for backend
     networks:
       - app-network
 

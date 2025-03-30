@@ -7,8 +7,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
+# Enter FLASK-BACKEND-URL in the environment variable via Google Cloud Run/Build
 COPY . .
-ENV REACT_APP_BACKEND_URL=http://backend:5050
+ENV REACT_APP_BACKEND_URL=https://flask-backend-407921522156.us-central1.run.app
 RUN npm run build
 
 # Use a lightweight web server to serve the built app
@@ -19,5 +20,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=build /app/build /usr/share/nginx/html
 
-EXPOSE 3000
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
