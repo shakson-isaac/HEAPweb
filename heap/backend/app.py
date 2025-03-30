@@ -7,7 +7,7 @@ from io import StringIO
 import os
 import logging
 import io
-from sqlalchemy import create_engine, or_, Table, MetaData, inspect
+from sqlalchemy import create_engine, or_, Table, MetaData, inspect, func
 from sqlalchemy.orm import registry
 import gc  # Import garbage collection module
 from flask_sqlalchemy import SQLAlchemy
@@ -342,41 +342,7 @@ def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
         app.logger.error(f"Error creating or refreshing table with SQLAlchemy: {e}")
         raise
 
-# Define a dynamic model for tables
-class DynamicTable:
-    pass
-
-# Initialize a registry for classical mapping
-mapper_registry = registry()
-
-# Function to dynamically bind the DynamicTable class to a database table
-def bind_dynamic_table(tablename):
-    try:
-        metadata = MetaData()  # Create a MetaData object
-        table = Table(tablename, metadata, autoload_with=db.engine)  # Use 'autoload_with' to associate with the engine
-
-        # Check if the table has a primary key
-        inspector = inspect(db.engine)
-        primary_keys = inspector.get_pk_constraint(tablename)['constrained_columns']
-        if not primary_keys:
-            app.logger.warning(f"Table '{tablename}' does not have a primary key. Queries may not work as expected.")
-
-        mapper_registry.map_imperatively(DynamicTable, table)  # Use registry to map the class to the table
-        app.logger.info(f"DynamicTable successfully bound to table '{tablename}'.")
-    except Exception as e:
-        app.logger.error(f"Error binding DynamicTable to table '{tablename}': {e}")
-        raise
-
-# Function to dynamically create a Marshmallow schema for the bound table
-def create_dynamic_schema():
-    class DynamicTableSchema(ma.SQLAlchemyAutoSchema):
-        class Meta:
-            model = DynamicTable
-            include_fk = True
-            load_instance = True
-    return DynamicTableSchema
-
-# Route to fetch data with pagination, sorting, and searching
+# Function to fetch data with pagination, sorting, and searching using SQLAlchemy Table
 @app.route('/fetch_data/<table_name>', methods=['GET'])
 @cache.cached(timeout=300, query_string=True)  # Cache the response for 5 minutes
 def fetch_data(table_name):
@@ -385,47 +351,49 @@ def fetch_data(table_name):
         if table_name.endswith(".csv"):
             table_name = table_name[:-4]
 
-        # Dynamically bind the DynamicTable class to the specified table
-        bind_dynamic_table(table_name)
-
-        # Dynamically create a schema for the bound table
-        DynamicTableSchema = create_dynamic_schema()
+        # Reflect the table from the database
+        metadata = MetaData()  # Initialize MetaData without bind
+        table = Table(table_name, metadata, autoload_with=db.engine)  # Explicitly pass the engine
 
         # Get pagination, search, and sorting params from the request
         page = int(request.args.get('page', 0)) + 1  # Flask-SQLAlchemy uses 1-based indexing
         rows_per_page = int(request.args.get('rowsPerPage', 10))
-        search_term = request.args.get('search', '').strip()
+        search_term = request.args.get('search', '').strip().lower()  # Convert search term to lowercase
         sort_column = request.args.get('sortColumn', None)
         sort_direction = request.args.get('sortDirection', 'asc')
 
         # Build the query
-        query = db.session.query(DynamicTable)
+        query = db.session.query(table)
 
         # Apply search filter
         if search_term:
-            search_filters = [
-                getattr(DynamicTable, col).ilike(f"%{search_term}%")
-                for col in DynamicTable.__table__.columns.keys()
-            ]
+            search_filters = []
+            for col in table.columns.keys():
+                column = table.c[col]
+                # Check if the column is of a text-compatible type
+                if str(column.type).lower() in ['text', 'varchar', 'char']:
+                    search_filters.append(func.lower(column).like(f"%{search_term}%"))
+                else:
+                    # Optionally cast non-text columns to TEXT for searching
+                    search_filters.append(func.cast(column, db.Text).like(f"%{search_term}%"))
             query = query.filter(or_(*search_filters))
 
         # Apply sorting
-        if sort_column and hasattr(DynamicTable, sort_column):
-            sort_attr = getattr(DynamicTable, sort_column)
+        if sort_column and sort_column in table.columns.keys():
+            sort_attr = table.c[sort_column]
             query = query.order_by(sort_attr.desc() if sort_direction == 'desc' else sort_attr.asc())
 
         # Apply pagination
         total_records = query.count()  # Get total records count
         rows = query.offset((page - 1) * rows_per_page).limit(rows_per_page).all()
 
-        # Serialize the results
-        schema = DynamicTableSchema(many=True)
-        data = schema.dump(rows)
+        # Serialize the results using row._mapping
+        data = [dict(row._mapping) for row in rows]
 
         # Prepare the response
         response = {
             'data': data,
-            'columns': list(DynamicTable.__table__.columns.keys()),
+            'columns': list(table.columns.keys()),
             'recordsTotal': total_records,
             'recordsFiltered': total_records,
         }
