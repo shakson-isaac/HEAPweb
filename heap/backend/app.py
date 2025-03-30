@@ -8,6 +8,7 @@ import os
 import logging
 import io
 from sqlalchemy import create_engine
+import gc  # Import garbage collection module
 
 # Define the Flask app
 app = Flask(__name__)
@@ -296,12 +297,25 @@ def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
         app.logger.debug(f"Creating or refreshing table '{table_name}' from CSV file: {csv_file_path}")
         engine = get_sqlalchemy_engine()
 
-        # Read the CSV file into a pandas DataFrame
+        # Read the CSV file in chunks to avoid loading the entire file into memory
         csv_data = fetch_csv_from_gcs(GCS_BUCKET, csv_file_path)
-        df = pd.read_csv(StringIO(csv_data))
+        chunk_size = 10000  # Process 10,000 rows at a time
+        first_chunk = True  # Track whether this is the first chunk
 
-        # Use df.to_sql to create or refresh the table
-        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        for chunk in pd.read_csv(StringIO(csv_data), chunksize=chunk_size):
+            # Use 'replace' for the first chunk to clear the table, then 'append' for subsequent chunks
+            if first_chunk:
+                chunk.to_sql(table_name, engine, if_exists='replace', index=False)
+                first_chunk = False
+                app.logger.debug(f"Replaced table '{table_name}' with the first chunk of {len(chunk)} rows.")
+            else:
+                chunk.to_sql(table_name, engine, if_exists='append', index=False)
+                app.logger.debug(f"Appended a chunk of {len(chunk)} rows to table '{table_name}'.")
+
+            # Explicitly delete the chunk and invoke garbage collection after processing each chunk
+            del chunk
+            gc.collect()
+
         app.logger.info(f"Table '{table_name}' created or refreshed successfully.")
     except Exception as e:
         app.logger.error(f"Error creating or refreshing table with SQLAlchemy: {e}")
@@ -323,7 +337,7 @@ def fetch_data_from_postgres(table_name):
         cursor.execute(f"SELECT to_regclass('{table_name}')")
         table_exists = cursor.fetchone()[0]
 
-        # If the table does not exist, attempt to create or refresh it from a CSV file
+        # Only create or refresh the table if it does not exist
         if not table_exists:
             app.logger.warning(f"Table '{table_name}' does not exist in PostgreSQL. Attempting to create or refresh it from CSV...")
             csv_file_path = f"data/table/{table_name}.csv"
@@ -362,7 +376,7 @@ def fetch_data_from_postgres(table_name):
 
         # Add search condition if searchTrigger is true
         if search_term and search_trigger:
-            search_term = f"%{search_term.lower()}%"
+            search_term = f"%{search_term.lower()}%"  # Add wildcards for partial matching
             search_conditions = [f"LOWER(\"{col}\") LIKE %s" for col in valid_columns]
             query += " WHERE " + " OR ".join(search_conditions)
             params.extend([search_term] * len(search_conditions))
