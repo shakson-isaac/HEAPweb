@@ -7,6 +7,7 @@ from io import StringIO
 import os
 import logging
 import io
+from sqlalchemy import create_engine
 
 # Define the Flask app
 app = Flask(__name__)
@@ -44,6 +45,22 @@ def get_postgres_connection():
         raise
     except Exception as e:
         app.logger.error(f"Error connecting to PostgreSQL: {e}")
+        raise
+
+# Function to get a SQLAlchemy engine
+def get_sqlalchemy_engine():
+    try:
+        app.logger.debug("Creating SQLAlchemy engine...")
+        # Update the connection string to use the Cloud SQL Unix socket
+        connection_string = (
+            f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}"
+            f"?host={POSTGRES_HOST}"
+        )
+        engine = create_engine(connection_string)
+        app.logger.info("SQLAlchemy engine created successfully.")
+        return engine
+    except Exception as e:
+        app.logger.error(f"Error creating SQLAlchemy engine: {e}")
         raise
 
 # Initialize the GCS client
@@ -273,78 +290,48 @@ def list_interactions():
         app.logger.error(f"Error listing interaction files: {e}")
         return jsonify({"error": str(e)}), 500
 
-# Route to populate PostgreSQL from GCS
-@app.route('/populate', methods=['POST'])
-def populate_database():
+# Function to dynamically create or refresh a table using SQLAlchemy and Pandas
+def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
     try:
-        conn = get_postgres_connection()
-        cursor = conn.cursor()
+        app.logger.debug(f"Creating or refreshing table '{table_name}' from CSV file: {csv_file_path}")
+        engine = get_sqlalchemy_engine()
 
-        # List all CSV files in the "data/table" folder on GCS
-        bucket = storage_client.get_bucket(GCS_BUCKET)
-        blobs = bucket.list_blobs(prefix="data/table/")
-        csv_files = [blob.name for blob in blobs if blob.name.endswith(".csv")]
+        # Read the CSV file into a pandas DataFrame
+        csv_data = fetch_csv_from_gcs(GCS_BUCKET, csv_file_path)
+        df = pd.read_csv(StringIO(csv_data))
 
-        for csv_file in csv_files:
-            app.logger.info(f"Processing file: {csv_file}")
-
-            # Fetch the CSV file content
-            csv_data = fetch_csv_from_gcs(GCS_BUCKET, csv_file)
-
-            # Convert CSV content to a pandas DataFrame
-            df = pd.read_csv(StringIO(csv_data))
-            app.logger.info(f"CSV file '{csv_file}' loaded into DataFrame with {len(df)} rows.")
-
-            # Generate a table name from the file name
-            table_name = csv_file.split("/")[-1].replace(".csv", "")
-
-            # Ensure the table name matches the expected format
-            if not table_name.isidentifier():
-                app.logger.error(f"Invalid table name: {table_name}")
-                continue
-
-            # Create a table in PostgreSQL
-            columns = ", ".join([f'"{col}" TEXT' for col in df.columns])  # Define all columns as TEXT
-            create_table_query = f'CREATE TABLE IF NOT EXISTS "{table_name}" ({columns});'
-            app.logger.debug(f"Creating table with query: {create_table_query}")
-            cursor.execute(create_table_query)
-            app.logger.info(f"Table '{table_name}' created or already exists.")
-
-            # Insert data into the table
-            for _, row in df.iterrows():
-                placeholders = ", ".join(["%s"] * len(row))
-                insert_query = f'INSERT INTO "{table_name}" VALUES ({placeholders});'
-                cursor.execute(insert_query, tuple(row))
-
-            app.logger.info(f"Data inserted into table '{table_name}'.")
-
-        # Commit the transaction
-        conn.commit()
-        app.logger.info("All tables populated successfully.")
-        return jsonify({"message": "Database populated successfully"}), 200
+        # Use df.to_sql to create or refresh the table
+        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        app.logger.info(f"Table '{table_name}' created or refreshed successfully.")
     except Exception as e:
-        app.logger.error(f"Error populating database: {e}")
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if 'cursor' in locals() and cursor:
-            cursor.close()
-        if 'conn' in locals() and conn:
-            conn.close()
+        app.logger.error(f"Error creating or refreshing table with SQLAlchemy: {e}")
+        raise
 
 # Route to fetch data from PostgreSQL with pagination, search, and sorting
 @app.route('/fetch_data/<table_name>', methods=['GET'])
 def fetch_data_from_postgres(table_name):
     try:
+        # Strip .csv extension from the table name if present
+        if table_name.endswith(".csv"):
+            table_name = table_name[:-4]
+
         app.logger.debug(f"Fetching data from table: {table_name}")
         conn = get_postgres_connection()
         cursor = conn.cursor()
 
-        # Check if the table exists
+        # Check if the table exists in PostgreSQL
         cursor.execute(f"SELECT to_regclass('{table_name}')")
         table_exists = cursor.fetchone()[0]
+
+        # If the table does not exist, attempt to create or refresh it from a CSV file
         if not table_exists:
-            app.logger.error(f"Table '{table_name}' does not exist in PostgreSQL.")
-            return jsonify({"error": f"Table '{table_name}' does not exist."}), 404
+            app.logger.warning(f"Table '{table_name}' does not exist in PostgreSQL. Attempting to create or refresh it from CSV...")
+            csv_file_path = f"data/table/{table_name}.csv"
+            try:
+                create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path)
+            except FileNotFoundError:
+                app.logger.error(f"CSV file '{csv_file_path}' does not exist in Google Cloud Storage.")
+                return jsonify({"error": f"Table '{table_name}' does not exist in PostgreSQL or Google Cloud Storage."}), 404
 
         # Get pagination, search, and sorting params from the request
         page = int(request.args.get('page', 0))
@@ -354,6 +341,20 @@ def fetch_data_from_postgres(table_name):
         sort_direction = request.args.get('sortDirection', 'asc')
         search_trigger = request.args.get('searchTrigger', 'false').lower() == 'true'
 
+        # Fetch valid columns for the table
+        cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
+        valid_columns = [row[0] for row in cursor.fetchall()]
+
+        # Validate the sort column
+        if sort_column and sort_column not in valid_columns:
+            app.logger.error(f"Invalid sort column: {sort_column}. Valid columns are: {valid_columns}")
+            return jsonify({"error": f"Invalid sort column: {sort_column}. Valid columns are: {valid_columns}"}), 400
+
+        # Use a default sort column if none is provided
+        if not sort_column and valid_columns:
+            sort_column = valid_columns[0]
+            app.logger.info(f"No sort column provided. Using default sort column: {sort_column}")
+
         # Build the SQL query
         query = f"SELECT * FROM \"{table_name}\""
         params = []
@@ -362,9 +363,7 @@ def fetch_data_from_postgres(table_name):
         # Add search condition if searchTrigger is true
         if search_term and search_trigger:
             search_term = f"%{search_term.lower()}%"
-            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
-            columns = [row[0] for row in cursor.fetchall()]
-            search_conditions = [f"LOWER(\"{col}\") LIKE %s" for col in columns]
+            search_conditions = [f"LOWER(\"{col}\") LIKE %s" for col in valid_columns]
             query += " WHERE " + " OR ".join(search_conditions)
             params.extend([search_term] * len(search_conditions))
 
@@ -403,8 +402,8 @@ def fetch_data_from_postgres(table_name):
 
         return jsonify(response)
     except psycopg2.Error as e:
-        app.logger.error(f"Database error: {e}")
-        return jsonify({"error": "Database error occurred."}), 500
+        app.logger.error(f"Database error: {e.pgerror}")
+        return jsonify({"error": "Database error occurred.", "details": e.pgerror}), 500
     except Exception as e:
         app.logger.error(f"Error fetching data: {e}")
         return jsonify({"error": str(e)}), 500
