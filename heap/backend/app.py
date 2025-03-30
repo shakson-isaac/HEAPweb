@@ -20,28 +20,34 @@ logging.basicConfig(level=logging.DEBUG)
 # GCS bucket name
 GCS_BUCKET = "heaptester135"
 
-# PostgreSQL connection details (updated with the correct host)
-POSTGRES_HOST = "YOUR_CLOUD_SQL_PUBLIC_OR_PRIVATE_IP"  # Replace with the actual IP
+# PostgreSQL connection details
+POSTGRES_HOST = "/cloudsql/focal-cache-455223-h5:us-central1:heapsql"  # Ensure this matches your Cloud SQL instance connection name
 POSTGRES_DB = "heapdb"
 POSTGRES_USER = "heap1"
 POSTGRES_PASSWORD = "heapdb1"
 
-# Initialize the GCS client
-storage_client = storage.Client()
-
 # Function to connect to PostgreSQL
 def get_postgres_connection():
     try:
+        app.logger.debug("Attempting to connect to PostgreSQL...")
         conn = psycopg2.connect(
             host=POSTGRES_HOST,
             database=POSTGRES_DB,
             user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD
+            password=POSTGRES_PASSWORD,
+            sslmode="disable"  # Change to "require" if SSL is needed
         )
+        app.logger.info("Successfully connected to PostgreSQL.")
         return conn
+    except psycopg2.OperationalError as e:
+        app.logger.error(f"OperationalError: {e}")
+        raise
     except Exception as e:
         app.logger.error(f"Error connecting to PostgreSQL: {e}")
         raise
+
+# Initialize the GCS client
+storage_client = storage.Client()
 
 # Function to fetch a file from GCS
 def get_gcs_file(bucket_name, file_path):
@@ -287,13 +293,20 @@ def populate_database():
 
             # Convert CSV content to a pandas DataFrame
             df = pd.read_csv(StringIO(csv_data))
+            app.logger.info(f"CSV file '{csv_file}' loaded into DataFrame with {len(df)} rows.")
 
             # Generate a table name from the file name
             table_name = csv_file.split("/")[-1].replace(".csv", "")
 
+            # Ensure the table name matches the expected format
+            if not table_name.isidentifier():
+                app.logger.error(f"Invalid table name: {table_name}")
+                continue
+
             # Create a table in PostgreSQL
             columns = ", ".join([f'"{col}" TEXT' for col in df.columns])  # Define all columns as TEXT
             create_table_query = f'CREATE TABLE IF NOT EXISTS "{table_name}" ({columns});'
+            app.logger.debug(f"Creating table with query: {create_table_query}")
             cursor.execute(create_table_query)
             app.logger.info(f"Table '{table_name}' created or already exists.")
 
@@ -313,15 +326,16 @@ def populate_database():
         app.logger.error(f"Error populating database: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
-        if cursor:
+        if 'cursor' in locals() and cursor:
             cursor.close()
-        if conn:
+        if 'conn' in locals() and conn:
             conn.close()
 
 # Route to fetch data from PostgreSQL with pagination, search, and sorting
 @app.route('/fetch_data/<table_name>', methods=['GET'])
 def fetch_data_from_postgres(table_name):
     try:
+        app.logger.debug(f"Fetching data from table: {table_name}")
         conn = get_postgres_connection()
         cursor = conn.cursor()
 
@@ -393,6 +407,25 @@ def fetch_data_from_postgres(table_name):
         return jsonify({"error": "Database error occurred."}), 500
     except Exception as e:
         app.logger.error(f"Error fetching data: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if 'cursor' in locals() and cursor:
+            cursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
+# Route to test PostgreSQL connection
+@app.route('/test-db-connection', methods=['GET'])
+def test_db_connection():
+    try:
+        conn = get_postgres_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")  # Simple query to test the connection
+        result = cursor.fetchone()
+        conn.close()
+        return jsonify({"message": "Database connection successful", "result": result}), 200
+    except Exception as e:
+        app.logger.error(f"Database connection test failed: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Custom 404 error handler

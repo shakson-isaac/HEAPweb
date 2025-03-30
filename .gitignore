@@ -1,6 +1,9 @@
 # MacOS files
 .DS_Store
 
+#Hide Private Data
+heap/backend/keys/
+
 #Do not store data in backend
 data/
 
