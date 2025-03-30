@@ -24,10 +24,15 @@ const TableComponent = ({ csvFilePath }) => {
           sortDirection,
           page,
           rowsPerPage,
-          searchTrigger: true
+          searchTrigger: !!currentSearchTerm, // Ensure searchTrigger is true only when a search term is provided
         },
       });
       console.log('Fetched data:', response.data); // Log the fetched data
+
+      if (response.data.data.length === 0) {
+        console.warn('No data returned from the backend.');
+      }
+
       setColumns(response.data.columns);
       setData(response.data.data); // Ensure this matches the response structure
       setTotalRows(response.data.recordsFiltered); // Ensure this matches the response structure
@@ -42,7 +47,7 @@ const TableComponent = ({ csvFilePath }) => {
   };
 
   const handleSearchClick = () => {
-    setCurrentSearchTerm(searchTerm);
+    setCurrentSearchTerm(searchTerm); // Update the current search term
     setPage(0); // Reset to the first page when a new search is triggered
   };
 
@@ -50,6 +55,7 @@ const TableComponent = ({ csvFilePath }) => {
     const isAsc = sortColumn === column && sortDirection === 'asc';
     setSortDirection(isAsc ? 'desc' : 'asc');
     setSortColumn(column);
+    setPage(0); // Reset to the first page when sorting is triggered
   };
 
   const handleChangePage = (event, newPage) => {
@@ -91,8 +97,10 @@ const TableComponent = ({ csvFilePath }) => {
                     key={column}
                     sortDirection={sortColumn === column ? sortDirection : false}
                     onClick={() => handleSort(column)}
+                    style={{ cursor: 'pointer' }}
                   >
                     {column}
+                    {sortColumn === column ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ''}
                   </TableCell>
                 ))}
               </TableRow>

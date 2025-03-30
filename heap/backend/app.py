@@ -7,8 +7,10 @@ from io import StringIO
 import os
 import logging
 import io
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 import gc  # Import garbage collection module
+from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 
 # Define the Flask app
 app = Flask(__name__)
@@ -27,6 +29,14 @@ POSTGRES_HOST = "/cloudsql/focal-cache-455223-h5:us-central1:heapsql"  # Ensure 
 POSTGRES_DB = "heapdb"
 POSTGRES_USER = "heap1"
 POSTGRES_PASSWORD = "heapdb1"
+
+# Configure SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}?host={POSTGRES_HOST}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy and Marshmallow
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
 # Function to connect to PostgreSQL
 def get_postgres_connection():
@@ -321,111 +331,71 @@ def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
         app.logger.error(f"Error creating or refreshing table with SQLAlchemy: {e}")
         raise
 
-# Route to fetch data from PostgreSQL with pagination, search, and sorting
+# Define a dynamic model for tables
+class DynamicTable(db.Model):
+    __tablename__ = None  # This will be set dynamically
+
+    @classmethod
+    def set_tablename(cls, tablename):
+        cls.__tablename__ = tablename
+
+# Define a schema for serialization
+class DynamicTableSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = DynamicTable
+        include_fk = True
+        load_instance = True
+
+# Route to fetch data with pagination, sorting, and searching
 @app.route('/fetch_data/<table_name>', methods=['GET'])
-def fetch_data_from_postgres(table_name):
+def fetch_data(table_name):
     try:
         # Strip .csv extension from the table name if present
         if table_name.endswith(".csv"):
             table_name = table_name[:-4]
 
-        app.logger.debug(f"Fetching data from table: {table_name}")
-        conn = get_postgres_connection()
-        cursor = conn.cursor()
-
-        # Check if the table exists in PostgreSQL
-        cursor.execute(f"SELECT to_regclass('{table_name}')")
-        table_exists = cursor.fetchone()[0]
-
-        # Only create or refresh the table if it does not exist
-        if not table_exists:
-            app.logger.warning(f"Table '{table_name}' does not exist in PostgreSQL. Attempting to create or refresh it from CSV...")
-            csv_file_path = f"data/table/{table_name}.csv"
-            try:
-                create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path)
-            except FileNotFoundError:
-                app.logger.error(f"CSV file '{csv_file_path}' does not exist in Google Cloud Storage.")
-                return jsonify({"error": f"Table '{table_name}' does not exist in PostgreSQL or Google Cloud Storage."}), 404
+        # Dynamically set the table name
+        DynamicTable.set_tablename(table_name)
 
         # Get pagination, search, and sorting params from the request
-        page = int(request.args.get('page', 0))
+        page = int(request.args.get('page', 0)) + 1  # Flask-SQLAlchemy uses 1-based indexing
         rows_per_page = int(request.args.get('rowsPerPage', 10))
-        search_term = request.args.get('search', '')
-        sort_column = request.args.get('sortColumn', '')
+        search_term = request.args.get('search', '').strip()
+        sort_column = request.args.get('sortColumn', None)
         sort_direction = request.args.get('sortDirection', 'asc')
-        search_trigger = request.args.get('searchTrigger', 'false').lower() == 'true'
 
-        # Fetch valid columns for the table
-        cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
-        valid_columns = [row[0] for row in cursor.fetchall()]
+        # Build the query
+        query = db.session.query(DynamicTable)
 
-        # Validate the sort column
-        if sort_column and sort_column not in valid_columns:
-            app.logger.error(f"Invalid sort column: {sort_column}. Valid columns are: {valid_columns}")
-            return jsonify({"error": f"Invalid sort column: {sort_column}. Valid columns are: {valid_columns}"}), 400
+        # Apply search filter
+        if search_term:
+            search_filters = [getattr(DynamicTable, col).ilike(f"%{search_term}%") for col in DynamicTable.__table__.columns.keys()]
+            query = query.filter(or_(*search_filters))
 
-        # Use a default sort column if none is provided
-        if not sort_column and valid_columns:
-            sort_column = valid_columns[0]
-            app.logger.info(f"No sort column provided. Using default sort column: {sort_column}")
+        # Apply sorting
+        if sort_column and hasattr(DynamicTable, sort_column):
+            sort_attr = getattr(DynamicTable, sort_column)
+            query = query.order_by(sort_attr.desc() if sort_direction == 'desc' else sort_attr.asc())
 
-        # Build the SQL query
-        query = f"SELECT * FROM \"{table_name}\""
-        params = []
-        search_conditions = []
+        # Apply pagination
+        paginated_query = query.paginate(page=page, per_page=rows_per_page, error_out=False)
 
-        # Add search condition if searchTrigger is true
-        if search_term and search_trigger:
-            search_term = f"%{search_term.lower()}%"  # Add wildcards for partial matching
-            search_conditions = [f"LOWER(\"{col}\") LIKE %s" for col in valid_columns]
-            query += " WHERE " + " OR ".join(search_conditions)
-            params.extend([search_term] * len(search_conditions))
-
-        # Get total records count after search filter
-        count_query = f"SELECT COUNT(*) FROM \"{table_name}\""
-        if search_conditions:
-            count_query += " WHERE " + " OR ".join(search_conditions)
-        cursor.execute(count_query, params[:len(search_conditions)])
-        total_filtered_records = cursor.fetchone()[0]
-
-        # Add sorting
-        if sort_column:
-            query += f" ORDER BY \"{sort_column}\" {sort_direction.upper()}"
-
-        # Add pagination
-        query += f" LIMIT %s OFFSET %s"
-        params.extend([rows_per_page, page * rows_per_page])
-
-        # Execute the query
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-
-        # Get column names
-        columns = [desc[0] for desc in cursor.description]
-
-        conn.close()
+        # Serialize the results
+        schema = DynamicTableSchema(many=True)
+        data = schema.dump(paginated_query.items)
 
         # Prepare the response
-        data = [dict(zip(columns, row)) for row in rows]
         response = {
             'data': data,
-            'columns': columns,
-            'recordsTotal': total_filtered_records,
-            'recordsFiltered': total_filtered_records,
+            'columns': list(DynamicTable.__table__.columns.keys()),
+            'recordsTotal': paginated_query.total,
+            'recordsFiltered': paginated_query.total,
         }
 
         return jsonify(response)
-    except psycopg2.Error as e:
-        app.logger.error(f"Database error: {e.pgerror}")
-        return jsonify({"error": "Database error occurred.", "details": e.pgerror}), 500
     except Exception as e:
         app.logger.error(f"Error fetching data: {e}")
         return jsonify({"error": str(e)}), 500
-    finally:
-        if 'cursor' in locals() and cursor:
-            cursor.close()
-        if 'conn' in locals() and conn:
-            conn.close()
 
 # Route to test PostgreSQL connection
 @app.route('/test-db-connection', methods=['GET'])
