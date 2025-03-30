@@ -7,10 +7,12 @@ from io import StringIO
 import os
 import logging
 import io
-from sqlalchemy import create_engine, or_
+from sqlalchemy import create_engine, or_, Table, MetaData, inspect
+from sqlalchemy.orm import registry
 import gc  # Import garbage collection module
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from flask_caching import Cache
 
 # Define the Flask app
 app = Flask(__name__)
@@ -20,6 +22,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Configure Flask-Caching
+cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
 
 # GCS bucket name
 GCS_BUCKET = "heaptester135"
@@ -33,6 +38,12 @@ POSTGRES_PASSWORD = "heapdb1"
 # Configure SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}?host={POSTGRES_HOST}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,  # Maximum number of connections in the pool
+    'max_overflow': 5,  # Maximum number of connections beyond the pool size
+    'pool_timeout': 30,  # Timeout for getting a connection from the pool
+    'pool_recycle': 1800,  # Recycle connections after 30 minutes
+}
 
 # Initialize SQLAlchemy and Marshmallow
 db = SQLAlchemy(app)
@@ -332,30 +343,53 @@ def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
         raise
 
 # Define a dynamic model for tables
-class DynamicTable(db.Model):
-    __tablename__ = None  # This will be set dynamically
+class DynamicTable:
+    pass
 
-    @classmethod
-    def set_tablename(cls, tablename):
-        cls.__tablename__ = tablename
+# Initialize a registry for classical mapping
+mapper_registry = registry()
 
-# Define a schema for serialization
-class DynamicTableSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = DynamicTable
-        include_fk = True
-        load_instance = True
+# Function to dynamically bind the DynamicTable class to a database table
+def bind_dynamic_table(tablename):
+    try:
+        metadata = MetaData()  # Create a MetaData object
+        table = Table(tablename, metadata, autoload_with=db.engine)  # Use 'autoload_with' to associate with the engine
+
+        # Check if the table has a primary key
+        inspector = inspect(db.engine)
+        primary_keys = inspector.get_pk_constraint(tablename)['constrained_columns']
+        if not primary_keys:
+            app.logger.warning(f"Table '{tablename}' does not have a primary key. Queries may not work as expected.")
+
+        mapper_registry.map_imperatively(DynamicTable, table)  # Use registry to map the class to the table
+        app.logger.info(f"DynamicTable successfully bound to table '{tablename}'.")
+    except Exception as e:
+        app.logger.error(f"Error binding DynamicTable to table '{tablename}': {e}")
+        raise
+
+# Function to dynamically create a Marshmallow schema for the bound table
+def create_dynamic_schema():
+    class DynamicTableSchema(ma.SQLAlchemyAutoSchema):
+        class Meta:
+            model = DynamicTable
+            include_fk = True
+            load_instance = True
+    return DynamicTableSchema
 
 # Route to fetch data with pagination, sorting, and searching
 @app.route('/fetch_data/<table_name>', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)  # Cache the response for 5 minutes
 def fetch_data(table_name):
     try:
         # Strip .csv extension from the table name if present
         if table_name.endswith(".csv"):
             table_name = table_name[:-4]
 
-        # Dynamically set the table name
-        DynamicTable.set_tablename(table_name)
+        # Dynamically bind the DynamicTable class to the specified table
+        bind_dynamic_table(table_name)
+
+        # Dynamically create a schema for the bound table
+        DynamicTableSchema = create_dynamic_schema()
 
         # Get pagination, search, and sorting params from the request
         page = int(request.args.get('page', 0)) + 1  # Flask-SQLAlchemy uses 1-based indexing
@@ -369,7 +403,10 @@ def fetch_data(table_name):
 
         # Apply search filter
         if search_term:
-            search_filters = [getattr(DynamicTable, col).ilike(f"%{search_term}%") for col in DynamicTable.__table__.columns.keys()]
+            search_filters = [
+                getattr(DynamicTable, col).ilike(f"%{search_term}%")
+                for col in DynamicTable.__table__.columns.keys()
+            ]
             query = query.filter(or_(*search_filters))
 
         # Apply sorting
@@ -378,18 +415,19 @@ def fetch_data(table_name):
             query = query.order_by(sort_attr.desc() if sort_direction == 'desc' else sort_attr.asc())
 
         # Apply pagination
-        paginated_query = query.paginate(page=page, per_page=rows_per_page, error_out=False)
+        total_records = query.count()  # Get total records count
+        rows = query.offset((page - 1) * rows_per_page).limit(rows_per_page).all()
 
         # Serialize the results
         schema = DynamicTableSchema(many=True)
-        data = schema.dump(paginated_query.items)
+        data = schema.dump(rows)
 
         # Prepare the response
         response = {
             'data': data,
             'columns': list(DynamicTable.__table__.columns.keys()),
-            'recordsTotal': paginated_query.total,
-            'recordsFiltered': paginated_query.total,
+            'recordsTotal': total_records,
+            'recordsFiltered': total_records,
         }
 
         return jsonify(response)
