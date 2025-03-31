@@ -7,9 +7,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Enter FLASK-BACKEND-URL in the environment variable via Google Cloud Run/Build
+# Copy the source code
 COPY . .
-ENV REACT_APP_BACKEND_URL=https://flask-backend-407921522156.us-central1.run.app
+
+# Build the React app (backend URL will be injected via environment variables)
+ARG REACT_APP_BACKEND_URL
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 RUN npm run build
 
 # Use a lightweight web server to serve the built app

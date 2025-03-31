@@ -3,7 +3,7 @@ name: Deploy Backend to Google Cloud Run
 on:
   push:
     branches:
-      - main  # Trigger workflow on pushes to the main branch
+      - main
 
 jobs:
   deploy:
@@ -27,30 +27,41 @@ jobs:
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
     - name: Set environment variables
+      env:
+        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        REGION: ${{ secrets.REGION }}
+        CLOUD_NAME: ${{ secrets.CLOUD_NAME }}
+        DOCKER_IMAGE: flask-backend
+        DOCKER_TAG: latest
+        GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
       run: |
-        echo "PROJECT_NAME=heapwebtest1" >> $GITHUB_ENV
-        echo "REGION=us-central1" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=flask-backend" >> $GITHUB_ENV
-        echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+        echo "CLOUD_SQL_CONNECTION_NAME=${PROJECT_ID}:${REGION}:${CLOUD_NAME}" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE_URI=${REGION}-docker.pkg.dev/${PROJECT_ID}/${PROJECT_NAME}/${DOCKER_IMAGE}:${DOCKER_TAG}" >> $GITHUB_ENV
 
     - name: Build Docker image
       run: |
         docker build \
           --platform linux/amd64 \
-          -t ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+          -t ${{ env.DOCKER_IMAGE_URI }} \
           ./heap/backend
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+        docker push ${{ env.DOCKER_IMAGE_URI }}
 
     - name: Deploy to Google Cloud Run
       run: |
         gcloud run deploy ${{ env.DOCKER_IMAGE }} \
-          --image ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+          --image ${{ env.DOCKER_IMAGE_URI }} \
           --platform managed \
           --region ${{ env.REGION }} \
-          --allow-unauthenticated
+          --allow-unauthenticated \
+          --add-cloudsql-instances ${{ env.CLOUD_SQL_CONNECTION_NAME }} \
+          --update-env-vars "GCS_BUCKET=${{ secrets.GCS_BUCKET }},CLOUD_SQL_CONNECTION_NAME=${{ env.CLOUD_SQL_CONNECTION_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }}"
 
     - name: Verify deployment
       run: |

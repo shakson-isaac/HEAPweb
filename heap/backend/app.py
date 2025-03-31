@@ -1,10 +1,10 @@
+import os
 from google.cloud import storage
 from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import psycopg2
 import pandas as pd
 from io import StringIO
-import os
 import logging
 import io
 from sqlalchemy import create_engine, or_, Table, MetaData, inspect, func
@@ -26,14 +26,25 @@ logging.basicConfig(level=logging.DEBUG)
 # Configure Flask-Caching
 cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
 
+# Configuration for environment variables
+CONFIG = {
+    "GCS_BUCKET": os.getenv("GCS_BUCKET"),
+    "POSTGRES": {
+        "HOST": os.getenv("CLOUD_SQL_CONNECTION_NAME"),
+        "DB": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+    }
+}
+
 # GCS bucket name
-GCS_BUCKET = "heaptester135"
+GCS_BUCKET = CONFIG["GCS_BUCKET"]
 
 # PostgreSQL connection details
-POSTGRES_HOST = "/cloudsql/focal-cache-455223-h5:us-central1:heapsql"  # Ensure this matches your Cloud SQL instance connection name
-POSTGRES_DB = "heapdb"
-POSTGRES_USER = "heap1"
-POSTGRES_PASSWORD = "heapdb1"
+POSTGRES_HOST = CONFIG["POSTGRES"]["HOST"]
+POSTGRES_DB = CONFIG["POSTGRES"]["DB"]
+POSTGRES_USER = CONFIG["POSTGRES"]["USER"]
+POSTGRES_PASSWORD = CONFIG["POSTGRES"]["PASSWORD"]
 
 # Configure SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}?host={POSTGRES_HOST}"
@@ -416,39 +427,6 @@ def test_db_connection():
     except Exception as e:
         app.logger.error(f"Database connection test failed: {e}")
         return jsonify({"error": str(e)}), 500
-
-# # Route to serve static files dynamically
-# @app.route('/static/<path:filename>', methods=['GET'])
-# def serve_static_file(filename):
-#     try:
-#         # Construct the GCS path for the static file
-#         file_path = f"data/interactive/A2/Type6/static/{filename}"  # Adjust the base path as needed
-#         file_content = get_gcs_file(GCS_BUCKET, file_path)
-
-#         # Determine MIME type based on file extension
-#         if filename.endswith('.css'):
-#             mimetype = 'text/css'
-#         elif filename.endswith('.js') or filename.endswith('.map'):
-#             mimetype = 'application/javascript'
-#         elif filename.endswith('.html'):
-#             mimetype = 'text/html'
-#         elif filename.endswith('.png'):
-#             mimetype = 'image/png'
-#         elif filename.endswith('.jpg') or filename.endswith('.jpeg'):
-#             mimetype = 'image/jpeg'
-#         else:
-#             mimetype = 'application/octet-stream'  # Default MIME type
-
-#         return send_file(
-#             io.BytesIO(file_content),
-#             mimetype=mimetype,
-#             as_attachment=False
-#         )
-#     except FileNotFoundError:
-#         return jsonify({"error": "File not found"}), 404
-#     except Exception as e:
-#         app.logger.error(f"Error serving static file: {e}")
-#         return jsonify({"error": str(e)}), 500
 
 # Custom 404 error handler
 @app.errorhandler(404)
