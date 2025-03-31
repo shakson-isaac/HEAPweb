@@ -41,6 +41,9 @@ jobs:
       run: |
         echo "CLOUD_SQL_CONNECTION_NAME=${PROJECT_ID}:${REGION}:${CLOUD_NAME}" >> $GITHUB_ENV
         echo "DOCKER_IMAGE_URI=${REGION}-docker.pkg.dev/${PROJECT_ID}/${PROJECT_NAME}/${DOCKER_IMAGE}:${DOCKER_TAG}" >> $GITHUB_ENV
+        echo "PROJECT_ID=${PROJECT_ID}"
+        echo "REGION=${REGION}"
+        echo "CLOUD_NAME=${CLOUD_NAME}"
 
     - name: Build Docker image
       run: |
