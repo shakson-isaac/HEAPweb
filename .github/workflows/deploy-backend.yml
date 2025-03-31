@@ -30,7 +30,7 @@ jobs:
       env:
         PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-        REGION: ${{ secrets.REGION }}
+        REGION: ${{ secrets.REGION }} #trouble point
         CLOUD_NAME: ${{ secrets.CLOUD_NAME }}
         DOCKER_IMAGE: flask-backend
         DOCKER_TAG: latest

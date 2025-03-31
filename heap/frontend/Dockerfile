@@ -3,6 +3,10 @@ FROM node:16 as build
 
 WORKDIR /app
 
+# Accept the REACT_APP_BACKEND_URL build argument
+ARG REACT_APP_BACKEND_URL
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+
 # Ensure these files exist in the build context
 COPY package.json package-lock.json ./
 RUN npm install
@@ -10,9 +14,7 @@ RUN npm install
 # Copy the source code
 COPY . .
 
-# Build the React app (backend URL will be injected via environment variables)
-ARG REACT_APP_BACKEND_URL
-ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+# Build the React app
 RUN npm run build
 
 # Use a lightweight web server to serve the built app
