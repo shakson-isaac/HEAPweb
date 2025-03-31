@@ -47,7 +47,10 @@ POSTGRES_USER = CONFIG["POSTGRES"]["USER"]
 POSTGRES_PASSWORD = CONFIG["POSTGRES"]["PASSWORD"]
 
 # Configure SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}?host={POSTGRES_HOST}"
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@/{POSTGRES_DB}"
+    f"?host=/cloudsql/{POSTGRES_HOST}"
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_size': 10,  # Maximum number of connections in the pool
