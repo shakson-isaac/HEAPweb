@@ -22,12 +22,6 @@ RUN apt-get update && apt-get install -y \
 # Copy local code to the container image
 COPY . $APP_HOME
 
-# Copy the service account JSON credentials into the container
-COPY ./keys/heapwebkey.json /app/heapwebkey.json
-
-# Set the environment variable for the service account key
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/heapwebkey.json
-
 # Set the data folder environment variable
 ENV DATA_FOLDER=$APP_HOME/data
 

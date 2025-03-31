@@ -417,6 +417,39 @@ def test_db_connection():
         app.logger.error(f"Database connection test failed: {e}")
         return jsonify({"error": str(e)}), 500
 
+# # Route to serve static files dynamically
+# @app.route('/static/<path:filename>', methods=['GET'])
+# def serve_static_file(filename):
+#     try:
+#         # Construct the GCS path for the static file
+#         file_path = f"data/interactive/A2/Type6/static/{filename}"  # Adjust the base path as needed
+#         file_content = get_gcs_file(GCS_BUCKET, file_path)
+
+#         # Determine MIME type based on file extension
+#         if filename.endswith('.css'):
+#             mimetype = 'text/css'
+#         elif filename.endswith('.js') or filename.endswith('.map'):
+#             mimetype = 'application/javascript'
+#         elif filename.endswith('.html'):
+#             mimetype = 'text/html'
+#         elif filename.endswith('.png'):
+#             mimetype = 'image/png'
+#         elif filename.endswith('.jpg') or filename.endswith('.jpeg'):
+#             mimetype = 'image/jpeg'
+#         else:
+#             mimetype = 'application/octet-stream'  # Default MIME type
+
+#         return send_file(
+#             io.BytesIO(file_content),
+#             mimetype=mimetype,
+#             as_attachment=False
+#         )
+#     except FileNotFoundError:
+#         return jsonify({"error": "File not found"}), 404
+#     except Exception as e:
+#         app.logger.error(f"Error serving static file: {e}")
+#         return jsonify({"error": str(e)}), 500
+
 # Custom 404 error handler
 @app.errorhandler(404)
 def page_not_found(e):

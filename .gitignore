@@ -4,6 +4,10 @@
 #Hide Private Data
 heap/backend/keys/
 
+#Remove files not relevant to repo:
+docker-compose.yml
+set_mime_types.sh
+
 #Do not store data in backend
 data/
 

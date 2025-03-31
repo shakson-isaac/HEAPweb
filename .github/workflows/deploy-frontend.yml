@@ -1,0 +1,58 @@
+name: Deploy Frontend to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main  # Trigger workflow on pushes to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Google Cloud credentials
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Set environment variables
+      run: |
+        echo "PROJECT_NAME=heapwebtest1" >> $GITHUB_ENV
+        echo "REGION=us-central1" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=react-frontend" >> $GITHUB_ENV
+        echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+
+    - name: Build Docker image
+      run: |
+        docker build \
+          --platform linux/amd64 \
+          -t ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+          ./frontend
+
+    - name: Push Docker image to Artifact Registry
+      run: |
+        docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+
+    - name: Deploy to Google Cloud Run
+      run: |
+        gcloud run deploy ${{ env.DOCKER_IMAGE }} \
+          --image ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.PROJECT_NAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated
+
+    - name: Verify deployment
+      run: |
+        FRONTEND_URL=$(gcloud run services describe ${{ env.DOCKER_IMAGE }} \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --format "value(status.url)")
+        echo "Frontend deployed at: $FRONTEND_URL"
+        curl --fail $FRONTEND_URL || exit 1
