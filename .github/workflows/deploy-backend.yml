@@ -30,7 +30,7 @@ jobs:
       env:
         PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-        REGION: ${{ secrets.REGION }} #trouble point
+        REGION: ${{ secrets.REGION }}
         CLOUD_NAME: ${{ secrets.CLOUD_NAME }}
         DOCKER_IMAGE: flask-backend
         DOCKER_TAG: latest
@@ -49,28 +49,28 @@ jobs:
       run: |
         docker build \
           --platform linux/amd64 \
-          -t ${{ env.DOCKER_IMAGE_URI }} \
+          -t "${{ env.DOCKER_IMAGE_URI }}" \
           ./heap/backend
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push ${{ env.DOCKER_IMAGE_URI }}
+        docker push "${{ env.DOCKER_IMAGE_URI }}"
 
     - name: Deploy to Google Cloud Run
       run: |
-        gcloud run deploy ${{ env.DOCKER_IMAGE }} \
-          --image ${{ env.DOCKER_IMAGE_URI }} \
+        gcloud run deploy "${{ env.DOCKER_IMAGE }}" \
+          --image "${{ env.DOCKER_IMAGE_URI }}" \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region "${{ env.REGION }}" \
           --allow-unauthenticated \
-          --add-cloudsql-instances ${{ env.CLOUD_SQL_CONNECTION_NAME }} \
+          --add-cloudsql-instances "${{ env.CLOUD_SQL_CONNECTION_NAME }}" \
           --update-env-vars "GCS_BUCKET=${{ secrets.GCS_BUCKET }},CLOUD_SQL_CONNECTION_NAME=${{ env.CLOUD_SQL_CONNECTION_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }}"
 
     - name: Verify deployment
       run: |
-        BACKEND_URL=$(gcloud run services describe ${{ env.DOCKER_IMAGE }} \
+        BACKEND_URL=$(gcloud run services describe "${{ env.DOCKER_IMAGE }}" \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region "${{ env.REGION }}" \
           --format "value(status.url)")
         echo "Backend deployed at: $BACKEND_URL"
-        curl --fail $BACKEND_URL || exit 1
+        curl --fail "$BACKEND_URL" || exit 1

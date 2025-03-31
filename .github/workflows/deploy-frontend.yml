@@ -3,7 +3,7 @@ name: Deploy Frontend to Google Cloud Run
 on:
   push:
     branches:
-      - main  # Trigger workflow on pushes to the main branch
+      - main
 
 jobs:
   deploy:
@@ -33,35 +33,35 @@ jobs:
         REGION: ${{ secrets.REGION }}
         DOCKER_IMAGE: react-frontend
         DOCKER_TAG: latest
-        REACT_APP_BACKEND_URL: ${{ secrets.REACT_APP_BACKEND_URL }}
       run: |
         echo "DOCKER_IMAGE_URI=${REGION}-docker.pkg.dev/${PROJECT_ID}/${PROJECT_NAME}/${DOCKER_IMAGE}:${DOCKER_TAG}" >> $GITHUB_ENV
+        echo "PROJECT_ID=${PROJECT_ID}"
+        echo "REGION=${REGION}"
 
     - name: Build Docker image
       run: |
-        docker buildx build \
+        docker build \
           --platform linux/amd64 \
-          --build-arg REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }} \
-          -t ${{ env.DOCKER_IMAGE_URI }} \
+          -t "${{ env.DOCKER_IMAGE_URI }}" \
           ./heap/frontend
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push ${{ env.DOCKER_IMAGE_URI }}
+        docker push "${{ env.DOCKER_IMAGE_URI }}"
 
     - name: Deploy to Google Cloud Run
       run: |
-        gcloud run deploy ${{ env.DOCKER_IMAGE }} \
-          --image ${{ env.DOCKER_IMAGE_URI }} \
+        gcloud run deploy "${{ env.DOCKER_IMAGE }}" \
+          --image "${{ env.DOCKER_IMAGE_URI }}" \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region "${{ env.REGION }}" \
           --allow-unauthenticated
 
     - name: Verify deployment
       run: |
-        FRONTEND_URL=$(gcloud run services describe ${{ env.DOCKER_IMAGE }} \
+        FRONTEND_URL=$(gcloud run services describe "${{ env.DOCKER_IMAGE }}" \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region "${{ env.REGION }}" \
           --format "value(status.url)")
         echo "Frontend deployed at: $FRONTEND_URL"
-        curl --fail $FRONTEND_URL || exit 1
+        curl --fail "$FRONTEND_URL" || exit 1
