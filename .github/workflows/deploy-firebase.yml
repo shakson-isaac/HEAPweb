@@ -35,6 +35,7 @@ jobs:
     # Step 5: Install dependencies
     - name: Install dependencies
       run: |
+        cd heap/frontend  # Navigate to the frontend directory
         npm install  # Install the app dependencies
     
     # Step 5.1:
@@ -46,6 +47,7 @@ jobs:
     # Step 6: Build React app
     - name: Build React app
       run: |
+        cd heap/frontend  # Navigate to the frontend directory
         npm run build  # This creates the static files in 'build' folder
 
     # Step 7: Firebase Deployment
