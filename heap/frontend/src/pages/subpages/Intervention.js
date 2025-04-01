@@ -10,7 +10,7 @@ function Intervention() {
       .then((response) => response.text())
       .then((data) => {
         const parsedData = data.split('\n').slice(1).map((line) => {
-          const [origID, sID, ...nameParts] = line.split(',');
+          const [, sID, ...nameParts] = line.split(','); // Ignore origID
           const name = nameParts.join(',').replace(/"/g, ''); // Join name parts and remove quotes
           return { value: sID, label: name };
         });
