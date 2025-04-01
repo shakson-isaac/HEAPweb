@@ -1,5 +1,5 @@
-# Use a Node.js image with version 20 or higher to build the React app
-FROM node:20 as build
+# Use a Node.js image with version 22 or higher to build the React app
+FROM node:22 as build
 
 WORKDIR /app
 
@@ -23,7 +23,9 @@ FROM nginx:alpine
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy the built app from the build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
+# Expose the port and start the server
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

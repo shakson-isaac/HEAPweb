@@ -30,7 +30,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20' # Update to Node.js 20
+        node-version: '22' # Update to Node.js 22
 
     # Step 5: Install dependencies
     - name: Install dependencies
