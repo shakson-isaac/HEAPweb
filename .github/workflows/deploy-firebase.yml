@@ -1,0 +1,54 @@
+name: Deploy Frontend to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main  # Trigger deploy when code is pushed to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Authenticate with Google Cloud (for Google Cloud services)
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    # Step 3: Set up Firebase CLI
+    - name: Set up Firebase CLI
+      run: |
+        curl -sL https://firebase.tools | bash  # Install Firebase CLI
+        firebase --version  # Check Firebase CLI version
+
+    # Step 4: Install Node.js and dependencies
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    # Step 5: Install dependencies
+    - name: Install dependencies
+      run: |
+        npm install  # Install the app dependencies
+    
+    # Step 5.1:
+    - name: Create .env file with backend URL
+      run: |
+          echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
+          echo "Other custom variables can go here if needed"
+  
+    # Step 6: Build React app
+    - name: Build React app
+      run: |
+        npm run build  # This creates the static files in 'build' folder
+
+    # Step 7: Firebase Deployment
+    - name: Deploy to Firebase Hosting
+      run: |
+        firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
