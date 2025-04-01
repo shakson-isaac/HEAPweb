@@ -41,8 +41,9 @@ jobs:
     # Step 5.1:
     - name: Create .env file with backend URL
       run: |
-          echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
-          echo "Other custom variables can go here if needed"
+        cd heap/frontend  # Navigate to the frontend directory
+        echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
+        echo "Other custom variables can go here if needed"
   
     # Step 6: Build React app
     - name: Build React app
@@ -53,4 +54,5 @@ jobs:
     # Step 7: Firebase Deployment
     - name: Deploy to Firebase Hosting
       run: |
+        cd heap/frontend  # Navigate to the frontend directory
         firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
