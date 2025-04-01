@@ -1,5 +1,5 @@
-# Use a Node.js image with version 18 or higher to build the React app
-FROM node:18 as build
+# Use a Node.js image with version 20 or higher to build the React app
+FROM node:20 as build
 
 WORKDIR /app
 
