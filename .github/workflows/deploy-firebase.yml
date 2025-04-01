@@ -55,4 +55,4 @@ jobs:
     - name: Deploy to Firebase Hosting
       run: |
         cd heap/frontend  # Navigate to the frontend directory
-        firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
+        firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
