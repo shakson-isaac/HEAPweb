@@ -32,7 +32,7 @@ const Home = () => {
         </ul>
       </div>
       <div className="section">
-        <p className="paragraph"><strong>DATA USAGE AGREEMENT // LICENSES:</strong></p>
+        <p className="paragraph"><strong>DATA USAGE AGREEMENT AND LICENSES:</strong></p>
         <ul className="list">
           <li className="list-item">
             This work is licensed under a{' '}
