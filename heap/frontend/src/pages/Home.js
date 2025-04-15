@@ -34,7 +34,16 @@ const Home = () => {
       <div className="section">
         <p className="paragraph"><strong>DATA USAGE AGREEMENT // LICENSES:</strong></p>
         <ul className="list">
-          <li className="list-item">ADD LICENSE INFO HERE!!</li>
+          <li className="list-item">
+            This work is licensed under a 
+            <a 
+              href="https://creativecommons.org/licenses/by-nc-nd/4.0/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License (CC BY-NC-ND)
+            </a>.
+          </li>
         </ul>
       </div>
     </div>

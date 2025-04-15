@@ -34,7 +34,7 @@ function Associations() {
   return (
     <div className="mt-8">
       <h3 className="text-xl font-semibold">Protein Associations</h3>
-      <p>Select a protein to view its interactive plot:</p>
+      <p>Select a protein to view an interactive plot of lifestyle exposure associations. Colored points: significant across train/test split.</p>
 
       {/* Protein Dropdown using React Select */}
       <div className="dropdown">

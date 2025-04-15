@@ -26,7 +26,7 @@ function Intervention() {
   return (
     <div className="mt-8">
       <h3 className="text-xl font-semibold">Intervention</h3>
-      <p>Here you can provide details about the intervention studies...</p>
+      <p>Comparison between HEAP association in the UKB to interventional studies of exercise (HERITAGE study) and GLP1 agonists (STEP1/STEP2 trials)</p>
       
       <div className="mt-4">
         <label htmlFor="intervention-select" className="mr-2">Select Intervention:</label>

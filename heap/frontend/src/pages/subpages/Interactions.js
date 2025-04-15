@@ -35,7 +35,7 @@ const Interactions = () => {
   return (
     <div className="mt-8">
       <h3 className="text-xl font-semibold">Interactions</h3>
-      <p>Select an interaction type to view its details:</p>
+      <p>Significant polygenic GxE interactions are shown below</p>
 
       {error && <p className="text-red-500">{error}</p>} {/* Display error message */}
 

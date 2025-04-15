@@ -6,7 +6,7 @@ function Mediation() {
     <div>
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Mediation</h3>
-        <p>Here you can provide details about the mediation analysis...</p>
+        <p>Mediation analysis utilizing PXS and PGS of each protein across 270 disease codes.</p>
         {/* Add more content for the Mediation page */}
       </div>
 
