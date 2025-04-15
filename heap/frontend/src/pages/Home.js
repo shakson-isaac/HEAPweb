@@ -35,7 +35,7 @@ const Home = () => {
         <p className="paragraph"><strong>DATA USAGE AGREEMENT // LICENSES:</strong></p>
         <ul className="list">
           <li className="list-item">
-            This work is licensed under a 
+            This work is licensed under a{' '}
             <a 
               href="https://creativecommons.org/licenses/by-nc-nd/4.0/" 
               target="_blank" 
