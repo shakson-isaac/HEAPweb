@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const FAQs = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
   return (
     <div className="content container">
       <h1 className="heading">FAQs</h1>
@@ -9,36 +15,50 @@ const FAQs = () => {
       </p>
       <ul className="faq-list">
         <li>
-          <strong>What is the exposome?</strong>
-          <p>
-            The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
-          </p>
+          <strong onClick={() => toggleFAQ(0)} className="faq-question">
+            What is the exposome?
+          </strong>
+          {openIndex === 0 && (
+            <p className="faq-answer">
+              The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
+            </p>
+          )}
         </li>
         <li>
-          <strong>What is the plasma proteome?</strong>
-          <p>
-            The plasma proteome is the complete set of proteins found in blood plasma.
-          </p>
-          <p>
-            These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002).
-          </p>
+          <strong onClick={() => toggleFAQ(1)} className="faq-question">
+            What is the plasma proteome?
+          </strong>
+          {openIndex === 1 && (
+            <>
+              <p className="faq-answer">
+                The plasma proteome is the complete set of proteins found in blood plasma.
+              </p>
+              <p className="faq-answer">
+                These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002).
+              </p>
+            </>
+          )}
         </li>
         <li>
-          <strong>How should I use HEAP?</strong>
-          <ul>
-            <li>
-              HEAP is a resource for researchers and clinicians to access how human plasma proteomics links modifiable lifestyle exposome to disease risk.
-            </li>
-            <li>
-              View interactive HEAP results to gain further insight into specific lifestyle exposures that impact proteins of interest and whether these links tie to interventional studies on exercise and GLP1 agonists.
-            </li>
-            <li>
-              Download HEAP summary statistics to connect how the modifiable lifestyle exposome correlates with interventions or independent cohorts.
-            </li>
-            <li>
-              Please cite HEAP in your publications: Isaac et al., Human Plasma Proteomics Links Modifiable Lifestyle Exposome to Disease Risk. In preparation.
-            </li>
-          </ul>
+          <strong onClick={() => toggleFAQ(2)} className="faq-question">
+            How should I use HEAP?
+          </strong>
+          {openIndex === 2 && (
+            <ul className="faq-answer">
+              <li>
+                HEAP is a resource for researchers and clinicians to access how human plasma proteomics links modifiable lifestyle exposome to disease risk.
+              </li>
+              <li>
+                View interactive HEAP results to gain further insight into specific lifestyle exposures that impact proteins of interest and whether these links tie to interventional studies on exercise and GLP1 agonists.
+              </li>
+              <li>
+                Download HEAP summary statistics to connect how the modifiable lifestyle exposome correlates with interventions or independent cohorts.
+              </li>
+              <li>
+                Please cite HEAP in your publications: Isaac et al., Human Plasma Proteomics Links Modifiable Lifestyle Exposome to Disease Risk. In preparation.
+              </li>
+            </ul>
+          )}
         </li>
       </ul>
       <div className="references">
