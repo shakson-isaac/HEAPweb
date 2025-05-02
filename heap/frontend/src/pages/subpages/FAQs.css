@@ -1,14 +1,14 @@
 .faq-question {
   cursor: pointer;
   text-decoration: underline;
-  color: #007bff;
+  color: #28a745; /* Changed to green */
   margin-bottom: 0.5rem;
   display: inline-block;
 }
 
 .faq-question.active {
   font-weight: bold;
-  color: #0056b3;
+  color: #1e7e34; /* Darker green for active state */
 }
 
 .faq-answer {

@@ -17,6 +17,7 @@ const FAQs = () => {
       <ul className="faq-list">
         <li>
           <strong onClick={() => toggleFAQ(0)} className={`faq-question ${openIndex === 0 ? 'active' : ''}`}>
+            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
             What is the exposome?
           </strong>
           {openIndex === 0 && (
@@ -27,6 +28,7 @@ const FAQs = () => {
         </li>
         <li>
           <strong onClick={() => toggleFAQ(1)} className={`faq-question ${openIndex === 1 ? 'active' : ''}`}>
+            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
             What is the plasma proteome?
           </strong>
           {openIndex === 1 && (
@@ -42,6 +44,7 @@ const FAQs = () => {
         </li>
         <li>
           <strong onClick={() => toggleFAQ(2)} className={`faq-question ${openIndex === 2 ? 'active' : ''}`}>
+            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
             How should I use HEAP?
           </strong>
           {openIndex === 2 && (
