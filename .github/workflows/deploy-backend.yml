@@ -80,14 +80,16 @@ jobs:
           --format "value(status.url)")
         echo "Backend deployed at: $BACKEND_URL"
 
-        for i in {1..5}; do
+        for i in {1..10}; do  # Increased retry attempts to 10
           echo "Attempt $i: Checking service..."
-          if curl --fail --silent "$BACKEND_URL"; then
+          RESPONSE=$(curl --write-out "%{http_code}" --silent --output /dev/null "$BACKEND_URL")
+          if [ "$RESPONSE" -eq 200 ]; then
             echo "Service is live!"
             exit 0
+          else
+            echo "Service not ready (HTTP $RESPONSE), retrying in 10s..."  # Log HTTP response code
           fi
-          echo "Not ready, retrying in 5s..."
-          sleep 5
+          sleep 10  # Increased delay to 10 seconds
         done
 
         echo "Backend never responded (503 or crash)."
