@@ -12,9 +12,6 @@ const FAQs = () => {
   return (
     <div className="content container">
       <h1 className="heading">FAQs</h1>
-      <p className="paragraph">
-        This section provides answers to frequently asked questions about HEAP. It covers topics such as data usage, analysis methods, and interpretation of results.
-      </p>
       <ul className="faq-list">
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(0)}>
@@ -22,9 +19,14 @@ const FAQs = () => {
             <span className="faq-question">What is the exposome?</span>
           </div>
           {openIndex === 0 && (
-            <p className="faq-answer">
-              The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
-            </p>
+            <ul className="faq-answer">
+              <li>
+                The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical.
+              </li>
+              <li>
+                These exposures influence health over their lifetime (Vermeulen et al., 2020).
+              </li>
+            </ul>
           )}
         </li>
         <li className="faq-item">
@@ -33,14 +35,14 @@ const FAQs = () => {
             <span className="faq-question">What is the plasma proteome?</span>
           </div>
           {openIndex === 1 && (
-            <>
-              <p className="faq-answer">
+            <ul className="faq-answer">
+              <li>
                 The plasma proteome is the complete set of proteins found in blood plasma.
-              </p>
-              <p className="faq-answer">
-                These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002).
-              </p>
-            </>
+              </li>
+              <li>
+                These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002) 
+              </li>
+            </ul>
           )}
         </li>
         <li className="faq-item">

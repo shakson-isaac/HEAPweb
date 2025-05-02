@@ -14,11 +14,16 @@
 }
 
 .faq-answer {
-  margin-left: 1rem;
+  margin-left: 1.5rem; /* Indent the list */
   margin-bottom: 1rem;
   margin-top: 0.5rem;
   font-size: 1rem;
   color: #333;
+  list-style-type: disc; /* Ensure bullet points are visible */
+}
+
+.faq-answer li {
+  margin-bottom: 0.5rem; /* Add spacing between list items */
 }
 
 .references-list {
