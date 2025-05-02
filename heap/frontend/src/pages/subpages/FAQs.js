@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './FAQs.css'; // Add a CSS file for styling
+import QuizOutlinedIcon from '@mui/icons-material/QuizOutlined'; // Import Material-UI quiz icon
 
 const FAQs = () => {
   const [openIndex, setOpenIndex] = useState(null);
@@ -17,6 +18,7 @@ const FAQs = () => {
       <ul className="faq-list">
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(0)}>
+            <QuizOutlinedIcon style={{ color: '#124533db', marginRight: '12px' }} /> {/* Green quiz icon */}
             <span className="faq-question">What is the exposome?</span>
           </div>
           {openIndex === 0 && (
@@ -27,6 +29,7 @@ const FAQs = () => {
         </li>
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(1)}>
+            <QuizOutlinedIcon style={{ color: '#124533db', marginRight: '12px' }} /> {/* Green quiz icon */}
             <span className="faq-question">What is the plasma proteome?</span>
           </div>
           {openIndex === 1 && (
@@ -42,6 +45,7 @@ const FAQs = () => {
         </li>
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(2)}>
+            <QuizOutlinedIcon style={{ color: '#124533db', marginRight: '12px' }} /> {/* Green quiz icon */}
             <span className="faq-question">How should I use HEAP?</span>
           </div>
           {openIndex === 2 && (
