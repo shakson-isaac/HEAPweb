@@ -43,10 +43,25 @@
   display: flex;
   align-items: center;
   cursor: pointer;
+  position: relative;
+}
+
+.faq-header::before {
+  content: ''; /* Remove the Unicode character */
+  display: inline-block;
+  width: 24px; /* Set the width of the SVG */
+  height: 24px; /* Set the height of the SVG */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2328a745"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-.88-3h1.75v-1.75h-1.75V17zm2.12-7.75c0-1.1-.9-2-2-2s-2 .9-2 2h1.5c0-.28.22-.5.5-.5s.5.22.5.5c0 .55-.45 1-1 1H9v1.5h1.5v.5h1.5v-.5c0-.55.45-1 1-1 .55 0 1-.45 1-1z"/></svg>'); /* Inline SVG with green color */
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-right: 12px; /* Add spacing */
 }
 
 .faq-icon {
-  color: #28a745; /* Green question mark */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #28a745; /* Ensure the question mark is green */
   font-size: 1.5rem;
-  margin-right: 10px;
+  margin-right: 12px;
 }

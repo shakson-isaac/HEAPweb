@@ -17,7 +17,6 @@ const FAQs = () => {
       <ul className="faq-list">
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(0)}>
-            <span className="faq-icon">❓</span>
             <span className="faq-question">What is the exposome?</span>
           </div>
           {openIndex === 0 && (
@@ -28,7 +27,6 @@ const FAQs = () => {
         </li>
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(1)}>
-            <span className="faq-icon">❓</span>
             <span className="faq-question">What is the plasma proteome?</span>
           </div>
           {openIndex === 1 && (
@@ -44,7 +42,6 @@ const FAQs = () => {
         </li>
         <li className="faq-item">
           <div className="faq-header" onClick={() => toggleFAQ(2)}>
-            <span className="faq-icon">❓</span>
             <span className="faq-question">How should I use HEAP?</span>
           </div>
           {openIndex === 2 && (
