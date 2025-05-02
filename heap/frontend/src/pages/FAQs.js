@@ -51,25 +51,7 @@ const FAQs = () => {
             Anderson, N. L. & Anderson, N. G. The human plasma proteome: history, character, and diagnostic prospects. Mol. Cell. Proteomics 1, 845-867 (2002).
           </li>
         </ul>
-      </div>      FAQs
-      This section provides answers to frequently asked questions about HEAP. It covers topics such as data usage, analysis methods, and interpretation of results.
-      
-      - What is the exposome?
-        The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
-      
-      - What is the plasma proteome?
-        The plasma proteome is the complete set of proteins found in blood plasma.
-        These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002).
-      
-      - How should I use HEAP?
-        - HEAP is a resource for researchers and clinicians to access how human plasma proteomics links modifiable lifestyle exposome to disease risk.
-        - View interactive HEAP results to gain further insight into specific lifestyle exposures that impact proteins of interest and whether these links tie to interventional studies on exercise and GLP1 agonists.
-        - Download HEAP summary statistics to connect how the modifiable lifestyle exposome correlates with interventions or independent cohorts.
-        - Please cite HEAP in your publications: Isaac et al., Human Plasma Proteomics Links Modifiable Lifestyle Exposome to Disease Risk. In preparation.
-      
-      References and Citations
-      - Vermeulen, R., Schymanski, E. L., Barabási, A.-L. & Miller, G. W. The exposome and health: Where chemistry meets biology. Science 367, 392-396 (2020).
-      - Anderson, N. L. & Anderson, N. G. The human plasma proteome: history, character, and diagnostic prospects. Mol. Cell. Proteomics 1, 845-867 (2002).
+      </div>
     </div>
   );
 };
