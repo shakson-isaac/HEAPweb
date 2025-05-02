@@ -11,16 +11,16 @@ const FAQs = () => {
         <li>
           <strong>What is the exposome?</strong>
           <p>
-          The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).<br />
+            The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
           </p>
         </li>
         <li>
           <strong>What is the plasma proteome?</strong>
           <p>
-            The plasma proteome is the complete set of proteins found in blood plasma.<br /> 
+            The plasma proteome is the complete set of proteins found in blood plasma.
           </p>
           <p>
-            These proteins offer insights into biological processes such as hormone regulation, immune respones, and disease states (Anderson et al., 2002).<br />
+            These proteins offer insights into biological processes such as hormone regulation, immune responses, and disease states (Anderson et al., 2002).
           </p>
         </li>
         <li>
@@ -33,7 +33,7 @@ const FAQs = () => {
               View interactive HEAP results to gain further insight into specific lifestyle exposures that impact proteins of interest and whether these links tie to interventional studies on exercise and GLP1 agonists.
             </li>
             <li>
-              Download HEAP summary statistics to connect how the modifable lifestyle exposome correlates with interventions or independent cohorts.
+              Download HEAP summary statistics to connect how the modifiable lifestyle exposome correlates with interventions or independent cohorts.
             </li>
             <li>
               Please cite HEAP in your publications: Isaac et al., Human Plasma Proteomics Links Modifiable Lifestyle Exposome to Disease Risk. In preparation.
