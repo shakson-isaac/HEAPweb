@@ -5,6 +5,10 @@ on:
     workflows: ["Deploy Backend to Google Cloud Run"]
     types:
       - completed
+  push:
+    paths:
+      - 'heap/frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
 
 jobs:
   deploy:

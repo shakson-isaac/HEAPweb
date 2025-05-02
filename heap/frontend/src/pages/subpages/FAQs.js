@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './FAQs.css'; // Add a CSS file for styling
 
 const FAQs = () => {
   const [openIndex, setOpenIndex] = useState(null);
@@ -15,7 +16,7 @@ const FAQs = () => {
       </p>
       <ul className="faq-list">
         <li>
-          <strong onClick={() => toggleFAQ(0)} className="faq-question">
+          <strong onClick={() => toggleFAQ(0)} className={`faq-question ${openIndex === 0 ? 'active' : ''}`}>
             What is the exposome?
           </strong>
           {openIndex === 0 && (
@@ -25,7 +26,7 @@ const FAQs = () => {
           )}
         </li>
         <li>
-          <strong onClick={() => toggleFAQ(1)} className="faq-question">
+          <strong onClick={() => toggleFAQ(1)} className={`faq-question ${openIndex === 1 ? 'active' : ''}`}>
             What is the plasma proteome?
           </strong>
           {openIndex === 1 && (
@@ -40,7 +41,7 @@ const FAQs = () => {
           )}
         </li>
         <li>
-          <strong onClick={() => toggleFAQ(2)} className="faq-question">
+          <strong onClick={() => toggleFAQ(2)} className={`faq-question ${openIndex === 2 ? 'active' : ''}`}>
             How should I use HEAP?
           </strong>
           {openIndex === 2 && (
@@ -62,7 +63,7 @@ const FAQs = () => {
         </li>
       </ul>
       <div className="references">
-        <h2 className="subheading">References and Citations</h2>
+        <h2 className="subheading">References</h2>
         <ul className="references-list">
           <li>
             Vermeulen, R., Schymanski, E. L., Barabási, A.-L. & Miller, G. W. The exposome and health: Where chemistry meets biology. Science 367, 392-396 (2020).

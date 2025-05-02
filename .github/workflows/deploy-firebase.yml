@@ -2,9 +2,14 @@ name: Deploy Frontend to Firebase Hosting
 
 on:
   workflow_run:
-    workflows: ["Deploy Frontend to Google Cloud Run"]
+    workflows: ["Deploy Backend to Google Cloud Run"]
     types:
       - completed
+  push:
+    paths:
+      - 'heap/frontend/**'
+      - '.github/workflows/deploy-firebase.yml'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

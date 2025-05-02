@@ -2,8 +2,9 @@ name: Deploy Backend to Google Cloud Run
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - 'heap/backend/**'
+      - '.github/workflows/deploy-backend.yml'
 
 jobs:
   deploy:

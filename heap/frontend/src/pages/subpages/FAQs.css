@@ -1,0 +1,22 @@
+.faq-question {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #007bff;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.faq-question.active {
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.faq-answer {
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+.references-list {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
