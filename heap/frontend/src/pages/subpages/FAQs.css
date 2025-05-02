@@ -1,9 +1,11 @@
 .faq-question {
   cursor: pointer;
-  text-decoration: underline;
-  color: #28a745; /* Changed to green */
+  text-decoration: none; /* Removed underline */
   margin-bottom: 0.5rem;
   display: inline-block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000; /* Black text for the question */
 }
 
 .faq-question.active {
@@ -14,9 +16,37 @@
 .faq-answer {
   margin-left: 1rem;
   margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #333;
 }
 
 .references-list {
   list-style-type: disc;
   margin-left: 1.5rem;
+}
+
+.faq-list {
+  list-style: none;
+  padding: 0;
+}
+
+.faq-item {
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.faq-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.faq-icon {
+  color: #28a745; /* Green question mark */
+  font-size: 1.5rem;
+  margin-right: 10px;
 }

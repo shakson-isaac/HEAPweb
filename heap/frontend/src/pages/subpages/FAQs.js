@@ -15,22 +15,22 @@ const FAQs = () => {
         This section provides answers to frequently asked questions about HEAP. It covers topics such as data usage, analysis methods, and interpretation of results.
       </p>
       <ul className="faq-list">
-        <li>
-          <strong onClick={() => toggleFAQ(0)} className={`faq-question ${openIndex === 0 ? 'active' : ''}`}>
-            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
-            What is the exposome?
-          </strong>
+        <li className="faq-item">
+          <div className="faq-header" onClick={() => toggleFAQ(0)}>
+            <span className="faq-icon">❓</span>
+            <span className="faq-question">What is the exposome?</span>
+          </div>
           {openIndex === 0 && (
             <p className="faq-answer">
               The exposome is the totality of a person's environmental exposures—lifestyle, social, and chemical—that influence health over their lifetime (Vermeulen et al., 2020).
             </p>
           )}
         </li>
-        <li>
-          <strong onClick={() => toggleFAQ(1)} className={`faq-question ${openIndex === 1 ? 'active' : ''}`}>
-            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
-            What is the plasma proteome?
-          </strong>
+        <li className="faq-item">
+          <div className="faq-header" onClick={() => toggleFAQ(1)}>
+            <span className="faq-icon">❓</span>
+            <span className="faq-question">What is the plasma proteome?</span>
+          </div>
           {openIndex === 1 && (
             <>
               <p className="faq-answer">
@@ -42,11 +42,11 @@ const FAQs = () => {
             </>
           )}
         </li>
-        <li>
-          <strong onClick={() => toggleFAQ(2)} className={`faq-question ${openIndex === 2 ? 'active' : ''}`}>
-            <span role="img" aria-label="question-mark" style={{ color: '#28a745', marginRight: '8px' }}>❓</span>
-            How should I use HEAP?
-          </strong>
+        <li className="faq-item">
+          <div className="faq-header" onClick={() => toggleFAQ(2)}>
+            <span className="faq-icon">❓</span>
+            <span className="faq-question">How should I use HEAP?</span>
+          </div>
           {openIndex === 2 && (
             <ul className="faq-answer">
               <li>
