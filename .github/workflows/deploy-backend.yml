@@ -76,6 +76,20 @@ jobs:
         BACKEND_URL=$(gcloud run services describe "${{ env.DOCKER_IMAGE }}" \
           --platform managed \
           --region "${{ env.REGION }}" \
+          --project="${{ env.PROJECT_ID }}" \
           --format "value(status.url)")
         echo "Backend deployed at: $BACKEND_URL"
-        curl --fail "$BACKEND_URL" || exit 1
+
+        for i in {1..5}; do
+          echo "Attempt $i: Checking service..."
+          if curl --fail --silent "$BACKEND_URL"; then
+            echo "Service is live!"
+            exit 0
+          fi
+          echo "Not ready, retrying in 5s..."
+          sleep 5
+        done
+
+        echo "Backend never responded (503 or crash)."
+        exit 1
+
