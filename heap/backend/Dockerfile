@@ -30,4 +30,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Run Gunicorn
-CMD ["gunicorn", "--bind", ":8080", "--workers", "4", "--threads", "8", "app:app"]
+#CMD ["gunicorn", "--bind", ":8080", "--workers", "4", "--threads", "8", "app:app"] OLD VERSION
+CMD ["gunicorn", "--bind", ":8080", "--workers=1", "--threads=2", "app:app"]
+
