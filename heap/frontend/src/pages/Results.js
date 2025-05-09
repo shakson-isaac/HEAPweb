@@ -17,9 +17,9 @@ function Results() {
           <Route path="main" element={<MainResults />} />
           <Route path="summary" element={<HeapSummary />} />
           <Route path="associations" element={<Associations />} />
+          <Route path="interactions" element={<Interactions />} />
           <Route path="mediation" element={<Mediation />} />
           <Route path="intervention" element={<Intervention />} />
-          <Route path="interactions" element={<Interactions />} />
         </Routes>
       </div>
     </div>
