@@ -12,7 +12,7 @@ const Home = () => {
         </p>
 
         <p className="paragraph">
-          This webpage provides HEAP summary statistics and interactive plots generated from: 
+          This webpage provides HEAP summary statistics and interactive plots generated from:&nbsp;
           <a href="https://doi.org/10.1101/2025.05.07.25327178" target="_blank" rel="noopener noreferrer">https://doi.org/10.1101/2025.05.07.25327178</a>
         </p>
         <p className="paragraph">

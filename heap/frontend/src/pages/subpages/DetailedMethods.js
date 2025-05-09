@@ -10,7 +10,8 @@ const DetailedMethods = () => {
         This section provides a brief description of the methods used in the HEAP resource. 
         HEAP results are generated utilizing the UK Biobank genetics, exposures, proteomics, and disease codes on 53,014 individuals.
         Specifically, using over 90 million imputed genetic variants, 2686 normalized and batch corrected plasma protein expression levels, 135 lifestyle exposures, and 270 disease codes.
-        For further details on methods please refer to: <a href="**INSERT PAPER LINK**" target="_blank" rel="noopener noreferrer">**INSERT PAPER LINK**</a>
+        For further details on methods please refer to:&nbsp;
+        <a href="https://doi.org/10.1101/2025.05.07.25327178" target="_blank" rel="noopener noreferrer">https://doi.org/10.1101/2025.05.07.25327178</a>
       </p>
       </div>
       <div className="section">
