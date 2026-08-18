@@ -1,0 +1,44 @@
+page	section_id	source_figure	tier	key_column	title	chart_hint	status
+causal	mr_priority	fig_mr_priority	K	protID	Protein-disease MR priority	volcano	on
+causal	mr_edges	fig_mr_edges	S		Exposure-protein-disease edges	sankey	on
+causal	mr_coloc	fig_mr_coloc	S		Colocalization support (PP.H4)	scatter	on
+causal	mr_triad_spotlight	fig_mr_triad_spotlight	S		Exposure-protein-disease triads	forest	on
+causal	mr_shared_unique	fig_mr_shared_unique	S		Shared vs unique motifs	bar	on
+causal	mr_motif_overview	fig_mr_motif_overview	S		MR motif overview	bar	on
+causal	mr_protein_hits_table	fig_mr_protein_hits_table	S		Prioritized protein hits	table	on
+causal	mr_network	fig_network	S		Exposure-protein-disease network	network	on
+causal	mr_attrition	fig_mr_attrition	S		Edge attrition through MR tiers	funnel	on
+causal	mr_rigor	fig_mr_rigor	S		MR rigor diagnostics	bar	on
+causal	mr_refines_mediation	fig_mr_refines_mediation	S		MR refinement of mediation	bar	on
+pes	pes_disease_biomonitoring	fig_pes_disease_biomonitoring	S		Disease biomonitoring C-index	bar	on
+pes	pes_cox_delta_cindex	fig_pes_cox_delta_cindex	S		Cox delta C-index by exposure	heatmap	on
+pes	pes_cox_top_gains	fig_pes_cox_top_gains	S		Top predictive gains	bar	on
+pes	pes_disease_specificity	fig_pes_disease_specificity	S		Disease specificity archetypes	scatter	on
+pes	pes_dynamic_monitor	fig_pes_dynamic_monitor	S		Dynamic monitoring panels	line	on
+pes	pes_exposure_signatures	fig_pes_exposure_signatures	S		Exposure protein signatures	bar	on
+pes	pes_predictive_accuracy	fig_pes_predictive_accuracy	S		PES predictive accuracy	scatter	on
+pes	pes_predictive_breadth	fig_pes_predictive_breadth	S		PES predictive breadth	box	on
+pes	pes_incremental_value	fig_pes_incremental_value	S		Incremental value over covariates	scatter	on
+pes	pes_within_person	fig_pes_within_person	S		Within-person tracking	bar	on
+pes	pes_within_person_smoking	fig_pes_within_person_smoking	S		Within-person smoking transitions	forest	on
+pes	pes_switch_vs_track	fig_pes_switch_vs_track	S		Switching vs tracking	scatter	on
+pes	pes_switching_frequency	fig_pes_switching_frequency	S		Exposure switching frequency	bar	on
+pes	pes_binary_transitions	fig_pes_binary_transitions	S		Binary exposure transitions	bar	on
+pes	pes_exposure_modifiability	fig_pes_exposure_modifiability	S		Exposure modifiability	scatter	on
+pes	pes_imaging_tracking	fig_pes_imaging_tracking	S		Imaging-visit tracking	scatter	on
+pes	pes_dose_vs_status	fig_pes_dose_vs_status	S		Dose vs status response	line	on
+pes	pes_vs_selfreport	fig_pes_vs_selfreport	S		PES vs self-report	scatter	on
+enrichment	tissue_enrichment	fig_tissue_enrichment	S		Tissue enrichment (GSEA)	heatmap	on
+enrichment	pathway_enrichment	fig_pathway_enrichment	S		Pathway enrichment (GSEA)	heatmap	on
+enrichment	tissue_themes	fig_tissue_themes	S		Tissue themes by category	heatmap	on
+enrichment	pathway_themes	fig_pathway_themes	S		Pathway themes by category	heatmap	on
+enrichment	component_pathways	fig_component_pathways	S		Pathways by variance component	bar	on
+enrichment	exposure_tissue	fig_exposure_tissue	S		Exposure-tissue enrichment	bar	on
+enrichment	geno_expo_pathways	fig_geno_expo_pathways	S		Genetic vs exposomic pathways	scatter	on
+enrichment	inflammation_convergence	fig_inflammation_convergence	S		Inflammatory convergence	bar	on
+gwas	instrument_diagnostics	fig_instrument_diagnostics	S		Instrument diagnostics	table	on
+gwas	gwas_exemplars	fig_gwas_exemplars	S		Exemplar exposure GWAS	table	on
+gwas	ldsc_rg	fig_ldsc_rg	S		LDSC genetic correlation	heatmap	on
+gwas	ldsc_h2	fig_ldsc_h2	S		LDSC heritability	bar	off
+gwas	ldsc_intercept	fig_ldsc_intercept	S		LDSC intercept / inflation	scatter	off
+gwas	gwas_h2_loci	fig_gwas_h2_loci	S		Heritability vs lead loci	scatter	off
