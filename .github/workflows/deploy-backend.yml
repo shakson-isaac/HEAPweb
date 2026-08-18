@@ -2,6 +2,10 @@ name: Deploy Backend to Google Cloud Run
 
 on:
   push:
+    # Only the default branch deploys. Without this, a push to ANY
+    # branch touching these paths would redeploy the live site.
+    branches:
+      - main
     paths:
       - 'heap/backend/**'
       - '.github/workflows/deploy-backend.yml'
