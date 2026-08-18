@@ -60,6 +60,10 @@ function Header() {
             <MenuItem onClick={() => handleMenuClose('interactions')}>Interactions</MenuItem>
             <MenuItem onClick={() => handleMenuClose('mediation')}>Mediation</MenuItem>
             <MenuItem onClick={() => handleMenuClose('intervention')}>Intervention</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('enrichment')}>Tissues &amp; Pathways</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('causal')}>Causal Evidence (MR)</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('pes')}>Exposure Scores (PES)</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('gwas')}>Exposure GWAS</MenuItem>
           </Menu>
           <Menu
             anchorEl={docAnchorEl}
