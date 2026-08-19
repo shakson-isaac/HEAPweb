@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Typography, Menu, MenuItem, Divider } from '@mui/material';
 
 const heapLogo = `${process.env.PUBLIC_URL}/HEAPlogo.png`;
 
@@ -57,13 +57,16 @@ function Header() {
             <MenuItem onClick={() => handleMenuClose('main')}>Main Results</MenuItem>
             <MenuItem onClick={() => handleMenuClose('summary')}>Lifestyle Categories</MenuItem>
             <MenuItem onClick={() => handleMenuClose('associations')}>Associations</MenuItem>
-            <MenuItem onClick={() => handleMenuClose('interactions')}>Interactions</MenuItem>
-            <MenuItem onClick={() => handleMenuClose('mediation')}>Mediation</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('mediation')}>Disease Links</MenuItem>
             <MenuItem onClick={() => handleMenuClose('intervention')}>Intervention</MenuItem>
             <MenuItem onClick={() => handleMenuClose('enrichment')}>Tissues &amp; Pathways</MenuItem>
             <MenuItem onClick={() => handleMenuClose('causal')}>Causal Evidence (MR)</MenuItem>
             <MenuItem onClick={() => handleMenuClose('pes')}>Exposure Scores (PES)</MenuItem>
             <MenuItem onClick={() => handleMenuClose('gwas')}>Exposure GWAS</MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleMenuClose('architecture')}>
+              Genetic &amp; Exposomic Architecture
+            </MenuItem>
           </Menu>
           <Menu
             anchorEl={docAnchorEl}
@@ -71,7 +74,16 @@ function Header() {
             onClose={() => handleDocMenuClose(null)}
           >
             <MenuItem onClick={() => handleDocMenuClose('about')}>About HEAP</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('quickstart')}>Quick Start</MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleDocMenuClose('evidence-tiers')}>Evidence Tiers</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('models')}>Specifications</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('dictionary')}>Exposome Dictionary</MenuItem>
             <MenuItem onClick={() => handleDocMenuClose('methods')}>Detailed Methods</MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleDocMenuClose('api')}>Data API</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('changelog')}>Changelog</MenuItem>
+            <MenuItem onClick={() => handleDocMenuClose('cite')}>How to Cite</MenuItem>
             <MenuItem onClick={() => handleDocMenuClose('faqs')}>FAQs</MenuItem>
           </Menu>
         </nav>

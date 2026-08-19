@@ -36,6 +36,9 @@ function Results() {
             <Route path="main" element={<MainResults />} />
             <Route path="summary" element={<HeapSummary />} />
             <Route path="associations" element={<Associations />} />
+            {/* GxE is supplementary (S10): reachable, not a top-level pillar.
+                The old /interactions path still resolves so existing links work. */}
+            <Route path="architecture" element={<Interactions />} />
             <Route path="interactions" element={<Interactions />} />
             <Route path="mediation" element={<Mediation />} />
             <Route path="intervention" element={<Intervention />} />
