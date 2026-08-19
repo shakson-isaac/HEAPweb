@@ -1,0 +1,265 @@
+name: Preview Frontend on Firebase Hosting
+
+# Preview deploys ONLY. This workflow can never publish the live site:
+# it always uses `firebase hosting:channel:deploy`, never `firebase deploy
+# --only hosting`, and it refuses a channel literally named "live".
+# Production stays the exclusive job of deploy-firebase.yml on `main`.
+# See docs/PREVIEW_DEPLOYS.md and WEBSITE_PLAN.md section 15.
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Preview channel name (lowercase; "live" is refused)'
+        required: false
+        default: 'preview'
+      expires:
+        description: 'Days until the preview URL expires (1-30)'
+        required: false
+        default: '30'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'heap/frontend/**'
+      - '.github/workflows/preview-firebase.yml'
+
+# One preview per PR / per dispatched channel. A new push supersedes the
+# build still in flight instead of racing it onto the same channel.
+concurrency:
+  group: preview-firebase-${{ github.event.pull_request.number || github.event.inputs.channel || 'preview' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write   # needed only to post the preview URL back on the PR
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 0: Bail out politely when the run has no secrets.
+    # `pull_request` runs from a FORK get no secrets, so the deploy cannot
+    # work. Fail loudly-but-green rather than dying halfway through a build.
+    - name: Check deploy credentials are available
+      id: creds
+      env:
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      run: |
+        if [ -z "$FIREBASE_PROJECT_ID" ]; then
+          echo "available=false" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Firebase preview skipped"
+            echo
+            echo "No \`FIREBASE_PROJECT_ID\` secret was visible to this run."
+            echo "This is expected for pull requests opened from a fork —"
+            echo "GitHub withholds secrets from fork PRs. Run the workflow"
+            echo "manually (Actions -> Preview Frontend on Firebase Hosting ->"
+            echo "Run workflow) from a branch in this repo to get a preview URL."
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "available=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    # Step 1: Checkout code
+    - name: Checkout code
+      if: steps.creds.outputs.available == 'true'
+      uses: actions/checkout@v3
+
+    # Step 2: Work out the channel name and expiry, and refuse "live"
+    - name: Resolve preview channel and expiry
+      id: chan
+      if: steps.creds.outputs.available == 'true'
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        INPUT_CHANNEL: ${{ github.event.inputs.channel }}
+        INPUT_EXPIRES: ${{ github.event.inputs.expires }}
+      run: |
+        set -euo pipefail
+
+        if [ "$EVENT_NAME" = "pull_request" ]; then
+          CHANNEL="pr-${PR_NUMBER}"
+        else
+          CHANNEL="${INPUT_CHANNEL:-preview}"
+        fi
+
+        # Firebase channel IDs allow lowercase letters, digits and hyphens,
+        # up to 63 characters. Normalize whatever was typed into that shape.
+        CHANNEL=$(printf '%s' "$CHANNEL" \
+          | tr '[:upper:]' '[:lower:]' \
+          | tr -c 'a-z0-9-' '-' \
+          | sed -E 's/^-+//; s/-+$//' \
+          | cut -c1-63)
+        [ -n "$CHANNEL" ] || CHANNEL="preview"
+
+        # Hard safety rail: "live" is the production channel. Never.
+        if [ "$CHANNEL" = "live" ]; then
+          echo "Refusing to deploy to the 'live' channel."
+          echo "Production deploys are deploy-firebase.yml on main, only."
+          exit 1
+        fi
+
+        EXPIRES="${INPUT_EXPIRES:-30}"
+        EXPIRES="${EXPIRES%d}"          # tolerate someone typing "30d"
+        EXPIRES="${EXPIRES:-30}"
+        if ! printf '%s' "$EXPIRES" | grep -qE '^[0-9]+$' \
+           || [ "$EXPIRES" -lt 1 ] || [ "$EXPIRES" -gt 30 ]; then
+          echo "expires must be a whole number of days from 1 to 30"
+          echo "(30 days is the Firebase Hosting maximum for a preview channel)."
+          exit 1
+        fi
+
+        echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+        echo "expires=$EXPIRES" >> "$GITHUB_OUTPUT"
+        echo "Deploying to preview channel '$CHANNEL', expiring in ${EXPIRES}d."
+
+    # Step 3: Authenticate with Google Cloud (for Google Cloud services)
+    - name: Authenticate with Google Cloud
+      if: steps.creds.outputs.available == 'true'
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    # Step 4: Set up Firebase CLI
+    - name: Set up Firebase CLI
+      if: steps.creds.outputs.available == 'true'
+      run: |
+        curl -sL https://firebase.tools | bash  # Install Firebase CLI
+        firebase --version  # Check Firebase CLI version
+
+    # Step 5: Install Node.js and dependencies
+    - name: Set up Node.js
+      if: steps.creds.outputs.available == 'true'
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22' # Match deploy-firebase.yml
+
+    # Step 6: Install dependencies
+    - name: Install dependencies
+      if: steps.creds.outputs.available == 'true'
+      run: |
+        cd heap/frontend  # Navigate to the frontend directory
+        npm install  # Install the app dependencies
+
+    # Step 6.1: same .env as the production build
+    - name: Create .env file with backend URL
+      if: steps.creds.outputs.available == 'true'
+      run: |
+        cd heap/frontend  # Navigate to the frontend directory
+        echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
+        # Sharded result payloads, published from O2 by tools/sync_gcs.py.
+        # Public bucket, so this is not a secret; the secret only exists so the
+        # bucket can be moved without editing the frontend.
+        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-web-data/web/v1' }}" >> .env
+        cat .env
+
+    # Step 7: Build React app
+    - name: Build React app
+      if: steps.creds.outputs.available == 'true'
+      run: |
+        cd heap/frontend  # Navigate to the frontend directory
+        npm run build  # This creates the static files in 'build' folder
+
+    # Step 8: Deploy to a PREVIEW channel (never --only hosting)
+    - name: Deploy to Firebase Hosting preview channel
+      id: deploy
+      if: steps.creds.outputs.available == 'true'
+      env:
+        CHANNEL: ${{ steps.chan.outputs.channel }}
+        EXPIRES: ${{ steps.chan.outputs.expires }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
+      run: |
+        set -euo pipefail
+        cd heap/frontend
+
+        firebase hosting:channel:deploy "$CHANNEL" \
+          --expires "${EXPIRES}d" \
+          --project "$FIREBASE_PROJECT_ID" \
+          --token "$FIREBASE_TOKEN" \
+          --json > channel.json || { cat channel.json || true; exit 1; }
+
+        cat channel.json
+
+        # The site key under .result is the Firebase site id, which we do not
+        # want to hardcode, so pull the first url/expireTime found anywhere.
+        URL=$(jq -r '[.. | objects | .url?  | strings] | first // empty' channel.json)
+        EXP=$(jq -r '[.. | objects | .expireTime? | strings] | first // empty' channel.json)
+
+        # Fallback if the CLI ever changes its JSON shape.
+        if [ -z "$URL" ]; then
+          URL=$(grep -oE 'https://[A-Za-z0-9._-]+\.web\.app[^"[:space:]]*' channel.json | head -n 1 || true)
+        fi
+        if [ -z "$URL" ]; then
+          echo "Deploy reported success but no preview URL could be parsed."
+          exit 1
+        fi
+
+        echo "url=$URL" >> "$GITHUB_OUTPUT"
+        echo "expire_time=$EXP" >> "$GITHUB_OUTPUT"
+        rm -f channel.json
+
+    # Step 9: Make the URL visible on the run page
+    - name: Write preview URL to the job summary
+      if: steps.creds.outputs.available == 'true' && steps.deploy.outputs.url != ''
+      env:
+        URL: ${{ steps.deploy.outputs.url }}
+        CHANNEL: ${{ steps.chan.outputs.channel }}
+        EXPIRES: ${{ steps.chan.outputs.expires }}
+        EXPIRE_TIME: ${{ steps.deploy.outputs.expire_time }}
+      run: |
+        {
+          echo "### Firebase preview ready"
+          echo
+          echo "**Preview URL:** $URL"
+          echo
+          echo "| | |"
+          echo "|---|---|"
+          echo "| channel | \`$CHANNEL\` |"
+          echo "| expires in | ${EXPIRES} days |"
+          echo "| expires at | ${EXPIRE_TIME:-see Firebase console} |"
+          echo "| commit | \`${GITHUB_SHA:0:7}\` |"
+          echo
+          echo "This is a temporary channel. **heap.bio is untouched** — only a"
+          echo "merge to \`main\` deploys production (deploy-firebase.yml)."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    # Step 10: Post the URL back on the PR (gh is preinstalled on the runner)
+    - name: Comment the preview URL on the PR
+      if: >-
+        github.event_name == 'pull_request' &&
+        steps.creds.outputs.available == 'true' &&
+        steps.deploy.outputs.url != ''
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        URL: ${{ steps.deploy.outputs.url }}
+        CHANNEL: ${{ steps.chan.outputs.channel }}
+        EXPIRES: ${{ steps.chan.outputs.expires }}
+      run: |
+        set -euo pipefail
+        MARKER='<!-- heap-firebase-preview -->'
+        BODY=$(printf '%s\n' \
+          "$MARKER" \
+          "**Firebase preview:** $URL" \
+          "" \
+          "Channel \`$CHANNEL\`, expires in ${EXPIRES} days. Built from \`${GITHUB_SHA:0:7}\`." \
+          "" \
+          "This preview does not touch heap.bio - merging to \`main\` is what deploys production.")
+        # Update the existing preview comment if there is one, so repeated
+        # pushes do not bury the PR in near-identical comments.
+        # --paginate applies --jq per page, so collapse to the first hit.
+        EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" --paginate \
+          --jq "[.[] | select(.body | contains(\"$MARKER\")) | .id] | first // empty" \
+          | head -n 1)
+
+        if [ -n "$EXISTING" ]; then
+          gh api -X PATCH "repos/${REPO}/issues/comments/${EXISTING}" -f body="$BODY" >/dev/null
+          echo "Updated existing preview comment $EXISTING."
+        else
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$BODY"
+          echo "Posted a new preview comment."
+        fi
