@@ -37,6 +37,10 @@ from heap_ids import canonical_protein, protein_canon
 DEFAULT_SOURCE = "/n/groups/patel/IGLOO/UKB/HEAP/figures/website"
 DEFAULT_STATS = "/n/groups/patel/shakson_ukb/HEAP/docs/manuscript_stats"
 DEFAULT_DEPOSIT = "/n/groups/patel/IGLOO/UKB/HEAP/output/supp_deposit"
+# Tables this repo derives by joining published HEAP outputs (tools/build_*.py).
+# No new estimation happens in them -- see build_decode_triads.py.
+DEFAULT_DERIVED = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                               "build", "derived")
 SAFE = re.compile(r"[^A-Za-z0-9._-]+")
 PROTEIN_KEYS = {"protID", "protein", "Protein", "prot"}
 
@@ -173,6 +177,8 @@ def main():
                     help="root for source_kind=stats_tsv sections")
     ap.add_argument("--deposit", default=os.environ.get("HEAP_DEPOSIT_DIR", DEFAULT_DEPOSIT),
                     help="root for source_kind=deposit_tsv sections")
+    ap.add_argument("--derived", default=DEFAULT_DERIVED,
+                    help="root for source_kind=derived_tsv sections")
     ap.add_argument("--out", default=None, help="default: <repo>/build/web/v1")
     ap.add_argument("--only", action="append", help="section_id or page to build (repeatable)")
     ap.add_argument("--no-gzip", action="store_true")
@@ -200,6 +206,8 @@ def main():
         kind = (row.get("source_kind") or "figure").strip() or "figure"
         if kind == "stats_tsv":
             src = os.path.join(args.stats, row["source_figure"])
+        elif kind == "derived_tsv":
+            src = os.path.join(args.derived, row["source_figure"])
         elif kind == "deposit_tsv":
             # The supplementary data deposit. Richer than the figure exports:
             # it carries beta, SE, N and the covariate specification, which is
@@ -214,7 +222,8 @@ def main():
 
         src_bytes = os.path.getsize(src)
         src_total += src_bytes
-        records = (read_tsv_records(src) if kind in ("stats_tsv", "deposit_tsv")
+        records = (read_tsv_records(src)
+                   if kind in ("stats_tsv", "deposit_tsv", "derived_tsv")
                    else json.load(open(src)))
         if not isinstance(records, list) or not records:
             missing.append((sid, row["source_figure"] + " (empty)"))
@@ -231,6 +240,11 @@ def main():
             "chart_hint": row.get("chart_hint", ""),
             "source_figure": row["source_figure"],
             "source_kind": kind,
+            # Instrument arm. The MR analysis has two (UKB, deCODE) and most
+            # exports carry no arm column, so the site would otherwise present
+            # one arm of a two-arm analysis with nothing saying so.
+            # "in-data" means the section's own rows carry it.
+            "arm": (row.get("arm") or "").strip(),
             "tier": tier,
             "columns": cols,
             "n_rows": len(records),

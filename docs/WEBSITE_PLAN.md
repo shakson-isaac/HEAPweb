@@ -702,7 +702,69 @@ First release is the seven items that carry ~80% of the scientific value:
 
 ---
 
-## 15. Versioning and cutover
+## 15. Foundations for growth
+
+Decided 2026-08-19. Anticipated growth, in the author's priority: **more analyses on the same
+data**, **updated or expanded data**, and **other people building on HEAP**. Other cohorts are
+wanted as a *capability*, not as something to build now.
+
+The load-bearing observation: **the data layer already scales and the front page does not.**
+82 registry rows produce 10 manifest pages with no page edits, while `Home.js` is 373
+hand-maintained lines. So the front page should get *more generated*, not richer. Resources that
+grow well keep a near-static doorway and scale through search, entity pages and a catalog; a
+curated module list looks good at six modules and is dishonest at fifteen, because nobody
+re-curates it. That is the failure this rebuild just repaired.
+
+### F1 -- more analyses, same data
+
+The home page becomes a view over the manifest, not a hand-written list:
+- search is the primary affordance, because it scales to any number of entities
+- entry points are organised by QUESTION TYPE ("I study a protein"), which is stable, not by
+  module ("Module 4: Enrichment"), which grows
+- the "what's in here" section reads `manifest.json`, so a new page appears because it was
+  published, not because someone edited `Home.js`
+- the Results nav is generated from the manifest for the same reason
+
+A new analysis should reach the site as: a registry row, an export, and (if it needs one) a
+bespoke chart. Never a home-page edit.
+
+### F2 -- updated or expanded data
+
+Two version axes exist and are currently conflated:
+- **API shape** -- the `/v1/` path prefix. Bumps only on a breaking schema change.
+- **Data release** -- which UKB extract, how many proteins, how many participants. Changes far
+  more often, and is what a reader must be told.
+
+Every payload object gains a `data_release` stamp; the site shows it; old releases stay
+reachable and citable. A reader must always be able to answer "which release am I looking at"
+without asking.
+
+### F3 -- others building on HEAP
+
+Once someone else's paper depends on a URL, breaking it has a real cost:
+- `/v1/` is a frozen contract; document it and add a deprecation policy
+- per-dataset version + build date in the catalog (already emitted)
+- a thin R/Python helper so the common calls are one line
+- entity URLs stable and citable
+
+### F4 -- cohorts: leave the seam, do not build the machine
+
+**The dimension already exists and the site is collapsing it.** `mr_tiered_edges.tsv` carries
+**58,593 deCODE rows against 77,573 UKB**, `output/mr_edges_decode/` is 2.4 GB, and
+`summarize_mr_triads.R` takes `ARM in {UKB, DECODE}` defaulting to UKB. Every MR surface on the
+site -- `mr_triads`, `mr_motif_counts`, the triad DAG -- shows the UKB arm only, unlabelled.
+
+So the seam is built where a second arm exists today, and nowhere else:
+1. `arm` becomes an explicit, visible field on every MR section, never an implicit default
+2. the UI states which arm it is showing, and offers the other where it exists
+3. the API path shape that WOULD carry a cohort is decided and documented now, and not
+   implemented: `/v1/<cohort>/e/protein/<SYM>.json`, with the current paths remaining valid
+   aliases for the default cohort
+4. nothing else on the site gains a cohort dimension until a second cohort actually spans it
+
+This costs little now and avoids a retrofit across every page later.
+
+## 16. Versioning and cutover
 
 Three version axes that move **independently**, which is what makes iteration safe.
 
@@ -752,7 +814,7 @@ Doing it in the other order takes the live site down for as long as the deploy t
 No DOIs (D10). Each dataset carries a version string and build date so a reader can state
 which build they used; the citation is always the paper.
 
-## 16. Editorial rules
+## 17. Editorial rules
 
 Carried from the supplement, because they apply here too.
 

@@ -1,83 +1,86 @@
-page	section_id	source_figure	tier	key_column	title	chart_hint	status	source_kind
-associations	assoc_base	assoc_E_specs/base.tsv	K	Protein	Exposure-protein associations - Primary (base)	miami	on	deposit_tsv
-associations	assoc_base_plus_bmi	assoc_E_specs/base_plus_bmi.tsv	K	Protein	Exposure-protein associations - + BMI	miami	on	deposit_tsv
-associations	assoc_base_plus_blood_draw	assoc_E_specs/base_plus_blood_draw.tsv	K	Protein	Exposure-protein associations - + blood draw	miami	on	deposit_tsv
-associations	assoc_base_plus_clinical	assoc_E_specs/base_plus_clinical.tsv	K	Protein	Exposure-protein associations - + clinical	miami	on	deposit_tsv
-associations	assoc_exclude_prevalent_disease	assoc_E_specs/exclude_prevalent_disease.tsv	K	Protein	Exposure-protein associations - Healthy at baseline	miami	on	deposit_tsv
-causal	mr_triads	module5/mr_triad_motifs.tsv	S		Tier-1 mediator triads	forest	on	stats_tsv
-causal	mr_motif_counts	module5/mr_motif_counts.tsv	S		Motif counts under both evidence bars	bar	on	stats_tsv
-causal	mr_priority	fig_mr_priority	K	protID	Protein-disease MR priority	volcano	on	figure
-causal	mr_edges	fig_mr_edges	S		Exposure-protein-disease edges	sankey	on	figure
-causal	mr_coloc	fig_mr_coloc	S		Colocalization support (PP.H4)	scatter	on	figure
-causal	mr_shared_unique	fig_mr_shared_unique	S		Shared vs unique motifs	bar	on	figure
-causal	mr_motif_overview	fig_mr_motif_overview	S		MR motif overview	bar	on	figure
-causal	mr_protein_hits_table	fig_mr_protein_hits_table	S		Prioritized protein hits	table	on	figure
-causal	mr_network	fig_network	S		Exposure-protein-disease network	network	on	figure
-causal	mr_attrition	fig_mr_attrition	S		Edge attrition through MR tiers	funnel	on	figure
-causal	mr_rigor	fig_mr_rigor	S		MR rigor diagnostics	bar	on	figure
-causal	mr_refines_mediation	fig_mr_refines_mediation	S		MR refinement of mediation	bar	on	figure
-pes	pes_disease_biomonitoring	fig_pes_disease_biomonitoring	S		Disease biomonitoring C-index	bar	on	figure
-pes	pes_cox_delta_cindex	fig_pes_cox_delta_cindex	S		Cox delta C-index by exposure	heatmap	on	figure
-pes	pes_cox_top_gains	fig_pes_cox_top_gains	S		Top predictive gains	bar	on	figure
-pes	pes_disease_specificity	fig_pes_disease_specificity	S		Disease specificity archetypes	scatter	on	figure
-pes	pes_dynamic_monitor	fig_pes_dynamic_monitor	S		Dynamic monitoring panels	line	on	figure
-pes	pes_exposure_signatures	fig_pes_exposure_signatures	S		Exposure protein signatures	bar	on	figure
-pes	pes_predictive_accuracy	fig_pes_predictive_accuracy	S		PES predictive accuracy	scatter	on	figure
-pes	pes_predictive_breadth	fig_pes_predictive_breadth	S		PES predictive breadth	box	on	figure
-pes	pes_incremental_value	fig_pes_incremental_value	S		Incremental value over covariates	scatter	on	figure
-pes	pes_within_person	fig_pes_within_person	S		Within-person tracking	bar	on	figure
-pes	pes_within_person_smoking	fig_pes_within_person_smoking	S		Within-person smoking transitions	forest	on	figure
-pes	pes_switch_vs_track	fig_pes_switch_vs_track	S		Switching vs tracking	scatter	on	figure
-pes	pes_switching_frequency	fig_pes_switching_frequency	S		Exposure switching frequency	bar	on	figure
-pes	pes_binary_transitions	fig_pes_binary_transitions	S		Binary exposure transitions	bar	on	figure
-pes	pes_exposure_modifiability	fig_pes_exposure_modifiability	S		Exposure modifiability	scatter	on	figure
-pes	pes_imaging_tracking	fig_pes_imaging_tracking	S		Imaging-visit tracking	scatter	on	figure
-pes	pes_dose_vs_status	fig_pes_dose_vs_status	S		Dose vs status response	line	on	figure
-pes	pes_vs_selfreport	fig_pes_vs_selfreport	S		PES vs self-report	scatter	on	figure
-enrichment	tissue_enrichment	fig_tissue_enrichment	S		Tissue enrichment (GSEA)	heatmap	on	figure
-enrichment	pathway_enrichment	fig_pathway_enrichment	S		Pathway enrichment (GSEA)	heatmap	on	figure
-enrichment	tissue_themes	fig_tissue_themes	S		Tissue themes by category	heatmap	on	figure
-enrichment	pathway_themes	fig_pathway_themes	S		Pathway themes by category	heatmap	on	figure
-enrichment	component_pathways	fig_component_pathways	S		Pathways by variance component	bar	on	figure
-enrichment	exposure_tissue	fig_exposure_tissue	S		Exposure-tissue enrichment	bar	on	figure
-enrichment	geno_expo_pathways	fig_geno_expo_pathways	S		Genetic vs exposomic pathways	scatter	on	figure
-enrichment	inflammation_convergence	fig_inflammation_convergence	S		Inflammatory convergence	bar	on	figure
-gwas	instrument_diagnostics	fig_instrument_diagnostics	S		Instrument diagnostics	table	on	figure
-gwas	gwas_exemplars	fig_gwas_exemplars	S		Exemplar exposure GWAS	table	on	figure
-gwas	ldsc_rg	fig_ldsc_rg	S		LDSC genetic correlation	heatmap	on	figure
-gwas	ldsc_h2	fig_ldsc_h2	S		LDSC heritability	bar	off	figure
-gwas	ldsc_intercept	fig_ldsc_intercept	S		LDSC intercept / inflation	scatter	off	figure
-gwas	gwas_h2_loci	fig_gwas_h2_loci	S		Heritability vs lead loci	scatter	off	figure
-main	r2_decomposition	fig_r2_decomposition	S		Variance components across the proteome	bar	on	figure
-main	predictive_r2	fig_predictive_r2	S		Predictive R2 by model block	bar	on	figure
-main	geno_vs_expo_arch	fig_geno_vs_expo_arch	S		Genetics versus exposome, per protein	scatter	on	figure
-main	r2_distribution_donut	fig_r2_distribution_donut	S		Distribution of explained variance	bar	on	figure
-main	r2_reach_cdf	fig_r2_reach_cdf	S		Reach of each component across the proteome	line	on	figure
-main	top_eg_proteins	fig_top_eg_proteins	S		Most exposure- and genetics-driven proteins	bar	on	figure
-main	variance_architecture	fig_variance_architecture	S		Variance architecture detail	box	on	figure
-main	partition_motivation	fig_partition_motivation	S		Why partition variance	bar	on	figure
-main	exemplar_decomp	fig_exemplar_decomp	S		Exemplar protein decompositions	bar	on	figure
-categories	expo_category_arch	fig_expo_category_arch	S		Reach of each exposure category	bar	on	figure
-categories	expo_category_dist	fig_expo_category_dist	S		Variance explained per category	scatter	on	figure
-categories	expo_category_heatmap	fig_expo_category_heatmap	S		Category by protein heatmap	heatmap	on	figure
-categories	category_biology	fig_category_biology	S		Biology behind each category	bar	on	figure
-categories	traintest_stability_categories	fig_traintest_stability_categories	S		Train versus test stability	scatter	on	figure
-disease	mediation_scale_main	fig_mediation_scale_main	S		Scale of mediation across diseases	bar	on	figure
-disease	gem_landscape	fig_gem_landscape	K	protID	Genetic-exposomic mediation landscape	scatter	on	figure
-disease	mediation_keystones	fig_mediation_keystones	S		Keystone mediator proteins	bar	on	figure
-disease	mediation_exemplars	fig_mediation_exemplars	S		Exemplar mediation chains	forest	on	figure
-disease	mediation_proportion	fig_mediation_proportion	K	protID	Proportion mediated per protein-disease pair	forest	on	figure
-disease	gem_disease_dumbbell	fig_gem_disease_dumbbell	S		Genetic versus exposomic hazard per disease	dumbbell	on	figure
-disease	mediation_conduit	fig_mediation_conduit	S		Lifestyle to disease conduits	table	on	figure
-disease	mediation_prioritization	fig_mediation_prioritization	S		Mediation prioritization funnel	bar	on	figure
-intervention	intervention_compare	fig_intervention_compare	S		Concordance with intervention trials	heatmap	on	figure
-intervention	intervention_scatter	fig_intervention_scatter	K	exposure_id	Per-protein effects: HEAP versus trial	scatter	on	figure
-intervention	glp1_heritage_mr	fig_glp1_heritage_mr	S		HERITAGE and GLP1 with MR support	scatter	on	figure
-intervention	glp1_exercise	fig_glp1_exercise	S		Exercise signature versus trials	scatter	on	figure
-intervention	glp1_diet	fig_glp1_diet	S		Diet signature versus trials	scatter	on	figure
-intervention	glp1_smoking	fig_glp1_smoking	S		Smoking signature versus trials	scatter	on	figure
-intervention	health_behavior_arms	fig_health_behavior_arms	S		Health behaviour arms	bar	on	figure
-architecture	gxe_architecture	fig_gxe_architecture	S		GxE architecture summary	bar	on	figure
-architecture	gxe_noise_floor	fig_gxe_noise_floor	S		GxE against the noise floor	scatter	on	figure
-architecture	gxe_proteins	fig_gxe_proteins	S		Proteins with GxE signal	scatter	on	figure
-architecture	gxe_assoc	fig_gxe_assoc	K	exposure_id	Polygenic GxE associations	miami	on	figure
+page	section_id	source_figure	tier	key_column	title	chart_hint	status	source_kind	arm
+causal	mr_triad_tiers	mr_triad_tiers.tsv	S		Per-edge MR tier for each triad, both panels	table	on	derived_tsv	
+causal	platform_concordance	platform_concordance.tsv	S		Olink-SomaScan platform transferability	table	on	derived_tsv	
+causal	mr_triads_decode	mr_triads_decode.tsv	S		deCODE corroboration of the protein arm (P->D, P->E)	forest	on	derived_tsv	DECODE
+associations	assoc_base	assoc_E_specs/base.tsv	K	Protein	Exposure-protein associations - Primary (base)	miami	on	deposit_tsv	
+associations	assoc_base_plus_bmi	assoc_E_specs/base_plus_bmi.tsv	K	Protein	Exposure-protein associations - + BMI	miami	on	deposit_tsv	
+associations	assoc_base_plus_blood_draw	assoc_E_specs/base_plus_blood_draw.tsv	K	Protein	Exposure-protein associations - + blood draw	miami	on	deposit_tsv	
+associations	assoc_base_plus_clinical	assoc_E_specs/base_plus_clinical.tsv	K	Protein	Exposure-protein associations - + clinical	miami	on	deposit_tsv	
+associations	assoc_exclude_prevalent_disease	assoc_E_specs/exclude_prevalent_disease.tsv	K	Protein	Exposure-protein associations - Healthy at baseline	miami	on	deposit_tsv	
+causal	mr_triads	module5/mr_triad_motifs.tsv	S		Tier-1 mediator triads	forest	on	stats_tsv	UKB
+causal	mr_motif_counts	module5/mr_motif_counts.tsv	S		Motif counts under both evidence bars	bar	on	stats_tsv	UKB
+causal	mr_priority	fig_mr_priority	K	protID	Protein-disease MR priority	volcano	on	figure	UKB
+causal	mr_edges	fig_mr_edges	S		Exposure-protein-disease edges	sankey	on	figure	UKB
+causal	mr_coloc	fig_mr_coloc	S		Colocalization support (PP.H4)	scatter	on	figure	in-data
+causal	mr_shared_unique	fig_mr_shared_unique	S		Shared vs unique motifs	bar	on	figure	UKB
+causal	mr_motif_overview	fig_mr_motif_overview	S		MR motif overview	bar	on	figure	UKB
+causal	mr_protein_hits_table	fig_mr_protein_hits_table	S		Prioritized protein hits	table	on	figure	in-data
+causal	mr_network	fig_network	S		Exposure-protein-disease network	network	on	figure	UKB
+causal	mr_attrition	fig_mr_attrition	S		Edge attrition through MR tiers	funnel	on	figure	UKB
+causal	mr_rigor	fig_mr_rigor	S		MR rigor diagnostics	bar	on	figure	UKB
+causal	mr_refines_mediation	fig_mr_refines_mediation	S		MR refinement of mediation	bar	on	figure	UKB
+pes	pes_disease_biomonitoring	fig_pes_disease_biomonitoring	S		Disease biomonitoring C-index	bar	on	figure	
+pes	pes_cox_delta_cindex	fig_pes_cox_delta_cindex	S		Cox delta C-index by exposure	heatmap	on	figure	
+pes	pes_cox_top_gains	fig_pes_cox_top_gains	S		Top predictive gains	bar	on	figure	
+pes	pes_disease_specificity	fig_pes_disease_specificity	S		Disease specificity archetypes	scatter	on	figure	
+pes	pes_dynamic_monitor	fig_pes_dynamic_monitor	S		Dynamic monitoring panels	line	on	figure	
+pes	pes_exposure_signatures	fig_pes_exposure_signatures	S		Exposure protein signatures	bar	on	figure	
+pes	pes_predictive_accuracy	fig_pes_predictive_accuracy	S		PES predictive accuracy	scatter	on	figure	
+pes	pes_predictive_breadth	fig_pes_predictive_breadth	S		PES predictive breadth	box	on	figure	
+pes	pes_incremental_value	fig_pes_incremental_value	S		Incremental value over covariates	scatter	on	figure	
+pes	pes_within_person	fig_pes_within_person	S		Within-person tracking	bar	on	figure	
+pes	pes_within_person_smoking	fig_pes_within_person_smoking	S		Within-person smoking transitions	forest	on	figure	
+pes	pes_switch_vs_track	fig_pes_switch_vs_track	S		Switching vs tracking	scatter	on	figure	
+pes	pes_switching_frequency	fig_pes_switching_frequency	S		Exposure switching frequency	bar	on	figure	
+pes	pes_binary_transitions	fig_pes_binary_transitions	S		Binary exposure transitions	bar	on	figure	
+pes	pes_exposure_modifiability	fig_pes_exposure_modifiability	S		Exposure modifiability	scatter	on	figure	
+pes	pes_imaging_tracking	fig_pes_imaging_tracking	S		Imaging-visit tracking	scatter	on	figure	
+pes	pes_dose_vs_status	fig_pes_dose_vs_status	S		Dose vs status response	line	on	figure	
+pes	pes_vs_selfreport	fig_pes_vs_selfreport	S		PES vs self-report	scatter	on	figure	
+enrichment	tissue_enrichment	fig_tissue_enrichment	S		Tissue enrichment (GSEA)	heatmap	on	figure	
+enrichment	pathway_enrichment	fig_pathway_enrichment	S		Pathway enrichment (GSEA)	heatmap	on	figure	
+enrichment	tissue_themes	fig_tissue_themes	S		Tissue themes by category	heatmap	on	figure	
+enrichment	pathway_themes	fig_pathway_themes	S		Pathway themes by category	heatmap	on	figure	
+enrichment	component_pathways	fig_component_pathways	S		Pathways by variance component	bar	on	figure	
+enrichment	exposure_tissue	fig_exposure_tissue	S		Exposure-tissue enrichment	bar	on	figure	
+enrichment	geno_expo_pathways	fig_geno_expo_pathways	S		Genetic vs exposomic pathways	scatter	on	figure	
+enrichment	inflammation_convergence	fig_inflammation_convergence	S		Inflammatory convergence	bar	on	figure	
+gwas	instrument_diagnostics	fig_instrument_diagnostics	S		Instrument diagnostics	table	on	figure	
+gwas	gwas_exemplars	fig_gwas_exemplars	S		Exemplar exposure GWAS	table	on	figure	
+gwas	ldsc_rg	fig_ldsc_rg	S		LDSC genetic correlation	heatmap	on	figure	
+gwas	ldsc_h2	fig_ldsc_h2	S		LDSC heritability	bar	off	figure	
+gwas	ldsc_intercept	fig_ldsc_intercept	S		LDSC intercept / inflation	scatter	off	figure	
+gwas	gwas_h2_loci	fig_gwas_h2_loci	S		Heritability vs lead loci	scatter	off	figure	
+main	r2_decomposition	fig_r2_decomposition	S		Variance components across the proteome	bar	on	figure	
+main	predictive_r2	fig_predictive_r2	S		Predictive R2 by model block	bar	on	figure	
+main	geno_vs_expo_arch	fig_geno_vs_expo_arch	S		Genetics versus exposome, per protein	scatter	on	figure	
+main	r2_distribution_donut	fig_r2_distribution_donut	S		Distribution of explained variance	bar	on	figure	
+main	r2_reach_cdf	fig_r2_reach_cdf	S		Reach of each component across the proteome	line	on	figure	
+main	top_eg_proteins	fig_top_eg_proteins	S		Most exposure- and genetics-driven proteins	bar	on	figure	
+main	variance_architecture	fig_variance_architecture	S		Variance architecture detail	box	on	figure	
+main	partition_motivation	fig_partition_motivation	S		Why partition variance	bar	on	figure	
+main	exemplar_decomp	fig_exemplar_decomp	S		Exemplar protein decompositions	bar	on	figure	
+categories	expo_category_arch	fig_expo_category_arch	S		Reach of each exposure category	bar	on	figure	
+categories	expo_category_dist	fig_expo_category_dist	S		Variance explained per category	scatter	on	figure	
+categories	expo_category_heatmap	fig_expo_category_heatmap	S		Category by protein heatmap	heatmap	on	figure	
+categories	category_biology	fig_category_biology	S		Biology behind each category	bar	on	figure	
+categories	traintest_stability_categories	fig_traintest_stability_categories	S		Train versus test stability	scatter	on	figure	
+disease	mediation_scale_main	fig_mediation_scale_main	S		Scale of mediation across diseases	bar	on	figure	
+disease	gem_landscape	fig_gem_landscape	K	protID	Genetic-exposomic mediation landscape	scatter	on	figure	
+disease	mediation_keystones	fig_mediation_keystones	S		Keystone mediator proteins	bar	on	figure	
+disease	mediation_exemplars	fig_mediation_exemplars	S		Exemplar mediation chains	forest	on	figure	
+disease	mediation_proportion	fig_mediation_proportion	K	protID	Proportion mediated per protein-disease pair	forest	on	figure	
+disease	gem_disease_dumbbell	fig_gem_disease_dumbbell	S		Genetic versus exposomic hazard per disease	dumbbell	on	figure	
+disease	mediation_conduit	fig_mediation_conduit	S		Lifestyle to disease conduits	table	on	figure	
+disease	mediation_prioritization	fig_mediation_prioritization	S		Mediation prioritization funnel	bar	on	figure	
+intervention	intervention_compare	fig_intervention_compare	S		Concordance with intervention trials	heatmap	on	figure	
+intervention	intervention_scatter	fig_intervention_scatter	K	exposure_id	Per-protein effects: HEAP versus trial	scatter	on	figure	
+intervention	glp1_heritage_mr	fig_glp1_heritage_mr	S		HERITAGE and GLP1 with MR support	scatter	on	figure	
+intervention	glp1_exercise	fig_glp1_exercise	S		Exercise signature versus trials	scatter	on	figure	
+intervention	glp1_diet	fig_glp1_diet	S		Diet signature versus trials	scatter	on	figure	
+intervention	glp1_smoking	fig_glp1_smoking	S		Smoking signature versus trials	scatter	on	figure	
+intervention	health_behavior_arms	fig_health_behavior_arms	S		Health behaviour arms	bar	on	figure	
+architecture	gxe_architecture	fig_gxe_architecture	S		GxE architecture summary	bar	on	figure	
+architecture	gxe_noise_floor	fig_gxe_noise_floor	S		GxE against the noise floor	scatter	on	figure	
+architecture	gxe_proteins	fig_gxe_proteins	S		Proteins with GxE signal	scatter	on	figure	
+architecture	gxe_assoc	fig_gxe_assoc	K	exposure_id	Polygenic GxE associations	miami	on	figure	

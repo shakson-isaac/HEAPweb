@@ -30,6 +30,75 @@ These are settled. **I apply them without asking.** Change one here and I follow
 | S12 | **No dataset DOIs.** Version + build date; readers cite the paper |
 | S13 | **Structural copy is mine to draft; interpretive copy is yours.** I mark anything that interprets a result and leave it for you |
 
+## Simplification, UX and plot engagement (2026-08-19)
+
+**The design principle, measured.** `Associations.js` is 174 lines: one plot, one table, three
+controls. It is the page that works. `Pes.js` is 933 lines and 21 sections. Every page should
+converge on the Associations shape -- one question, one primary visual, controls that change it,
+everything else behind disclosure.
+
+Where each page stands today (source counts; rendered text length in chars):
+
+| page | lines | sections | plots | tables | chars |
+|---|---|---|---|---|---|
+| Pes | 933 | 21 | 5 | 16 | 32,298 |
+| Mediation | 855 | 8 | 7 | 3 | 12,619 |
+| Intervention | 727 | 5 | 5 | 5 | 15,863 |
+| Interactions | 648 | 4 | 7 | 3 | 6,302 |
+| Causal | 575 | 12 | 3 | 11 | 25,451 |
+| MainResults | 633 | 9 | 9 | 5 | 5,839 |
+| **Associations** | **174** | **1** | **1** | **1** | **6,598** |
+
+### F -- foundations for growth (see WEBSITE_PLAN section 15)
+
+| # | task | why |
+|---|------|-----|
+| F1 | **Home page reads the manifest.** "What's in here" and the Results nav generated, not hand-listed. A new module appears by being published | 82 registry rows already generate 10 pages; only Home.js is hand-maintained |
+| F2 | **Search becomes the primary home affordance**, entry points by question type not by module | question types are stable; module lists rot |
+| F3 | **Stamp every payload object with a `data_release`** distinct from the `/v1/` API version, and show it | a reader must know which release they are reading |
+| F4 | *(DONE 2026-08-19)* MR pQTL panel is declared in `web_sections.tsv`, carried through the manifest, and rendered as a page notice + per-section chip. Worded as **instrument panels, not cohorts**: same participants, same exposures, same outcomes; only the protein instruments differ | correctness |
+| F4b | **Show deCODE per-edge status on the triad DAG (no new analysis).** The published `mr_edges` deposit carries `dataset`, `edge_dir`, `src_id`, `tgt_id`, `mr_tier_final`, `nsnp`, `coloc_status`, `coloc_pph4` for BOTH panels. Each DAG edge can therefore show its deCODE tier, instrument count and coloc alongside UKB -- e.g. ASGR1 P->D is Tier1plus in both, ADM and FURIN are Tier1 in UKB and absent in deCODE | buildable today |
+| F4c | **Show deCODE effect sizes (beta +/- SE) on the DAG.** BLOCKED on an aggregation pass in the HEAP repo: the estimates exist as `b`/`se`/`pval` in ~50,000 `*_mr_methods.tsv` files under `mr_edges_decode/MR_deCODE_replication/`, four methods each (IVW, MR Egger, Weighted median, Weighted mode), but are not tabulated. UKB's equivalent is `MRmotifs.tsv` (`beta_EP`/`se_EP`/`padj_EP`). Needs the author to confirm which method and which multiple-testing correction to mirror | analysis-side |
+| F4b-old | **Surface `Tier1plus` (cross-panel replication) per edge instead of building a deCODE motif table.** Verified: Tier1plus counts are IDENTICAL across panels (D->P 365/365, E->P 42/42, Pcis->D 2/2) because the rung *means* replicated-in-both, so it is symmetric by construction. Running the motif enumeration on deCODE instruments yields **0 motif-A triads** -- not a useful parallel table. What a reader actually wants is per-edge replication status, which is already in the data | replaces "regenerate both arms" |
+| F5 | **Decide and document the cohort URL shape without implementing it**: `/v1/<cohort>/...`, current paths stay valid aliases | avoids a retrofit across every page later |
+| F6 | **Freeze and document the `/v1/` contract** + a deprecation policy | others will depend on these URLs |
+| F7 | **Thin R/Python helper** so the common calls are one line | lowers the cost of someone building on HEAP |
+
+### S -- simplification
+
+| # | task | why |
+|---|------|-----|
+| S1 | **Cut PES from 21 sections to a lead + disclosure.** Keep Figure 6's three questions visible; move the 15 TableSections behind one "All PES results" expander | 32,298 chars is a data dump, not a page |
+| S2 | **Make the Associations shape the house template.** One question, one primary visual, controls, then disclosure. Write it down so future pages inherit it | the pattern is already validated |
+| S3 | **Demote Interactions to match the paper.** 7 plots for a supplementary analysis the manuscript demotes. Reduce to one summary visual + a link to the deposit | S10 says supplementary; the page says pillar |
+| S4 | **Causal: fold the 7 TableSections under the DAG into one expander** | the DAG is the point; the tables bury it |
+| S5 | **MainResults: 9 plots -> the 3 that carry the claim.** Lead spectrum, decomposition, reach. Rest to disclosure | every export got a chart because I briefed it that way |
+| S6 | **Nav: 20 menu items across two menus.** Group or shorten | Results has 10, Documentation has 10 |
+
+### X -- user experience
+
+| # | task | why |
+|---|------|-----|
+| X1 | **Mobile: 93 px horizontal overflow at 420 px**, present on every page -- it is the nav, not any one section | the site is unusable on a phone |
+| X2 | **Unify the entity selector.** A protein picker appears on Associations, Mediation, Causal and PES, each built separately with different behaviour | one component, one behaviour |
+| X3 | **Carry selection across pages.** Picking LEP on Associations then opening Disease links should keep LEP | currently every page resets |
+| X4 | **Shareable deep links.** Put protein/exposure/spec in the URL so a result can be sent to a collaborator | plan section 6.6 wants citable URLs |
+| X5 | **Perceived speed.** Prefetch the entity bundle on selector hover; skeleton instead of a spinner | bundles are ~29 KB, so this is cheap |
+| X6 | **One consistent caveat pattern.** Alerts, chips and footnotes are currently mixed | readers learn one affordance |
+
+### P -- do the plots earn their place
+
+| # | task | why |
+|---|------|-----|
+| P1 | **Audit all 53 plots: keep / merge / demote to table.** A bar chart of 3 values is a table with extra steps | 53 plots, 9 pages |
+| P2 | **Name the engaging ones and say why.** The triad DAG and the Associations volcano work because they answer a question you can pose in words. Apply that test to the rest | gives S1-S5 an objective criterion |
+| P3 | **Consistent hover contract.** Every point should reveal the same fields in the same order: entity, effect +/- SE, p, n, evidence rung | hover quality varies per page |
+| P4 | **Kill decorative variety.** Donut, waterfall and box plots appear once each; prefer a smaller vocabulary used consistently | variety costs recognition |
+| P5 | **Make one plot per page the obvious hero** -- size, position, and a caption stating the question it answers | currently pages read as equal-weight lists |
+
+**Sequence I would take:** P1/P2 first (the audit tells S1-S5 what to cut), then S1-S5, then X1
+(mobile blocks real use), then X2-X4.
+
 ## Queue
 
 Ordered. I take the top row that isn't blocked, and I don't need to ask first.
@@ -75,6 +144,43 @@ Otherwise I proceed, and report what I did with evidence.
 | U2 | **4 proteins carry mangled HGNC symbols** in the mediation/MR exports (`HLA_A` for `HLA-A`), from `HEAP_loader.R:870` `gsub("-","_")`. The site corrects at the boundary; joins to external databases on the raw exports silently miss | external joins |
 | U3 | **`intervention_compare.exposure_lab` collapses factor levels** - 65 `exposure_id`s map to 28 labels, so a naive pivot averages unrelated levels into one cell | anyone pivoting that export |
 | U4 | **`fig_gem_landscape` covers 72 diseases**, not the 181 in `disease_list.tsv` | any figure keyed on it shows 40% of the disease set |
+
+## >>> TWO DIFFERENT TABLES -- do not conflate (clarified 2026-08-19) <<<
+
+The edge table on the website and the supplementary triad table are **different objects for
+different readers**, and optimising one for the other makes both worse.
+
+| | website edge table | supplementary triad table |
+|---|---|---|
+| reader | one person auditing ONE triad on screen | someone scanning 18,780 triads in Excel / R / pandas |
+| scope | the selected triad | every triad, every direction, every panel |
+| may use | grouping, nesting, expanders, hover, colour | none of it -- grouping does not survive a spreadsheet |
+| row = | whatever reads best | one record, always, no exceptions |
+| provenance | can live in a group header, stated once | must repeat on every row as its own column |
+| cis / trans | may collapse to a pooled verdict | never collapsed; both are separate rows |
+| optimise for | legibility and side-by-side comparison | filtering, sorting, joining, reproducibility |
+
+Consequence: the website may group by direction with the sample pairing in a header; the
+supplement must be **flat long format** -- one row per (triad x direction x instrument class x
+panel) with every provenance field as its own column.
+
+## >>> RULE 5 -- MUST DO once the presentation is settled <<<
+
+**A standardized triad-motif supplementary table**, shaped by whatever the triad explorer
+proves works. Agreed 2026-08-19; explicitly flagged by the author as required, not optional.
+
+Why it is queued rather than done: it lands in the MANUSCRIPT, not the website. A new
+supplementary table needs a `config/supp_tables.tsv` row, a legend in `supp/table_legends.tex`,
+a `\Tref` citation in the main text to pass the inclusion gate, and it changes what ships in
+`HEAP_Supplementary_Tables.xlsx`. That is author prose and a published artifact (S13 + the
+stop-and-ask rules).
+
+What I will hand over instead: the proven column set, the row definition (one row per triad),
+which panel each estimate comes from, and a generator script -- so adopting it is a decision,
+not a build. The site and the supplement then share ONE definition, which is what
+`SUPPLEMENT_README` asks for.
+
+Depends on: rules 1-4 landing, so the shape is evidence-based rather than guessed.
 
 ## Author decisions waiting on you
 
