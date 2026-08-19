@@ -19,6 +19,7 @@ Runs on O2, where figures/website/ lives. It cannot run in CI -- the source data
 is not in the repo.
 """
 import argparse
+import csv
 import gzip
 import hashlib
 import io
@@ -27,10 +28,17 @@ import math
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from collections import OrderedDict, defaultdict
 
+from heap_ids import canonical_protein, protein_canon
+
 DEFAULT_SOURCE = "/n/groups/patel/IGLOO/UKB/HEAP/figures/website"
+DEFAULT_STATS = "/n/groups/patel/shakson_ukb/HEAP/docs/manuscript_stats"
+DEFAULT_DEPOSIT = "/n/groups/patel/IGLOO/UKB/HEAP/output/supp_deposit"
 SAFE = re.compile(r"[^A-Za-z0-9._-]+")
+PROTEIN_KEYS = {"protID", "protein", "Protein", "prot"}
 
 
 def sanitize(key):
@@ -134,6 +142,17 @@ class Writer:
         return len(body)
 
 
+def read_tsv_records(path):
+    """Read a TSV as records. Used for sources that are analysis summary tables
+    rather than figure exports -- e.g. the canonical Tier-1 MR triad tables,
+    which are the same files the supplement's S_mr_triads / S_mr_motifs are
+    built from. Reading those directly means the site cannot drift from the
+    supplement, and cannot accidentally pick up the nominal-significance
+    motif_* columns of MRmotifs.tsv, which are a different (non-nested) rule."""
+    with open(path, newline="") as f:
+        return list(csv.DictReader(f, delimiter="\t"))
+
+
 def read_config(path):
     rows = []
     with open(path) as f:
@@ -150,6 +169,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=os.path.join(os.path.dirname(__file__), "web_sections.tsv"))
     ap.add_argument("--source", default=os.environ.get("HEAP_WEBSITE_DIR", DEFAULT_SOURCE))
+    ap.add_argument("--stats", default=os.environ.get("HEAP_STATS_DIR", DEFAULT_STATS),
+                    help="root for source_kind=stats_tsv sections")
+    ap.add_argument("--deposit", default=os.environ.get("HEAP_DEPOSIT_DIR", DEFAULT_DEPOSIT),
+                    help="root for source_kind=deposit_tsv sections")
     ap.add_argument("--out", default=None, help="default: <repo>/build/web/v1")
     ap.add_argument("--only", action="append", help="section_id or page to build (repeatable)")
     ap.add_argument("--no-gzip", action="store_true")
@@ -174,15 +197,25 @@ def main():
         if args.only and sid not in args.only and page not in args.only:
             continue
 
-        src = os.path.join(args.source, row["source_figure"] + ".json")
+        kind = (row.get("source_kind") or "figure").strip() or "figure"
+        if kind == "stats_tsv":
+            src = os.path.join(args.stats, row["source_figure"])
+        elif kind == "deposit_tsv":
+            # The supplementary data deposit. Richer than the figure exports:
+            # it carries beta, SE, N and the covariate specification, which is
+            # what lets the site show effect sizes and switch specifications
+            # instead of only what one figure happened to plot.
+            src = os.path.join(args.deposit, row["source_figure"])
+        else:
+            src = os.path.join(args.source, row["source_figure"] + ".json")
         if not os.path.exists(src):
             missing.append((sid, row["source_figure"]))
             continue
 
         src_bytes = os.path.getsize(src)
         src_total += src_bytes
-        with open(src) as f:
-            records = json.load(f)
+        records = (read_tsv_records(src) if kind in ("stats_tsv", "deposit_tsv")
+                   else json.load(open(src)))
         if not isinstance(records, list) or not records:
             missing.append((sid, row["source_figure"] + " (empty)"))
             continue
@@ -197,6 +230,7 @@ def main():
             "title": row.get("title", sid),
             "chart_hint": row.get("chart_hint", ""),
             "source_figure": row["source_figure"],
+            "source_kind": kind,
             "tier": tier,
             "columns": cols,
             "n_rows": len(records),
@@ -207,9 +241,24 @@ def main():
                 print(f"  !! {sid}: key_column '{key_col}' not in {cols}", file=sys.stderr)
                 missing.append((sid, "bad key_column"))
                 continue
+            # Protein keys are published under the TRUE HGNC symbol. The
+            # mediation/MR exports carry R-safe spellings (HLA_A for HLA-A)
+            # because HEAP_loader.R:870 rewrites hyphens; without this the site
+            # would shard the same protein under two different names.
+            canon = protein_canon(args.source) if key_col in PROTEIN_KEYS else {}
+            renamed = {}
             groups = defaultdict(list)
             for r in records:
-                groups[r.get(key_col)].append(r)
+                k = r.get(key_col)
+                if canon:
+                    c = canonical_protein(k, canon)
+                    if c != k:
+                        renamed[k] = c
+                    k = c
+                groups[k].append(r)
+            if renamed:
+                print(f"       canonicalized {len(renamed)} protein id(s): "
+                      + ", ".join(f"{a}->{b}" for a, b in sorted(renamed.items())))
 
             keys, used, total = OrderedDict(), {}, 0
             for k in sorted(groups, key=lambda x: (x is None, str(x))):
