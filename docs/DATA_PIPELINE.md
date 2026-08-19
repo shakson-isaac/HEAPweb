@@ -83,3 +83,22 @@ not exported yet, so a stale registry is visible rather than silent.
 Result data is not committed to git. `.gitignore:12` (`data/`) and `:24`
 (`build/`) already cover both trees; `build/web/manifest.tsv` is the committed
 record of what was published.
+
+## Generator of record
+
+One artifact has exactly one generator, in the language that owns its repo:
+**HEAP / HEAP_manuscript are R, HEAPweb is Python.** Manuscript tables are built
+by R in HEAP and written to `$HEAP_OUTPUT`; the manuscript reads them from there
+through `config/supp_tables.tsv`. Website payload inputs are built by Python in
+HEAPweb and written to `build/derived`, declared in `tools/web_sections.tsv`.
+
+Prototyping across that line is fine; *shipping* across it is not. Two live
+generators for one artifact is how the shipped copy drifts from the one the
+manuscript describes, and the drift is invisible because both outputs look
+correct. When a prototype is ported, decommission it rather than leaving it
+runnable — see `tools/prototypes/README.md` for the four-step procedure and for
+why the prototypes are kept as cross-check oracles instead of deleted.
+
+The MR supplementary tables were the first case: four Python builders in
+`tools/` were replaced by `HEAP/scripts/analysis_summaries/build_mr_supp_tables.R`
+and moved to `tools/prototypes/`.

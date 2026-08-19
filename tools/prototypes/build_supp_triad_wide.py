@@ -1,4 +1,22 @@
 #!/usr/bin/env python3
+# =============================================================================
+# DECOMMISSIONED -- NOT THE GENERATOR OF RECORD.
+#
+# The MR supplementary tables are produced by:
+#     HEAP/scripts/analysis_summaries/build_mr_supp_tables.R
+# and land in $HEAP_OUTPUT/mr_edges/summary/supp/. HEAP_manuscript reads them
+# from there via config/supp_tables.tsv. Nothing in the manuscript build calls
+# this file.
+#
+# This prototype is retained ONLY as a cross-check oracle: diffing the R output
+# against it is what caught the PEtrans edge-endpoint bug (P->E written as D->E),
+# which produced a file of correct shape and plausible values but 9,656 wrong
+# tier lookups. That is worth keeping. Regenerating a shipped table from here is
+# not -- two generators for one artifact is how the shipped copy silently drifts
+# from the one the manuscript describes.
+#
+# To run it as a cross-check, pass --cross-check explicitly.
+# =============================================================================
 """PROPOSAL: the WIDE Supplementary Table -- one row per triad.
 
 Companion to the long file. The workbook keeps one row per triad so the sheet
@@ -25,7 +43,21 @@ ID = ["triad_id", "Exposure", "Exposure_category", "Protein",
       "Disease", "Disease_UKB", "ICD10", "motif"]
 
 
+def _refuse_unless_cross_check():
+    """Decommissioned: only runnable as an explicit cross-check (see banner)."""
+    import sys
+    if "--cross-check" in sys.argv:
+        sys.argv.remove("--cross-check")
+        return
+    sys.exit(
+        "DECOMMISSIONED: this prototype no longer generates supplementary tables.\n"
+        "Generator of record: HEAP/scripts/analysis_summaries/build_mr_supp_tables.R\n"
+        "To run it anyway as a cross-check oracle, pass --cross-check."
+    )
+
+
 def main():
+    _refuse_unless_cross_check()
     ap = argparse.ArgumentParser()
     ap.add_argument("--long", default=LONG)
     ap.add_argument("--out", default=None)
