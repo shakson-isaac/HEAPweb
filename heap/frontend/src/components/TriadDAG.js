@@ -205,7 +205,50 @@ function geometry(edge) {
 const LABEL_FONT = 14;
 const labelWidth = (text) => text.length * LABEL_FONT * 0.55 + 16;
 
-export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) {
+// A triad's edges are evidenced from three sources: UK Biobank (exposures,
+// Olink proteins, exposure GWAS), deCODE (SomaScan pQTLs -- alternative protein
+// instruments) and FinnGen (disease GWAS).
+//
+// deCODE is an alternative PROTEIN panel, so every edge with the protein at
+// either end can be recomputed there -- E->P and D->P with the protein as the
+// outcome, P->D and P->E with it as the exposure. The two edges with no protein
+// (E->D, D->E) come from UKB/FinnGen and are identical across panels.
+//
+// So deCODE corroborates the protein-involving edges; it never classifies a
+// triad by itself, because a triad still needs E->D / D->E. The motif stays
+// UK Biobank-anchored, which is what the Tier 1+ rung already encodes.
+const DECODE_EDGES = new Set(['EP', 'PD', 'PE', 'DP']);
+
+// Which samples each direction pairs, and whether the protein is involved at
+// all. `splitSample` marks the case where BOTH sides come from UK Biobank, so
+// two-sample MR is achieved by holding out non-overlapping participants rather
+// than by using a second cohort.
+const PAIRING = {
+  EP: { flow: 'UKB exposure GWAS → protein', protein: true, splitSample: true,
+        note: 'protein is the outcome, so the platform is the measurement' },
+  PD: { flow: 'protein pQTL → FinnGen R12', protein: true, splitSample: false,
+        note: 'protein is the exposure, so the platform supplies the instrument' },
+  ED: { flow: 'UKB exposure GWAS → FinnGen R12', protein: false, splitSample: false,
+        note: 'no protein — identical in both panels' },
+  PE: { flow: 'protein pQTL → UKB exposure GWAS', protein: true, splitSample: true,
+        note: 'protein is the exposure, so the platform supplies the instrument' },
+  DP: { flow: 'FinnGen R12 → protein', protein: true, splitSample: false,
+        note: 'protein is the outcome, so the platform is the measurement' },
+  DE: { flow: 'FinnGen R12 → UKB exposure GWAS', protein: false, splitSample: false,
+        note: 'no protein — identical in both panels' },
+};
+
+// mr_tier_final for each (edge, panel) of this triad, so Tier 1+ can be shown
+// distinctly. The presence flags the motif rules use are true for Tier1 OR
+// Tier1plus, so without this the strongest rung is invisible.
+const TIER_LABEL = {
+  Tier1plus: 'Tier 1+', Tier1: 'Tier 1', Tier2: 'Tier 2',
+  Suggestive: 'Suggestive', Reverse: 'Reverse', Null: 'not significant', '': '—',
+};
+
+export default function TriadDAG({
+  triad, decode, tiers, instrument = 'cis', maxWidth = 900, showAll = false,
+}) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const boxRef = useRef(null);
   const [hover, setHover] = useState(null);
@@ -222,20 +265,35 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
     const beta = fmtBeta(est.beta);
     const g = geometry(edge);
     const text = beta === null ? 'not tested' : `β = ${beta}${stars(est.padj)}`;
+    // The interval is what makes an effect readable at a glance, so it rides on
+    // the edge label rather than living only in the table (rule 2).
+    const ciText = (isNum(est.beta) && isNum(est.se))
+      ? `[${fmtBeta(Number(est.beta) - 1.96 * Number(est.se))}, `
+        + `${fmtBeta(Number(est.beta) + 1.96 * Number(est.se))}]`
+      : null;
     // The line style follows the direction's Tier-1 membership, but the label
     // carries one instrument set's estimate. When a Tier-1 direction is being
     // shown through the instrument set that does not itself clear q < 0.05, the
     // label is styled down so a solid arrow never implies a significant number.
     const sigShown = isNum(est.padj) && Number(est.padj) < 0.05;
+    // deCODE corroboration, protein-origin edges only.
+    const dec = decode && DECODE_EDGES.has(edge.key) ? (decode[shown] || null) : null;
+    const decSig = dec && isNum(dec.padj) && Number(dec.padj) < 0.05;
     return {
       edge,
       shown,
       est,
       state,
       sigShown,
+      dec,
+      decSig,
+      decText: dec && isNum(dec.beta)
+        ? `deCODE β = ${fmtBeta(dec.beta)}${stars(dec.padj)}`
+        : (DECODE_EDGES.has(edge.key) ? 'deCODE: not estimated' : null),
       mixed: state.id === 'tier1' && !sigShown,
       color: colorOf(edge, state),
       text,
+      ciText,
       // The Tier-1 flag is per direction; P → D and P → E pool cis and trans
       // instruments, so a direction can be in the Tier-1 set on the strength of
       // the instrument set that is not currently on show.
@@ -244,9 +302,15 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
         : (edge.key === 'EP' || edge.key === 'ED' ? 'exposure GWAS instruments' : 'disease GWAS instruments'),
       ...g,
     };
-  }), [triad, instrument]);
+  }), [triad, instrument, decode]);
 
-  const colors = [...new Set(drawn.map((e) => e.color))];
+  // Rule 2, after main Figure 4e: the diagram shows the SUPPORTED edges and
+  // states their interval. Non-significant edges are not drawn -- they would
+  // trade the figure's readability for information the table already carries in
+  // full (rule 3). `showAll` restores them for anyone who wants the full graph.
+  const visible = showAll ? drawn : drawn.filter((e) => e.state.id === 'tier1' || e.sigShown);
+
+  const colors = [...new Set(visible.map((e) => e.color))];
 
   const onMove = (e) => {
     const r = boxRef.current?.getBoundingClientRect();
@@ -289,7 +353,7 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
           </defs>
 
           {/* edges, drawn first so the node circles and label boxes sit on top */}
-          {drawn.map((e) => (
+          {visible.map((e) => (
             <g key={e.edge.key} opacity={e.state.opacity}>
               <path
                 d={e.d}
@@ -304,7 +368,7 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
           ))}
 
           {/* wide invisible hit areas so thin, faded edges are still hoverable */}
-          {drawn.map((e) => (
+          {visible.map((e) => (
             <path
               key={`hit-${e.edge.key}`}
               d={e.d}
@@ -378,9 +442,9 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
           })}
 
           {/* effect labels, in white boxes on top of everything */}
-          {drawn.map((e) => {
-            const w = labelWidth(e.text);
-            const h = LABEL_FONT + 10;
+          {visible.map((e) => {
+            const w = Math.max(labelWidth(e.text), e.ciText ? labelWidth(e.ciText) : 0);
+            const h = LABEL_FONT + (e.ciText ? 22 : 10);
             const active = hover?.key === e.edge.key;
             return (
               <g
@@ -405,13 +469,21 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
                   strokeWidth={active ? 2 : 1}
                 />
                 <text
-                  x={X(e.lx)} y={Y(e.ly) + 5} textAnchor="middle"
+                  x={X(e.lx)} y={Y(e.ly) + (e.ciText ? 0 : 5)} textAnchor="middle"
                   fontSize={LABEL_FONT}
                   fontWeight={e.state.id === 'tier1' && e.sigShown ? 700 : 400}
                   fill={e.state.id === 'tier1' && e.sigShown ? '#1a1a1a' : '#5a5a5a'}
                 >
                   {e.text}
                 </text>
+                {e.ciText && (
+                  <text
+                    x={X(e.lx)} y={Y(e.ly) + 12} textAnchor="middle"
+                    fontSize={LABEL_FONT - 2} fill="#6a6a6a"
+                  >
+                    {e.ciText}
+                  </text>
+                )}
                 <title>{`${e.edge.name} — ${e.state.short}`}</title>
               </g>
             );
@@ -519,57 +591,124 @@ export default function TriadDAG({ triad, instrument = 'cis', maxWidth = 900 }) 
           Seven columns do not fit a phone, so the table scrolls inside its own box
           rather than pushing the page sideways. */}
       <Box sx={{ width: '100%', overflowX: 'auto' }}>
-      <Table size="small" sx={{ minWidth: 660, '& td, & th': { fontSize: 12.5 } }}>
+      <Table size="small" sx={{ minWidth: 640, '& td, & th': { fontSize: 12.5 } }}>
         <TableHead>
           <TableRow>
-            <TableCell>Direction</TableCell>
-            <TableCell>Evidence</TableCell>
+            <TableCell>Panel</TableCell>
             <TableCell>Instruments</TableCell>
-            <TableCell align="right">β</TableCell>
-            <TableCell align="right">SE</TableCell>
-            <TableCell align="right">95% CI</TableCell>
+            <TableCell align="right">β&nbsp;[95%&nbsp;CI]</TableCell>
             <TableCell align="right">FDR q</TableCell>
+            <TableCell>Evidence</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {EDGES.flatMap((edge) => {
+          {EDGES.map((edge) => {
+            // One group per direction. The sample pairing is a property of the
+            // DIRECTION, so it is stated once in the header instead of being
+            // repeated on every estimate; the rows underneath differ only by
+            // which panel and which instrument class produced them.
+            const pairing = PAIRING[edge.key];
+            // Instrument label by ORIGIN, not by the source table's "polygenic",
+            // which reads as a polygenic score. These are genome-wide significant
+            // SNPs for whichever trait sits at the tail of the arrow.
+            const gwasLabel = edge.from === 'E' ? 'exposure GWAS' : 'disease GWAS';
             const sets = edge.trans
               ? [[edge.cis, 'cis-pQTL'], [edge.trans, 'trans-pQTL']]
-              : [[edge.cis, edge.key === 'EP' || edge.key === 'ED' ? 'exposure GWAS' : 'disease GWAS']];
-            // The evidence label is a property of the direction, so it spans the
-            // instrument rows rather than being repeated against each estimate.
+              : [[edge.cis, gwasLabel]];
             const best = sets
               .map(([col]) => (triad.est[col] || {}).padj)
               .filter((p) => isNum(p))
               .reduce((a, b) => (a === null || Number(b) < Number(a) ? b : a), null);
             const st = stateOf(triad.flags[edge.flag], best);
-            return sets.map(([col, instLabel], i) => {
-              const est = triad.est[col] || {};
-              return (
-                <TableRow key={col} hover>
-                  {i === 0 && (
-                    <TableCell rowSpan={sets.length} sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      <Box component="span" sx={{ color: DIR_COLOR[edge.dir] }}>
-                        {edge.name}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {i === 0 && (
-                    <TableCell
-                      rowSpan={sets.length}
-                      sx={{ color: st.id === 'tier1' ? DIR_COLOR[edge.dir] : 'text.secondary' }}
-                    >
-                      {st.short}
-                    </TableCell>
-                  )}
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{instLabel}</TableCell>
-                  <TableCell align="right">{fmtBeta(est.beta) ?? '—'}</TableCell>
-                  <TableCell align="right">{fmtSE(est.se)}</TableCell>
-                  <TableCell align="right">{ci(est.beta, est.se)}</TableCell>
-                  <TableCell align="right">{fmtP(est.padj)}</TableCell>
-                </TableRow>
-              );
+
+            const rows = [];
+            sets.forEach(([col, cls]) => {
+              rows.push({ col, cls, panel: 'UKB', est: triad.est[col] || {} });
+              if (DECODE_EDGES.has(edge.key)) {
+                rows.push({ col, cls, panel: 'deCODE', est: (decode || {})[col] || {} });
+              }
             });
+
+            return [
+              <TableRow key={`h-${edge.key}`} sx={{ bgcolor: 'action.hover' }}>
+                <TableCell colSpan={5} sx={{ py: 0.75 }}>
+                  <Box component="span" sx={{ fontWeight: 700, color: DIR_COLOR[edge.dir] }}>
+                    {edge.name}
+                  </Box>
+                  <Box component="span" sx={{ color: 'text.secondary', ml: 1 }}>
+                    {pairing.flow}
+                  </Box>
+                  <Box component="span" sx={{ color: 'text.disabled', ml: 1 }}>
+                    · {pairing.note}
+                  </Box>
+                  <Box component="span" sx={{ float: 'right', color: st.id === 'tier1' ? DIR_COLOR[edge.dir] : 'text.secondary', fontWeight: 600 }}>
+                    {st.short}
+                  </Box>
+                </TableCell>
+              </TableRow>,
+              ...rows.map(({ col, cls, panel, est }) => {
+                const plat = panel === 'UKB' ? 'Olink' : 'SomaScan';
+                const split = pairing.splitSample && panel === 'UKB';
+                const b = isNum(est.beta) ? fmtBeta(est.beta) : null;
+                const ci = (isNum(est.beta) && isNum(est.se))
+                  ? `[${fmtBeta(Number(est.beta) - 1.96 * Number(est.se))}, ${fmtBeta(Number(est.beta) + 1.96 * Number(est.se))}]`
+                  : null;
+                const sig = isNum(est.padj) && Number(est.padj) < 0.05;
+                return (
+                  <TableRow key={`${edge.key}-${col}-${panel}`} hover>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      {pairing.protein ? (
+                        <>
+                          <b>{plat}</b>
+                          <Typography component="span" variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                            {panel === 'UKB' ? 'UK Biobank' : 'deCODE'}
+                            {split ? ' · split-sample' : ' · two-cohort'}
+                          </Typography>
+                        </>
+                      ) : (
+                        <Box component="span" sx={{ color: 'text.secondary' }}>no protein</Box>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', color: 'text.secondary' }}>{cls}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap', fontWeight: sig ? 600 : 400 }}>
+                      {b === null ? (
+                        <Box component="span" sx={{ color: 'text.disabled' }}>not estimated</Box>
+                      ) : (
+                        <>
+                          {b}{stars(est.padj)}
+                          {ci && (
+                            <Typography component="span" variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                              {ci}
+                            </Typography>
+                          )}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell align="right">{b === null ? '—' : fmtP(est.padj)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      {(() => {
+                        const t = tiers ? tiers[`tier_${col}_${panel === 'UKB' ? 'UKB' : 'DECODE'}`] : null;
+                        if (!t) return <Box component="span" sx={{ color: 'text.disabled' }}>{b === null ? '—' : (sig ? 'q < 0.05' : 'n.s.')}</Box>;
+                        const best = t === 'Tier1plus';
+                        return (
+                          <Box component="span" sx={{
+                            fontWeight: best ? 700 : (t === 'Tier1' ? 600 : 400),
+                            color: best ? '#1b7837' : (t === 'Tier1' ? 'text.primary' : 'text.disabled'),
+                          }}>
+                            {TIER_LABEL[t] || t}
+                            {best && (
+                              <Typography component="span" variant="caption" sx={{ display: 'block', color: '#1b7837' }}>
+                                replicated in both panels
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })()}
+                    </TableCell>
+                  </TableRow>
+                );
+              }),
+            ];
           })}
         </TableBody>
       </Table>

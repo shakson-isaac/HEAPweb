@@ -6,7 +6,9 @@ import {
 import SectionCard from '../../components/SectionCard';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
-import TableSection from '../../components/TableSection';
+import ArmNotice, { ArmChip } from '../../components/ArmNotice';
+import PlatformConcordance from '../../components/PlatformConcordance';
+import MotifTrace from '../../components/MotifTrace';
 import TriadDAG from '../../components/TriadDAG';
 import { useSection, useKeys, useShard } from '../../lib/useSection';
 import { ecatColor } from '../../lib/palette';
@@ -100,6 +102,13 @@ const OPTION_CAP = 300;
 
 function TriadExplorer() {
   const { data, loading, error } = useSection('mr_triads');
+  // deCODE corroboration for the same 18,780 triads, joined on (E, P, D).
+  // Protein-involving edges only -- E->D and D->E have no protein for the
+  // alternative panel to instrument and are identical across panels.
+  const { data: dec } = useSection('mr_triads_decode');
+  // per-edge mr_tier_final, both panels -- so Tier 1+ is visible rather than
+  // collapsed into the presence flags the motif rules use
+  const { data: tierTbl } = useSection('mr_triad_tiers');
   const [picked, setPicked] = useState(null);
   const [motif, setMotif] = useState('all');
   const [query, setQuery] = useState('');
@@ -133,6 +142,58 @@ function TriadExplorer() {
     [data]
   );
   const sel = picked === null ? fallback : picked;
+
+  const decIndex = useMemo(() => {
+    if (!dec) return null;
+    const m = new Map();
+    for (let i = 0; i < dec.Exposure.length; i += 1) {
+      m.set(`${dec.Exposure[i]}|${dec.Protein[i]}|${dec.Disease[i]}`, i);
+    }
+    return m;
+  }, [dec]);
+
+  // Final tier per direction for the selected triad, read from the same flags
+  // the motif rules use, so step 2 of the trace shows values rather than prose.
+  const edgeTiers = useMemo(() => {
+    if (!data) return null;
+    const out = {};
+    for (const [k, label] of [['pEP', 'E→P'], ['pPD', 'P→D'], ['pED', 'E→D'],
+                              ['pPE', 'P→E'], ['pDP', 'D→P'], ['pDE', 'D→E']]) {
+      const on = data[k] && (data[k][sel] === true || String(data[k][sel]).toUpperCase() === 'TRUE');
+      out[label] = on ? 'Tier 1 or better' : 'below Tier 1';
+    }
+    return out;
+  }, [data, sel]);
+
+  const triadTiers = useMemo(() => {
+    if (!data || !tierTbl) return null;
+    const key = `${data.Exposure[sel]}|${data.Protein[sel]}|${data.Disease[sel]}`;
+    for (let i = 0; i < tierTbl.Exposure.length; i += 1) {
+      if (`${tierTbl.Exposure[i]}|${tierTbl.Protein[i]}|${tierTbl.Disease[i]}` === key) {
+        const out = {};
+        for (const c of Object.keys(tierTbl)) {
+          if (c.startsWith('tier_')) out[c] = tierTbl[c][i];
+        }
+        return out;
+      }
+    }
+    return null;
+  }, [data, tierTbl, sel]);
+
+  const decodeEst = useMemo(() => {
+    if (!data || !dec || !decIndex) return null;
+    const i = decIndex.get(`${data.Exposure[sel]}|${data.Protein[sel]}|${data.Disease[sel]}`);
+    if (i === undefined) return null;
+    const out = {};
+    for (const col of ['EP', 'PDcis', 'PDtrans', 'PEcis', 'PEtrans', 'DP']) {
+      out[col] = {
+        beta: dec[`beta_${col}`] ? dec[`beta_${col}`][i] : null,
+        se: dec[`se_${col}`] ? dec[`se_${col}`][i] : null,
+        padj: dec[`padj_${col}`] ? dec[`padj_${col}`][i] : null,
+      };
+    }
+    return out;
+  }, [data, dec, decIndex, sel]);
 
   const mediators = useMemo(
     () => (meta ? meta.filter((m) => m.letters.includes('A')) : []),
@@ -271,7 +332,9 @@ function TriadExplorer() {
             ))}
           </Box>
 
-          <TriadDAG triad={triad} instrument={instrument} />
+          <PlatformConcordance protein={data.Protein[sel]} />
+          <MotifTrace triad={triad} tiers={edgeTiers} tierTable={triadTiers} />
+          <TriadDAG triad={triad} decode={decodeEst} tiers={triadTiers} instrument={instrument} />
 
           <Box sx={{ mt: 3, p: 1.75, border: '1px solid #e0e0e0', borderRadius: 1 }}>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
@@ -361,7 +424,7 @@ function PriorityVolcano() {
 
   return (
     <SectionCard
-      title="Protein &rarr; disease MR priority"
+      title={<>Protein &rarr; disease MR priority <ArmChip sectionId="mr_priority" /></>}
       subtitle="Each point is one disease tested against the selected protein. Positive log2 HR means higher protein, higher hazard."
       loading={kLoading || loading}
       error={kError || error}
@@ -419,7 +482,7 @@ function MotifCounts() {
 
   return (
     <SectionCard
-      title="Motif counts under both evidence bars"
+      title={<>Motif counts under both evidence bars <ArmChip sectionId="mr_motif_counts" /></>}
       subtitle="Raising the bar from nominal significance to Tier 1 collapses the mediator motif from 84 triads to 6, while disease-liability stays large. The two sets are not nested, so the bars are paired rather than stacked."
       loading={loading}
       error={error}
@@ -457,7 +520,7 @@ function TierOneTriads() {
 
   return (
     <SectionCard
-      title="Tier-1 mediator triads"
+      title={<>Tier-1 mediator triads <ArmChip sectionId="mr_triads" /></>}
       subtitle="Every exposure → protein → disease triad carrying the mediator motif under the Tier-1 rule — the definition the paper quotes. Six triads across three proteins."
       loading={loading}
       error={error}
@@ -513,7 +576,7 @@ function Coloc() {
 
   return (
     <SectionCard
-      title="Colocalization of cis-pQTL and outcome signals"
+      title={<>Colocalization of cis-pQTL and outcome signals <ArmChip sectionId="mr_coloc" /></>}
       subtitle="PP.H4 &ge; 0.8 is the hard tier gate: one shared causal variant rather than two distinct variants in LD."
       loading={loading}
       error={error}
@@ -545,31 +608,33 @@ export default function Causal() {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="body1" sx={{ mb: 3, maxWidth: 900 }}>
-        Mendelian randomization across the exposure &rarr; protein &rarr; disease triad, using
-        split-sample UK Biobank and deCODE pQTL instruments over a shared edge set.
-        Tier 1 requires a Steiger test that is both significant and forward-oriented.
+        Every edge below is a <b>two-sample Mendelian randomization</b> estimate: the
+        instrument&ndash;exposure and instrument&ndash;outcome effects come from
+        different samples, so no individual contributes to both sides.
+        <Box component="span" sx={{ display: 'block', mt: 1 }}>
+          Exposure and protein effects are estimated within UK Biobank on{' '}
+          <b>non-overlapping participants</b> (a split-sample design adapted from
+          Deng et al., 2025). Proteins are instrumented from two pQTL sources on two
+          assay platforms &mdash; <b>UK Biobank (Olink)</b> and, as an external
+          replication arm, <b>deCODE (SomaScan)</b> &mdash; deliberately, to account
+          for differences in the genetic variants tied to each platform
+          (Ferkingstad et al., 2021; Eldjarn et al., 2023; Wang et al., 2025).
+          Disease instruments are drawn from <b>FinnGen Release 12</b> (Kurki et al.,
+          2023).
+        </Box>
+        <Box component="span" sx={{ display: 'block', mt: 1 }}>
+          A triad therefore draws on all three sources, and only edges involving the
+          protein can differ between the two panels. Tier 1 requires a Steiger test
+          that is both significant and forward-oriented; Tier 1+ additionally requires
+          the edge to be cis-anchored, colocalized and replicated across both panels.
+        </Box>
       </Typography>
+      <ArmNotice />
       <TriadExplorer />
       <PriorityVolcano />
       <MotifCounts />
       <TierOneTriads />
       <Coloc />
-      <TableSection
-        section="mr_shared_unique"
-        title="Shared versus arm-specific motifs"
-        subtitle="How motif assignments split between UK Biobank pQTLs, deCODE pQTLs, and their intersection."
-      />
-      <TableSection section="mr_protein_hits_table" title="Prioritized protein hits" />
-      <TableSection section="mr_edges" title="Exposure&ndash;protein&ndash;disease edges" />
-      <TableSection
-        section="mr_network"
-        title="Network edge list"
-        subtitle="Every node pair in the exposure&ndash;protein&ndash;disease network, with node and edge types."
-        rowsPerPage={25}
-      />
-      <TableSection section="mr_attrition" title="Edge attrition through the MR tiers" />
-      <TableSection section="mr_rigor" title="MR rigor diagnostics" />
-      <TableSection section="mr_refines_mediation" title="How MR refines the mediation set" />
     </Box>
   );
 }
