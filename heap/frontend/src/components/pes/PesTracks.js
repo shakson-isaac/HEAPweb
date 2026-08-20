@@ -254,6 +254,58 @@ export default function PesTracks() {
     return { cats, rowOf, cloud, exemplars };
   }, [shownRows, specRows, catOrder]);
 
+  // ---- plot 2: what the score ADDS, in plot 1's layout ---------------------
+  // Same category rows, same exemplars, same jitter as plot 1; x is the gap
+  // between the two nested models, cov+score minus cov.
+  //
+  // Drawn WITHOUT error bars on purpose. This export carries an interval for
+  // each model but none for their difference, and a difference of two
+  // correlations measured on the same people cannot be recovered from the
+  // marginal intervals -- their errors move together. The reads panel does put
+  // bars on its equivalent plot because its export ships heldout_increment_lo
+  // and _hi; this one genuinely has no such column, and a borrowed bar would
+  // assert a precision nobody computed.
+  const deltaTraces = useMemo(() => {
+    if (!strip) return [];
+    const y = (r, centred) => strip.rowOf.get(r.category) + (centred ? 0 : jitter01(r.exposure_id) * 0.34);
+    const gap = (r) => ((r.both == null || r.cov == null) ? null : r.both - r.cov);
+    const custom = (arr) => arr.map((r) => [
+      prettyExposure(r.exposure_id), prettyCategory(r.category),
+      fmt3(r.cov), fmt3(r.both), fmtN(r.n_change),
+    ]);
+    const hov = '<b>%{customdata[0]}</b><br>gain %{x:+.3f} Δr'
+      + '<br>covariates %{customdata[2]} → with score %{customdata[3]}'
+      + '<br>%{customdata[4]} changed pairs<extra>%{customdata[1]}</extra>';
+    const mk = (arr, centred, size, ring) => ({
+      type: 'scatter',
+      mode: 'markers',
+      x: arr.map(gap),
+      y: arr.map((r) => y(r, centred)),
+      customdata: custom(arr),
+      hovertemplate: hov,
+      marker: {
+        size,
+        color: arr.map(colorOf),
+        line: ring ? { width: 1.2, color: '#333' } : { width: 0 },
+      },
+      showlegend: false,
+    });
+    return [mk(strip.cloud, false, 7, false), mk(strip.exemplars, true, 11, true)];
+  }, [strip]);
+
+  const deltaSpan = useMemo(() => {
+    if (!strip) return undefined;
+    const all = [...strip.cloud, ...strip.exemplars]
+      .map((r) => ((r.both == null || r.cov == null) ? null : r.both - r.cov))
+      .filter((v) => v != null);
+    if (!all.length) return undefined;
+    // Zero always in frame -- it is the reference for "adds nothing".
+    const lo = Math.min(0, ...all);
+    const hi = Math.max(0, ...all);
+    const pad = (hi - lo) * 0.08 || 0.02;
+    return [lo - pad, hi + pad];
+  }, [strip]);
+
   const stripTraces = useMemo(() => {
     if (!strip) return [];
     const y = (r, centred) => strip.rowOf.get(r.category) + (centred ? 0 : jitter01(r.exposure_id) * 0.34);
@@ -372,20 +424,6 @@ export default function PesTracks() {
 
   // One diagonal spanning everything actually drawn, intervals included, so the
   // reference line never stops short of the points it is meant to judge.
-  const span = useMemo(() => {
-    let lo = 0;
-    let hi = 0.1;
-    points.forEach((p) => {
-      [p.x, p.xlo, p.xhi, p.y, p.ylo, p.yhi].forEach((v) => {
-        if (v == null) return;
-        lo = Math.min(lo, v);
-        hi = Math.max(hi, v);
-      });
-    });
-    const pad = (hi - lo) * 0.04;
-    return [lo - pad, hi + pad];
-  }, [points]);
-
   const columns = [
     { key: 'label', label: 'Exposure', wrap: true, from: (p) => p.label },
     { key: 'category', label: 'Category' },
@@ -407,12 +445,6 @@ export default function PesTracks() {
       format: (v) => (v == null ? '—' : `${v.toLocaleString()}${v < MIN_CHANGE ? ' ⚠' : ''}`),
     },
   ];
-
-  const cats = useMemo(() => {
-    const seen = new Map();
-    specRows.forEach((r) => { if (!seen.has(r.category)) seen.set(r.category, ecatColor(r.category)); });
-    return [...seen.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [specRows]);
 
   // The plot-1 note reads the identity count off the data, so the specification
   // caveat is demonstrated by the number rather than claimed by the prose.
@@ -561,63 +593,61 @@ export default function PesTracks() {
         {plotTwoNote}
       </Typography>
 
-      <Alert severity="warning" sx={{ mb: 1.5 }}>
-        <b>The rise above the diagonal shows the size of the gain, not whether it is real.</b>{' '}
-        Each point carries a real interval on both axes — the covariate model on x, that model
-        plus the score on y — but this export carries no interval for the gap between them, and
-        the two bars you can see are not a test of it: they can overlap while the underlying
-        difference is real, and requiring them not to overlap is a stricter bar than the actual
-        test. Read the distance above the diagonal as how much the score adds on top of the
-        covariates, and do not read this panel as telling you whether that gain is
-        distinguishable from zero — it cannot.
-      </Alert>
+      <Alert severity="info" sx={{ mb: 2 }}>
+          <b>These points carry no interval, and that is deliberate.</b> Each model
+          has one &mdash; the covariate benchmark and the benchmark plus the score
+          both do, and plot 1 shows them &mdash; but this export carries no interval
+          for the <i>gap</i> between them, and a difference of two correlations
+          measured on the same people cannot be recovered from the two marginal
+          intervals, because their errors move together. So read the distance from
+          zero as how much the score adds, and do not read this plot as telling you
+          whether that gain is distinguishable from zero. It cannot.
+        </Alert>
 
-      <LinkedScatterTable
-        points={points}
-        columns={columns}
-        xTitle="Δ-correlation — covariates alone"
-        yTitle="Δ-correlation — covariates + proteome score"
-        title={`${spec.label} — the two nested models`}
-        height={520}
-        searchPlaceholder="Filter exposures or categories…"
-        rowsVisible={12}
-        emptyNote="No exposures at this specification."
-        extraShapes={[
-          {
-            type: 'line', xref: 'x', yref: 'y',
-            x0: span[0], y0: span[0], x1: span[1], y1: span[1],
-            line: { dash: 'dash', width: 1, color: '#999' },
-          },
-          // No tracking at all, on each axis in turn: several exposures sit
-          // there on x, and the pair of lines keeps zero readable as a
-          // reference distinct from the diagonal.
-          {
-            type: 'line', xref: 'x', yref: 'paper',
-            x0: 0, x1: 0, y0: 0, y1: 1,
-            line: { width: 1, color: '#e0e0e0' },
-          },
-          {
-            type: 'line', xref: 'paper', yref: 'y',
-            x0: 0, x1: 1, y0: 0, y1: 0,
-            line: { width: 1, color: '#e0e0e0' },
-          },
-        ]}
-        extraAnnotations={[{
-          x: span[1], y: span[1], xanchor: 'right', yanchor: 'top',
-          text: 'y = x — the score added nothing',
-          showarrow: false, font: { size: 10, color: '#777' },
-        }]}
-        legend={
-          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
-            {cats.map(([c, col]) => (
-              <Box key={c} sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col }} />
-                <Typography variant="caption" color="text.secondary">{prettyCategory(c)}</Typography>
-              </Box>
-            ))}
-          </Box>
-        }
-      />
+        {strip && (
+          <PlotPanel
+            data={deltaTraces}
+            height={Math.max(360, strip.cats.length * 44 + 110)}
+            layout={{
+              xaxis: {
+                title: 'gain in within-person Δ-correlation — (covariates + PES) − covariates',
+                range: deltaSpan,
+                zeroline: false,
+              },
+              yaxis: {
+                tickmode: 'array',
+                tickvals: strip.cats.map((c, i2) => i2),
+                ticktext: strip.cats.map(prettyCategory),
+                range: [-0.7, strip.cats.length - 0.3],
+                zeroline: false,
+              },
+              shapes: [{
+                type: 'line', xref: 'x', yref: 'paper',
+                x0: 0, x1: 0, y0: 0, y1: 1,
+                line: { dash: 'dash', width: 1, color: '#bdbdbd' },
+              }],
+              annotations: [{
+                xref: 'x', x: 0, yref: 'paper', y: 1, xanchor: 'left', yanchor: 'top',
+                text: 'the score adds nothing', showarrow: false,
+                font: { size: 10, color: '#999' },
+              }],
+              showlegend: false,
+              margin: { l: 155, r: 24, t: 24, b: 46 },
+            }}
+          />
+        )}
+
+        <LinkedScatterTable
+          points={points}
+          columns={columns}
+          xTitle="Δ-correlation — covariates alone"
+          yTitle="Δ-correlation — covariates + proteome score"
+          title="The same exposures as a paired lookup"
+          height={340}
+          searchPlaceholder="Filter exposures or categories…"
+          rowsVisible={12}
+          emptyNote="No exposures at this specification."
+        />
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         One table for both plots: it carries all three Δ-correlations with their intervals, and
