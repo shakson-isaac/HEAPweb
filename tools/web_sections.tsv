@@ -90,3 +90,4 @@ causal	mr_entity_motifs	mr_entity_motifs.tsv	S		Motif counts per exposure, prote
 causal	mr_pd_effects	mr_pd_effects.tsv	K	protID	Protein-disease: MR estimate vs observational	volcano	on	derived_tsv	UKB
 causal	mr_coloc_locus	mr_coloc_locus.tsv	K	locus_id	Regional colocalization: per-SNP pQTL and disease signal	scatter	on	derived_tsv	UKB
 causal	mr_coloc_genes	mr_coloc_genes.tsv	K	locus_id	Gene track for the regional colocalization view	table	on	derived_tsv	UKB
+causal	mr_coloc_locus_meta	mr_coloc_locus_meta.tsv	S		LD anchor provenance for each coloc locus	table	on	derived_tsv	UKB

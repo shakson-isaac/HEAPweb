@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Alert, Box, Chip, Link, Typography } from '@mui/material';
 import PlotPanel from './PlotPanel';
-import { useKeys, useShard } from '../lib/useSection';
+import { useKeys, useSection, useShard } from '../lib/useSection';
 
 // ---------------------------------------------------------------------------
 // Interactive regional colocalization plot -- the picture behind PP.H4.
@@ -40,6 +40,20 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
   const available = !!(keyIndex && keyIndex.keys && locusId in keyIndex.keys);
   const { data, loading, error } = useShard('mr_coloc_locus', available ? locusId : null);
   const { data: genes } = useShard('mr_coloc_genes', available ? locusId : null);
+  const { data: meta } = useSection('mr_coloc_locus_meta');
+
+  // r2 is to the lead variant unless the lead is missing from the 1000G panel,
+  // in which case LD is anchored on the strongest in-panel variant. Saying so
+  // matters: an unlabelled proxy makes the colours mean something subtly other
+  // than what a reader assumes.
+  const anchorInfo = useMemo(() => {
+    if (!meta?.locus_id || !locusId) return null;
+    const i = meta.locus_id.indexOf(locusId);
+    if (i < 0) return null;
+    const isLead = meta.anchor_is_lead[i] === true
+      || meta.anchor_is_lead[i] === 'TRUE' || meta.anchor_is_lead[i] === 'True';
+    return { lead: meta.lead[i], anchor: meta.anchor[i], isLead };
+  }, [meta, locusId]);
 
   const pts = useMemo(() => {
     if (!data?.pos) return null;
@@ -56,7 +70,8 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
       const dz = data.mlog10p_disease[i] === '' ? null : Number(data.mlog10p_disease[i]);
       out.mb[i] = mb; out.pq[i] = pq; out.dz[i] = dz;
       out.r2[i] = r2; out.snp[i] = data.snp[i]; out.color[i] = ldColor(r2);
-      // r2 == 1 against itself identifies the lead without a separate column.
+      // r2 == 1 against itself identifies the LD anchor, which is the lead
+      // variant unless a proxy was used.
       if (r2 != null && r2 >= 0.9999 && (lead == null || (pq ?? 0) > (lead.pq ?? 0))) {
         lead = { mb, snp: data.snp[i], pq, dz };
       }
@@ -155,7 +170,19 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
         {pph3 != null && (
           <Chip size="small" variant="outlined" label={`PP.H3 ${Number(pph3).toFixed(3)}`} />
         )}
-        {pts.lead && <Chip size="small" variant="outlined" label={`lead ${pts.lead.snp}`} />}
+        {anchorInfo && (
+          anchorInfo.isLead
+            ? <Chip size="small" variant="outlined" label={`lead ${anchorInfo.lead}`} />
+            : (
+              <Chip
+                size="small" color="warning" variant="outlined"
+                label={`lead ${anchorInfo.lead} · LD via proxy ${anchorInfo.anchor}`}
+              />
+            )
+        )}
+        {!anchorInfo && pts.lead && (
+          <Chip size="small" variant="outlined" label={`lead ${pts.lead.snp}`} />
+        )}
         <Chip size="small" variant="outlined" label={`${pts.n.toLocaleString()} variants`} />
       </Box>
 
@@ -235,7 +262,10 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         Variants are the harmonized set colocalization actually used, so the plot
         and the posterior describe the same data; r² is to the lead variant in the
-        1000 Genomes European panel. On the right, red points climbing together
+        1000 Genomes European panel{anchorInfo && !anchorInfo.isLead
+          ? `, anchored on ${anchorInfo.anchor} because the lead variant `
+            + `${anchorInfo.lead} is not in that panel`
+          : ''}. On the right, red points climbing together
         means one shared causal variant (PP.H4); red points high on one axis and
         flat on the other means two distinct variants in LD (PP.H3).
         {' '}

@@ -75,7 +75,7 @@ def main():
         else:
             print(f"  ?? unparsed locus stem: {stem}", file=sys.stderr)
 
-    snp_rows, gene_rows, packed = [], [], 0
+    snp_rows, gene_rows, meta_rows, packed = [], [], [], 0
     for r in summ:
         prot, tgt, arm = r["protID"], r["target"], r["arm"]
         locus_id = f"{arm}__{prot}__{tgt}"
@@ -103,6 +103,21 @@ def main():
                                  "" if m1 is None else m1,
                                  "" if m2 is None else m2, r2])
 
+        # Anchor provenance. r2 is to the lead variant unless the lead is
+        # absent from the 1000G panel, in which case the export anchors on the
+        # strongest in-panel variant instead. The viewer must say which, or the
+        # colours quietly mean something other than what a reader assumes.
+        mf = os.path.join(WEB, f"{stem}_meta.tsv")
+        if os.path.exists(mf):
+            with open(mf) as fh:
+                for mrow in csv.DictReader(fh, delimiter="\t"):
+                    meta_rows.append([
+                        locus_id, mrow.get("lead", ""), mrow.get("anchor", ""),
+                        mrow.get("anchor_is_lead", ""), mrow.get("n_variants", ""),
+                        mrow.get("chr", ""),
+                    ])
+                    break
+
         gf = os.path.join(WEB, f"{stem}_genes.tsv")
         if os.path.exists(gf):
             with open(gf) as fh:
@@ -122,7 +137,15 @@ def main():
         w.writerow(["locus_id", "gene", "start", "end", "strand"])
         w.writerows(gene_rows)
 
+    with open(os.path.join(OUTD, "mr_coloc_locus_meta.tsv"), "w", newline="") as fh:
+        w = csv.writer(fh, delimiter="\t")
+        w.writerow(["locus_id", "lead", "anchor", "anchor_is_lead", "n_variants", "chr"])
+        w.writerows(meta_rows)
+
+    n_proxy = sum(1 for r in meta_rows if r[3] not in ("TRUE", "True", "1"))
     print(f"  mr_coloc_locus.tsv  {len(snp_rows):,} variants across {packed} locus/loci")
+    print(f"  mr_coloc_locus_meta.tsv  {len(meta_rows)} loci "
+          f"({n_proxy} LD-anchored on a proxy, lead absent from the panel)")
     print(f"  mr_coloc_genes.tsv  {len(gene_rows):,} genes")
     print(f"      coloc pairs in summary : {len(summ)}")
     print(f"      with a regional view   : {packed}")
