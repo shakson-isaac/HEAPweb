@@ -24,7 +24,8 @@ Exit code is non-zero if anything fails, so it can gate a deploy.
 """
 import argparse, gzip, io, json, os, re, sys, urllib.error, urllib.request
 
-DEFAULT_BASE = "https://storage.googleapis.com/heap-web-data/web/v1"
+PUBLIC_BUCKET = "https://storage.googleapis.com/heap-web-data"
+DEFAULT_BASE = f"{PUBLIC_BUCKET}/web/v1"
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API_DOCS = os.path.join(HERE, "heap", "frontend", "src", "pages", "subpages", "ApiDocs.js")
 LOCAL_MANIFEST = os.path.join(HERE, "build", "web", "v1", "manifest.json.gz")
@@ -124,14 +125,16 @@ def check_downloads(base, sample):
         fail(f"supp_catalog.json.gz unreadable: {e}"); return
 
     # The supplementary archive sits under its own prefix, NOT under web/v1.
-    root = re.sub(r"/web/v\d+/?$", "", base)
+    # Mirror the app (pages/Downloads.js): strip /web/vN when the base has it,
+    # otherwise fall back to the published bucket, because the ~866MB archive is
+    # never built locally and a preview base has nothing to strip.
+    root = (re.sub(r"/web/v\d+/?$", "", base)
+            if re.search(r"/web/v\d+/?$", base) else PUBLIC_BUCKET)
+    if root != re.sub(r"/web/v\d+/?$", "", base):
+        ok(f"download root falls back to {root} (base is a local preview)")
     files = [(f, e) for f, entries in sc["folders"].items() for e in entries]
     total = sum(e.get("gz_bytes", 0) for _, e in files)
     ok(f"supp_catalog: {len(files)} files, {total/1e6:.0f} MB gz, prefix {sc['prefix']!r}")
-    if root == base:
-        warn("base has no /web/vN suffix; skipping download URL checks "
-             "(supp files live beside it, not under it)")
-        return
     # One file per folder, not every Nth: the folders are wildly uneven (
     # pes_weights alone is most of the 399), so a flat stride tests the same
     # folder six times and never touches the others.
@@ -150,7 +153,13 @@ def check_downloads(base, sample):
             fail(f"[{fld}] {e['path'][:58]}  -> {ex}")
 
 def check_staleness(base):
+    # Always compare against the PUBLISHED bucket. Comparing a local build to a
+    # local preview server is comparing it to itself, which always says "all
+    # published" -- the most misleading possible answer to this question.
     print("\n[staleness] built locally but not published")
+    if not base.startswith(PUBLIC_BUCKET):
+        print(f"  note  base is {base}; checking against {DEFAULT_BASE} instead")
+        base = DEFAULT_BASE
     if not os.path.exists(LOCAL_MANIFEST):
         warn("no local build/web/v1/manifest.json.gz to compare against"); return
     def ids(m):

@@ -25,7 +25,21 @@ import { WEB_DATA_BASE } from '../lib/heapdata';
 
 // The payload lives at <bucket>/web/v1; the supplementary archive is a sibling
 // prefix on the same bucket, named by the archive catalog itself.
-const BUCKET_ROOT = WEB_DATA_BASE.replace(/\/web\/v\d+\/?$/, '');
+//
+// The archive is ~866MB and is never built locally, so download links always
+// point at the PUBLISHED bucket even when the payload is being read from a
+// local preview server. Deriving the root by stripping /web/vN off the payload
+// base only works when the payload base actually has that suffix; a preview
+// base like http://localhost:3008 has nothing to strip, and every download link
+// then silently pointed at a local server that cannot have the files -- a 404
+// on every row.
+const PUBLIC_BUCKET = 'https://storage.googleapis.com/heap-web-data';
+const BUCKET_ROOT = (
+  process.env.REACT_APP_SUPP_DATA_URL
+  || (/\/web\/v\d+\/?$/.test(WEB_DATA_BASE)
+    ? WEB_DATA_BASE.replace(/\/web\/v\d+\/?$/, '')
+    : PUBLIC_BUCKET)
+);
 const ZIP_NAME = 'HEAP_Supplementary_Data.zip';
 const XLSX_NAME = 'HEAP_Supplementary_Tables.xlsx';
 
