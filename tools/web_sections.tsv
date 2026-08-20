@@ -9,7 +9,7 @@ associations	assoc_base_plus_clinical	assoc_E_specs/base_plus_clinical.tsv	K	Pro
 associations	assoc_exclude_prevalent_disease	assoc_E_specs/exclude_prevalent_disease.tsv	K	Protein	Exposure-protein associations - Healthy at baseline	miami	on	deposit_tsv	
 causal	mr_triads	module5/mr_triad_motifs.tsv	S		Tier-1 mediator triads	forest	on	stats_tsv	UKB
 causal	mr_motif_counts	module5/mr_motif_counts.tsv	S		Motif counts under both evidence bars	bar	on	stats_tsv	UKB
-causal	mr_priority	fig_mr_priority	K	protID	Protein-disease MR priority	volcano	on	figure	UKB
+causal	mr_priority	fig_mr_priority	K	protID	Observational protein-disease association (Cox)	volcano	on	figure	
 causal	mr_edges	fig_mr_edges	S		Exposure-protein-disease edges	sankey	on	figure	UKB
 causal	mr_coloc	fig_mr_coloc	S		Colocalization support (PP.H4)	scatter	on	figure	in-data
 causal	mr_shared_unique	fig_mr_shared_unique	S		Shared vs unique motifs	bar	on	figure	UKB
@@ -84,3 +84,8 @@ architecture	gxe_architecture	fig_gxe_architecture	S		GxE architecture summary	b
 architecture	gxe_noise_floor	fig_gxe_noise_floor	S		GxE against the noise floor	scatter	on	figure	
 architecture	gxe_proteins	fig_gxe_proteins	S		Proteins with GxE signal	scatter	on	figure	
 architecture	gxe_assoc	fig_gxe_assoc	K	exposure_id	Polygenic GxE associations	miami	on	figure	
+causal	mr_edge_key	mr_edge_key.tsv	S		The six directed relationships (Fig 4a)	table	on	derived_tsv	UKB
+causal	mr_motif_key	mr_motif_key.tsv	S		Motif signatures and triad counts (Fig 4b)	table	on	derived_tsv	UKB
+causal	mr_entity_motifs	mr_entity_motifs.tsv	S		Motif counts per exposure, protein or disease	table	on	derived_tsv	UKB
+causal	mr_pd_effects	mr_pd_effects.tsv	K	protID	Protein-disease: MR estimate vs observational	volcano	on	derived_tsv	UKB
+causal	mr_coloc_locus	mr_coloc_locus.tsv	K	locus_id	Regional colocalization: per-SNP pQTL and disease signal	scatter	on	derived_tsv	UKB

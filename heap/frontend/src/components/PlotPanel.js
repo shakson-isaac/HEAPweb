@@ -50,7 +50,7 @@ function withTitleObjects(value) {
   return out;
 }
 
-export default function PlotPanel({ data, layout, height = 420, config }) {
+export default function PlotPanel({ data, layout, height = 420, config, onPointClick }) {
   return (
     <Plot
       data={withTitleObjects(data)}
@@ -58,6 +58,10 @@ export default function PlotPanel({ data, layout, height = 420, config }) {
       config={{ displaylogo: false, responsive: true, ...config }}
       style={{ width: '100%' }}
       useResizeHandler
+      onClick={onPointClick ? (ev) => {
+        const p = ev?.points?.[0];
+        if (p) onPointClick(p);
+      } : undefined}
     />
   );
 }

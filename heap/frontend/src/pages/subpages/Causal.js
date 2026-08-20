@@ -7,10 +7,14 @@ import SectionCard from '../../components/SectionCard';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import ArmNotice, { ArmChip } from '../../components/ArmNotice';
+import ColocRegional from '../../components/ColocRegional';
+import MotifKey from '../../components/MotifKey';
+import EntityMotifBrowser from '../../components/EntityMotifBrowser';
+import PDEffects from '../../components/PDEffects';
 import PlatformConcordance from '../../components/PlatformConcordance';
 import MotifTrace from '../../components/MotifTrace';
 import TriadDAG from '../../components/TriadDAG';
-import { useSection, useKeys, useShard } from '../../lib/useSection';
+import { useSection } from '../../lib/useSection';
 import { ecatColor } from '../../lib/palette';
 
 const STATUS_COLOR = {
@@ -100,7 +104,7 @@ const EST_KEYS = ['EP', 'PDcis', 'PDtrans', 'ED', 'PEcis', 'PEtrans', 'DP', 'DE'
 const FLAG_KEYS = ['pEP', 'pPD', 'pED', 'pPE', 'pDP', 'pDE'];
 const OPTION_CAP = 300;
 
-function TriadExplorer() {
+function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery }) {
   const { data, loading, error } = useSection('mr_triads');
   // deCODE corroboration for the same 18,780 triads, joined on (E, P, D).
   // Protein-involving edges only -- E->D and D->E have no protein for the
@@ -110,8 +114,15 @@ function TriadExplorer() {
   // collapsed into the presence flags the motif rules use
   const { data: tierTbl } = useSection('mr_triad_tiers');
   const [picked, setPicked] = useState(null);
-  const [motif, setMotif] = useState('all');
-  const [query, setQuery] = useState('');
+  // Controlled when the page supplies a filter (clicking a pattern in the
+  // reading key or the browser above), self-managed otherwise, so the explorer
+  // still works standalone.
+  const [motifLocal, setMotifLocal] = useState('all');
+  const [queryLocal, setQueryLocal] = useState('');
+  const motif = motifProp ?? motifLocal;
+  const query = queryProp ?? queryLocal;
+  const setMotif = onMotif ?? setMotifLocal;
+  const setQuery = onQuery ?? setQueryLocal;
   const [instrument, setInstrument] = useState('cis');
 
   // One pass over the 18,780 triads builds the display labels and a lowercase
@@ -388,74 +399,6 @@ function TriadExplorer() {
   );
 }
 
-function PriorityVolcano() {
-  const { data: keyIndex, loading: kLoading, error: kError } = useKeys('mr_priority');
-  const [protein, setProtein] = useState('ABO');
-  const { data, loading, error } = useShard('mr_priority', protein);
-
-  const options = useMemo(
-    () => (keyIndex ? Object.keys(keyIndex.keys).map((k) => ({ value: k, label: k })) : []),
-    [keyIndex]
-  );
-
-  const traces = useMemo(() => {
-    if (!data) return [];
-    // Effect on a log scale so protective and risk effects sit symmetrically
-    // about zero; significance on y.
-    return [{
-      type: 'scattergl',
-      mode: 'markers',
-      x: data.protein_HR.map((h) => Math.log2(h)),
-      y: data.neglog10p,
-      text: data.Disease_label,
-      customdata: data.protein_HR.map((h, i) => [h, data.n_cases[i]]),
-      hovertemplate:
-        '<b>%{text}</b><br>HR %{customdata[0]:.3f}<br>'
-        + '−log10 p %{y:.2f}<br>%{customdata[1]:,} cases<extra></extra>',
-      marker: {
-        size: 7,
-        color: data.neglog10p,
-        colorscale: 'Viridis',
-        showscale: false,
-        line: { width: 0.5, color: '#fff' },
-      },
-    }];
-  }, [data]);
-
-  return (
-    <SectionCard
-      title={<>Protein &rarr; disease MR priority <ArmChip sectionId="mr_priority" /></>}
-      subtitle="Each point is one disease tested against the selected protein. Positive log2 HR means higher protein, higher hazard."
-      loading={kLoading || loading}
-      error={kError || error}
-    >
-      <Box sx={{ maxWidth: 420, mb: 2 }}>
-        <Select
-          options={options}
-          value={{ value: protein, label: protein }}
-          onChange={(o) => setProtein(o.value)}
-          isSearchable
-          placeholder="Search a protein&hellip;"
-        />
-      </Box>
-      {data && (
-        <>
-          <PlotPanel
-            data={traces}
-            height={460}
-            layout={{
-              xaxis: { title: 'log2 hazard ratio', zeroline: true, zerolinecolor: '#bbb' },
-              yaxis: { title: '−log10 p' },
-              title: { text: `${protein} — ${data.DZ_ID.length} diseases`, font: { size: 13 } },
-            }}
-          />
-          <ColumnarTable data={data} />
-        </>
-      )}
-    </SectionCard>
-  );
-}
-
 function MotifCounts() {
   const { data, loading, error } = useSection('mr_motif_counts');
   const traces = useMemo(() => {
@@ -555,6 +498,9 @@ function TierOneTriads() {
 
 function Coloc() {
   const { data, loading, error } = useSection('mr_coloc');
+  // Which locus the regional plot shows. Defaults to the first pair that
+  // clears the gate, so the panel opens on a colocalization rather than a null.
+  const [locus, setLocus] = useState(null);
   const traces = useMemo(() => {
     if (!data) return [];
     return [...new Set(data.status)].map((s) => {
@@ -568,11 +514,21 @@ function Coloc() {
         text: idx.map(
           (i) => `${data.protID[i]} — ${data.target[i]} (${data.arm[i]}, ${data.lead_snp[i]})`
         ),
-        hovertemplate: '%{text}<br>PP.H3 %{x:.2f} · PP.H4 %{y:.2f}<extra>%{fullData.name}</extra>',
+        hovertemplate: '%{text}<br>PP.H3 %{x:.2f} · PP.H4 %{y:.2f}'
+          + '<br><i>click to see the region</i><extra>%{fullData.name}</extra>',
         marker: { size: 10, opacity: 0.85, color: STATUS_COLOR[s] || '#666' },
+        // the row this point came from, so a click can name the locus
+        customdata: idx,
       };
     });
   }, [data]);
+
+  const sel = useMemo(() => {
+    if (!data?.protID) return null;
+    if (locus != null) return { i: locus };
+    const i = data['PP.H4'].findIndex((v) => Number(v) >= 0.8);
+    return i >= 0 ? { i } : null;
+  }, [data, locus]);
 
   return (
     <SectionCard
@@ -584,6 +540,7 @@ function Coloc() {
       <PlotPanel
         data={traces}
         height={450}
+        onPointClick={(pt) => setLocus(pt.customdata)}
         layout={{
           xaxis: { title: 'PP.H3 (distinct variants)', range: [-0.03, 1.03] },
           yaxis: { title: 'PP.H4 (shared variant)', range: [-0.03, 1.03] },
@@ -599,12 +556,29 @@ function Coloc() {
           margin: { b: 100 },
         }}
       />
+      {data && (
+        <ColocRegional
+          locusId={sel ? `${data.arm[sel.i]}__${data.protID[sel.i]}__${data.target[sel.i]}` : null}
+          protein={sel ? data.protID[sel.i] : null}
+          target={sel ? data.target[sel.i] : null}
+          pph4={sel ? data['PP.H4'][sel.i] : null}
+          pph3={sel ? data['PP.H3'][sel.i] : null}
+        />
+      )}
       {data && <ColumnarTable data={data} />}
     </SectionCard>
   );
 }
 
 export default function Causal() {
+  // The reading key, the entity browser and the explorer are three depths of
+  // one question, so the filter is held here rather than in any of them.
+  const [motif, setMotif] = useState('all');
+  const [entity, setEntity] = useState(null);
+  const [query, setQuery] = useState('');
+  const { data: edgeKey } = useSection('mr_edge_key');
+  const { data: motifKey } = useSection('mr_motif_key');
+
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="body1" sx={{ mb: 3, maxWidth: 900 }}>
@@ -630,8 +604,32 @@ export default function Causal() {
         </Box>
       </Typography>
       <ArmNotice />
-      <TriadExplorer />
-      <PriorityVolcano />
+      <MotifKey
+        edges={edgeKey}
+        motifs={motifKey}
+        selected={motif === 'all' ? null : motif}
+        onSelect={(m) => { setMotif(m || 'all'); setEntity(null); }}
+      />
+      <EntityMotifBrowser
+        motifs={motifKey}
+        selectedMotif={motif === 'all' ? null : motif}
+        onSelectMotif={(m) => setMotif(m || 'all')}
+        picked={entity}
+        onPick={(e) => {
+          setEntity(e);
+          // Selecting an entity narrows the explorer's search to it, so the
+          // deep view opens on what was just picked instead of making the
+          // reader retype it.
+          setQuery(e ? e.id : '');
+        }}
+      />
+      <TriadExplorer
+        motif={motif}
+        onMotif={setMotif}
+        query={query}
+        onQuery={setQuery}
+      />
+      <PDEffects />
       <MotifCounts />
       <TierOneTriads />
       <Coloc />
