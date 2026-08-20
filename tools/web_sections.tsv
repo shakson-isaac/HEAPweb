@@ -91,3 +91,6 @@ causal	mr_pd_effects	mr_pd_effects.tsv	K	protID	Protein-disease: MR estimate vs 
 causal	mr_coloc_locus	mr_coloc_locus.tsv	K	locus_id	Regional colocalization: per-SNP pQTL and disease signal	scatter	on	derived_tsv	UKB
 causal	mr_coloc_genes	mr_coloc_genes.tsv	K	locus_id	Gene track for the regional colocalization view	table	on	derived_tsv	UKB
 causal	mr_coloc_locus_meta	mr_coloc_locus_meta.tsv	S		LD anchor provenance for each coloc locus	table	on	derived_tsv	UKB
+pes	pes_reads_ci	pes_read_specs.tsv	S		How well the proteome reads each exposure, all five covariate specifications, with 95% CIs	scatter	on	deposit_tsv	
+pes	pes_tracking_ci	pes_tracking_specs.tsv	S		Within-person tracking, all five covariate specifications, with 95% CIs	scatter	on	deposit_tsv	
+pes	pes_disease	pes_disease.tsv	K	exposure_id	PES disease prediction: every exposure-disease pair across covariate specifications	scatter	on	derived_tsv	

@@ -15,7 +15,7 @@ import PlatformConcordance from '../../components/PlatformConcordance';
 import MotifTrace from '../../components/MotifTrace';
 import TriadDAG from '../../components/TriadDAG';
 import { useSection } from '../../lib/useSection';
-import { ecatColor } from '../../lib/palette';
+import { ecatColor, prettyDisease } from '../../lib/palette';
 
 const STATUS_COLOR = {
   'Colocalized (shared variant)': '#1b7837',
@@ -36,24 +36,6 @@ const prettyExposure = (x) => {
   const base = (m ? m[1] : s).replace(/_/g, ' ');
   const level = m && m[2] ? ` (${m[2].replace(/_/g, ' ')})` : '';
   return base.replace(/^\w/, (c) => c.toUpperCase()) + level;
-};
-
-// FinnGen endpoint ids are opaque, but every row carries the matched UK Biobank
-// first-occurrence field, whose name is the ICD-10 rubric in words. Read the
-// label out of the payload rather than hand-typing a code map (S8).
-//   age_e78_first_reported_disorders_of_lipoprotein_metabolism…_f130814_0_0
-//   -> "Disorders of lipoprotein metabolism and other lipidaemias"
-const prettyDisease = (x, ukbField) => {
-  if (ukbField) {
-    const s = String(ukbField)
-      .replace(/^age_/, '')
-      .replace(/_f\d+.*$/, '')
-      .replace(/^[a-z]\d+[a-z0-9]*_/, '')
-      .replace(/^first_reported_/, '')
-      .replace(/_/g, ' ');
-    if (s) return s.replace(/^\w/, (c) => c.toUpperCase());
-  }
-  return String(x).replace(/^finngen_R12_/, '').replace(/_/g, ' ');
 };
 
 const idxWhere = (arr, val) =>
