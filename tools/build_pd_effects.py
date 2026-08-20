@@ -26,6 +26,11 @@ SUM = os.path.join(HEAP_OUT, "mr_edges", "summary")
 WIDE = os.path.join(SUM, "supp", "mr_triads_wide.tsv")
 SENS = os.path.join(SUM, "mr_sensitivity_long.tsv")
 PRIO = os.path.join(FIGDIR, "fig_mr_priority.json")
+# Profile-likelihood CIs for the observational HR. Module 3 computes them but
+# MR_priority_table drops them; HEAP/scripts/analysis_summaries/export_protein_hr_ci.R
+# carries them out and asserts its protein_HR reproduces the shipped one, so the
+# interval and the point estimate come from the same Cox fit.
+HRCI = os.path.join(HEAP_OUT, "module3", "summary", "protein_hr_ci.tsv")
 OUTD = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     "build", "derived")
 
@@ -70,6 +75,18 @@ def main():
             mr[(r["src_id"], r["tgt_id"])][cls] = r
 
     # --- observational side --------------------------------------------------
+    # (protID, DZ_ID) -> (l95, u95)
+    hrci = {}
+    if os.path.exists(HRCI):
+        with open(HRCI) as fh:
+            for r in csv.DictReader(fh, delimiter="\t"):
+                if r.get("has_ci") in ("TRUE", "True", "1"):
+                    hrci[(r["protID"], r["DZ_ID"])] = (r["protein_HR_l95"],
+                                                       r["protein_HR_u95"])
+    else:
+        print(f"  !! no {HRCI}; hazard ratios will ship without intervals",
+              file=sys.stderr)
+
     with open(PRIO) as fh:
         pri = json.load(fh)
     pri = pri if isinstance(pri, list) else pri.get("data", pri)
@@ -120,10 +137,11 @@ def main():
             "coloc_pph4_cis",
             "mr_b_trans", "mr_se_trans", "mr_padj_trans", "mr_tier_trans",
             "mr_nsnp_trans",
-            "obs_HR", "obs_p", "obs_neglog10p", "n_cases", "cox_cindex",
+            "obs_HR", "obs_HR_l95", "obs_HR_u95", "obs_p", "obs_neglog10p",
+            "n_cases", "cox_cindex",
             "has_mr", "has_obs", "mr_hit"]
 
-    n_both = n_mr_only = n_obs_only = n_hit = 0
+    n_both = n_mr_only = n_obs_only = n_hit = n_ci = 0
     with open(os.path.join(OUTD, "mr_pd_effects.tsv"), "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
         w.writerow(COLS)
@@ -138,6 +156,7 @@ def main():
             n_mr_only += has_mr and not has_obs
             n_obs_only += has_obs and not has_mr
             n_hit += hit
+            n_ci += bool(o and (prot, o["DZ_ID"]) in hrci)
             g = lambda d, k: (d or {}).get(k, "")
             w.writerow([
                 prot, fg, fg2ukb.get(fg, ""), label_of.get(fg, fg), fg2icd.get(fg, ""),
@@ -145,7 +164,9 @@ def main():
                 g(c, "nsnp"), g(c, "PP_H4"),
                 g(t, "b"), g(t, "se"), g(t, "pval_adj"), g(t, "mr_tier"),
                 g(t, "nsnp"),
-                g(o, "protein_HR"), g(o, "protein_p"), g(o, "neglog10p"),
+                g(o, "protein_HR"),
+                *(hrci.get((prot, o["DZ_ID"]), ("", "")) if o else ("", "")),
+                g(o, "protein_p"), g(o, "neglog10p"),
                 g(o, "n_cases"), g(o, "cox_cindex"),
                 "TRUE" if has_mr else "FALSE",
                 "TRUE" if has_obs else "FALSE",
@@ -157,6 +178,7 @@ def main():
     print(f"      MR only      {n_mr_only:,}")
     print(f"      obs only     {n_obs_only:,}")
     print(f"      MR hits      {n_hit:,}")
+    print(f"      HR with CI   {n_ci:,}")
     print(f"      proteins     {len({p for p, _ in pairs}):,}")
 
 if __name__ == "__main__":

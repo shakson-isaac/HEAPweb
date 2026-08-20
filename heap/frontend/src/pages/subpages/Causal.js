@@ -399,103 +399,6 @@ function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery })
   );
 }
 
-function MotifCounts() {
-  const { data, loading, error } = useSection('mr_motif_counts');
-  const traces = useMemo(() => {
-    if (!data) return [];
-    // Both evidence bars, side by side. The two motif sets are NOT nested, so
-    // these are paired bars, never a stack or a "share reaching Tier 1".
-    return [
-      {
-        type: 'bar', name: 'Nominal significance',
-        x: data.motif, y: data.nominal_triads,
-        text: data.nominal_proteins.map((p) => `${p} proteins`),
-        hovertemplate: '<b>%{x}</b><br>%{y:,} triads<br>%{text}<extra>Nominal</extra>',
-        marker: { color: '#c9c9c9' },
-      },
-      {
-        type: 'bar', name: 'Tier 1 (used in the paper)',
-        x: data.motif, y: data.tier1_triads,
-        text: data.tier1_proteins.map((p) => `${p} proteins`),
-        hovertemplate: '<b>%{x}</b><br>%{y:,} triads<br>%{text}<extra>Tier 1</extra>',
-        marker: { color: '#1f4e79' },
-      },
-    ];
-  }, [data]);
-
-  return (
-    <SectionCard
-      title={<>Motif counts under both evidence bars <ArmChip sectionId="mr_motif_counts" /></>}
-      subtitle="Raising the bar from nominal significance to Tier 1 collapses the mediator motif from 84 triads to 6, while disease-liability stays large. The two sets are not nested, so the bars are paired rather than stacked."
-      loading={loading}
-      error={error}
-    >
-      <PlotPanel
-        data={traces}
-        height={430}
-        layout={{
-          barmode: 'group',
-          yaxis: { title: 'triads (log scale)', type: 'log' },
-          margin: { b: 120 },
-          legend: { orientation: 'h', y: -0.35 },
-        }}
-      />
-      {data && <ColumnarTable data={data} />}
-    </SectionCard>
-  );
-}
-
-function TierOneTriads() {
-  const { data, loading, error } = useSection('mr_triads');
-  const mediators = useMemo(() => {
-    if (!data) return null;
-    const idx = data.motif
-      .map((m, i) => (String(m).startsWith('A') ? i : -1))
-      .filter((i) => i >= 0);
-    return idx.map((i) => ({
-      exposure: data.Exposure[i],
-      protein: data.Protein[i],
-      disease: data.Disease[i],
-      diseaseUkb: data.Disease_UKB ? data.Disease_UKB[i] : '',
-      icd: data.ICD10 ? data.ICD10[i] : '',
-    }));
-  }, [data]);
-
-  return (
-    <SectionCard
-      title={<>Tier-1 mediator triads <ArmChip sectionId="mr_triads" /></>}
-      subtitle="Every exposure → protein → disease triad carrying the mediator motif under the Tier-1 rule — the definition the paper quotes. Six triads across three proteins."
-      loading={loading}
-      error={error}
-    >
-      {mediators && (
-        <Box sx={{ display: 'grid', gap: 1.5, mb: 3 }}>
-          {mediators.map((m) => (
-            <Box
-              key={`${m.exposure}|${m.protein}|${m.disease}`}
-              sx={{
-                p: 1.5, border: '1px solid #d8d8d8', borderRadius: 1,
-                display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap',
-              }}
-            >
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {prettyExposure(m.exposure)}
-              </Typography>
-              <Typography variant="body2">&rarr;</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.protein}</Typography>
-              <Typography variant="body2">&rarr;</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {prettyDisease(m.disease, m.diseaseUkb)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
-      {data && <ColumnarTable data={data} initialRowsPerPage={25} />}
-    </SectionCard>
-  );
-}
-
 function Coloc() {
   const { data, loading, error } = useSection('mr_coloc');
   // Which locus the regional plot shows. Defaults to the first pair that
@@ -630,8 +533,6 @@ export default function Causal() {
         onQuery={setQuery}
       />
       <PDEffects />
-      <MotifCounts />
-      <TierOneTriads />
       <Coloc />
     </Box>
   );

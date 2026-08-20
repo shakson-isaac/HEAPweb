@@ -73,7 +73,12 @@ export default function PDEffects() {
         pph4: num(data.coloc_pph4_cis?.[i]),
         mr_b: b,
         mr_y: padj != null && padj > 0 ? -Math.log10(padj) : null,
-        obs_x: hr != null && hr > 0 ? Math.log2(hr) : null,
+        // Reported as the hazard ratio itself, not a log transform of it: the
+        // interval is what makes an HR readable, and log2(HR) with a
+        // back-transformed interval is a number nobody quotes.
+        obs_x: hr,
+        obs_lo: num(data.obs_HR_l95?.[i]),
+        obs_hi: num(data.obs_HR_u95?.[i]),
         obs_y: op != null && op > 0 ? -Math.log10(op) : null,
         n_cases: num(data.n_cases?.[i]),
       });
@@ -82,7 +87,7 @@ export default function PDEffects() {
   }, [data, inst]);
 
   const mrRows = rows.filter((r) => r.mr_b != null && r.mr_y != null);
-  const obsRows = rows.filter((r) => r.obs_x != null && r.obs_y != null);
+  const obsRows = rows.filter((r) => r.obs_x != null && r.obs_x > 0 && r.obs_y != null);
   const nMrHit = mrRows.filter((r) => r.tier && r.tier !== 'Null').length;
   // Bonferroni across the diseases actually shown, matching how the observational
   // panel is read in the paper rather than inventing a new threshold here.
@@ -113,20 +118,35 @@ export default function PDEffects() {
   }, [mrRows]);
 
   const obsTrace = useMemo(() => ([{
-    type: 'scattergl',
+    // scatter, not scattergl: only the SVG renderer draws error bars.
+    type: 'scatter',
     mode: 'markers',
     name: 'Cox',
     x: obsRows.map((r) => r.obs_x),
     y: obsRows.map((r) => r.obs_y),
     text: obsRows.map((r) => r.label),
-    customdata: obsRows.map((r) => [r.n_cases ?? '—']),
-    hovertemplate: '<b>%{text}</b><br>log2 HR %{x:.3f}<br>−log10 p %{y:.2f}'
+    customdata: obsRows.map((r) => [
+      r.n_cases ?? '—',
+      r.obs_lo == null ? '—' : r.obs_lo.toFixed(2),
+      r.obs_hi == null ? '—' : r.obs_hi.toFixed(2),
+    ]),
+    error_x: {
+      type: 'data',
+      symmetric: false,
+      array: obsRows.map((r) => (r.obs_hi != null ? r.obs_hi - r.obs_x : 0)),
+      arrayminus: obsRows.map((r) => (r.obs_lo != null ? r.obs_x - r.obs_lo : 0)),
+      thickness: 1,
+      width: 0,
+      color: 'rgba(120,120,120,0.45)',
+    },
+    hovertemplate: '<b>%{text}</b><br>HR %{x:.2f} '
+      + '(95% CI %{customdata[1]}–%{customdata[2]})<br>−log10 p %{y:.2f}'
       + '<br>%{customdata[0]} cases<extra></extra>',
     marker: {
       size: 7,
       color: obsRows.map((r) => (obsThresh != null && r.obs_y >= obsThresh ? '#B0653C' : '#C9B8A8')),
       line: { width: 0 },
-      opacity: 0.85,
+      opacity: 0.9,
     },
   }]), [obsRows, obsThresh]);
 
@@ -134,7 +154,7 @@ export default function PDEffects() {
     if (!data?.disease) return null;
     const keep = ['disease_label', 'icd10', `mr_b_${inst}`, `mr_se_${inst}`,
       `mr_padj_${inst}`, `mr_tier_${inst}`, `mr_nsnp_${inst}`,
-      'coloc_pph4_cis', 'obs_HR', 'obs_p', 'n_cases'];
+      'coloc_pph4_cis', 'obs_HR', 'obs_HR_l95', 'obs_HR_u95', 'obs_p', 'n_cases'];
     const out = {};
     keep.forEach((k) => { if (data[k]) out[k] = data[k]; });
     return Object.keys(out).length ? out : null;
@@ -148,8 +168,8 @@ export default function PDEffects() {
       title={<>Protein &rarr; disease: causal estimate beside observational association</>}
       subtitle={
         'The same diseases, plotted twice. Left: the Mendelian randomization estimate, '
-        + 'graded by evidence tier. Right: the observational Cox association from the '
-        + 'mediation models. A disease can sit high on the right and flat on the left — '
+        + 'graded by evidence tier. Right: the observational Cox hazard ratio with its '
+        + '95% confidence interval. A disease can sit far from 1 on the right and flat on the left — '
         + 'that is a protein that tracks the disease without evidence of causing it.'
       }
     >
@@ -204,14 +224,19 @@ export default function PDEffects() {
               data={obsTrace}
               height={420}
               layout={{
-                xaxis: { title: 'log2 hazard ratio', zeroline: true, zerolinecolor: '#bbb' },
+                xaxis: { title: 'hazard ratio (95% CI)', zeroline: false },
                 yaxis: { title: '−log10 p' },
                 title: { text: `Observational — ${protein} (Cox)`, font: { size: 13 } },
                 showlegend: false,
-                shapes: obsThresh != null ? [{
-                  type: 'line', xref: 'paper', x0: 0, x1: 1, y0: obsThresh, y1: obsThresh,
-                  line: { dash: 'dot', width: 1, color: '#B0653C' },
-                }] : [],
+                shapes: [
+                  // HR = 1 is the null, the way 0 is for a beta.
+                  { type: 'line', xref: 'x', yref: 'paper', x0: 1, x1: 1, y0: 0, y1: 1,
+                    line: { dash: 'dash', width: 1, color: '#999' } },
+                  ...(obsThresh != null ? [{
+                    type: 'line', xref: 'paper', x0: 0, x1: 1, y0: obsThresh, y1: obsThresh,
+                    line: { dash: 'dot', width: 1, color: '#B0653C' },
+                  }] : []),
+                ],
                 annotations: obsThresh != null ? [{
                   xref: 'paper', x: 1, y: obsThresh, xanchor: 'right', yanchor: 'bottom',
                   text: 'Bonferroni', showarrow: false, font: { size: 9, color: '#B0653C' },
