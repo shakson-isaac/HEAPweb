@@ -17,7 +17,7 @@ through the Disease/Disease_UKB/ICD10 crosswalk carried in mr_triads_wide.tsv.
 Pairs present on only one side are kept, with the missing side blank: a protein
 with an observational hit and no MR estimate is exactly what the panel is for.
 """
-import csv, json, os, sys
+import csv, json, os, re, sys
 from collections import defaultdict
 
 HEAP_OUT = os.environ.get("HEAP_OUTPUT", "/n/groups/patel/IGLOO/UKB/HEAP/output")
@@ -78,8 +78,36 @@ def main():
         fg = ukb2fg.get(r["DZ_ID"])
         if fg is None:
             continue                       # disease not in any tested triad
+        # Label every disease seen anywhere in the Cox export, not only the
+        # pairs that matched this protein: an MR-only row still needs a
+        # readable name, and falling back to the raw endpoint id would show
+        # readers "finngen_R12_T2D" where the panel means type 2 diabetes.
+        label_of.setdefault(fg, r.get("Disease_label") or fg)
         obs[(r["protID"], fg)] = r
-        label_of[fg] = r.get("Disease_label", fg)
+
+    # Last resort: derive a name from the UK Biobank field. These are of the
+    # form age_<icd>_first_reported_<words>_f<field>_0_0.
+    def from_ukb(ukb):
+        t = re.sub(r"^age_[a-z0-9]+_first_reported_", "", ukb or "")
+        t = re.sub(r"_f\d+_\d+_\d+$", "", t)
+        return t.replace("_", " ").strip()
+
+    # And for endpoints with no UK Biobank counterpart at all, read the FinnGen
+    # code itself: finngen_R12_G6_PARKINSON -> "parkinson". The leading token is
+    # FinnGen's chapter prefix, not part of the name.
+    def from_finngen(fg):
+        t = re.sub(r"^finngen_R12_", "", fg)
+        t = re.sub(r"^[A-Z]+\d*_", "", t)
+        t = re.sub(r"_AND\d+_", "_and_", t)
+        return t.replace("_", " ").strip().lower()
+
+    for fg, ukb in fg2ukb.items():
+        if not label_of.get(fg):
+            label_of[fg] = from_ukb(ukb) or from_finngen(fg)
+    # endpoints that never appear in the crosswalk (MR-only, no UKB field)
+    for (_, fg) in list(mr):
+        if not label_of.get(fg):
+            label_of[fg] = from_finngen(fg)
 
     # Protein-first: the panel answers "which diseases can THIS protein
     # influence", so it is scoped to proteins that were actually instrumented

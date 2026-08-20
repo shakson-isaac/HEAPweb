@@ -45,7 +45,10 @@ const num = (v) => {
 
 export default function PDEffects() {
   const { data: keyIndex, loading: kLoading, error: kError } = useKeys('mr_pd_effects');
-  const [protein, setProtein] = useState('FABP4');
+  // ADM opens the panel: it carries the strongest cis evidence in the table
+  // (two Tier-1 protein->disease edges) alongside 46 observational estimates,
+  // so the gap the panel exists to show is visible without hunting for it.
+  const [protein, setProtein] = useState('ADM');
   const [inst, setInst] = useState('cis');
   const { data, loading, error } = useShard('mr_pd_effects', protein);
 
