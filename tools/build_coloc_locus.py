@@ -1,114 +1,136 @@
 #!/usr/bin/env python3
-"""Per-SNP regional data for the colocalization viewer.
+"""Per-locus regional data for the colocalization viewer.
 
 A PP.H4 of 0.998 is a number, not evidence anyone can check. The regional plot
-is the thing that shows WHY: the pQTL and the disease association rising and
-falling over the same variants in the same window. This packs the harmonized
-per-SNP table behind each coloc pair so the site can draw it.
+shows why: the cis-pQTL and the disease association rising over the same
+variants, coloured by LD to the lead. The LD is what separates one shared causal
+variant (PP.H4) from two distinct variants in LD (PP.H3), so it is the part that
+carries the argument -- and it cannot be computed in the browser.
 
-Source is <locus>_harmonized_snps.tsv, written by
-HEAP/scripts/support/coloc/run_coloc_locus.R:295 -- the exact variant set that
-coloc.abf consumed, so the plot and the posterior cannot disagree.
+Sources, both written by HEAP/scripts/support/coloc/export_coloc_web.R:
+  <locus>_plot_table.tsv   snp, chr, pos, p_trait1, p_trait2, r2
+  <locus>_genes.tsv        gene, start, end, strand
 
-COVERAGE: only loci whose harmonized table was retained are packed. At the time
-of writing that is 1 of 65 pairs; the rest ran before the output was kept, and a
-rerun of run_coloc_locus.R across the manifest lights them up with no change
-here or in the frontend. Loci without per-SNP data are reported, not silently
+r2 comes from PLINK against the 1000G EUR panel, the same call
+ModuleMR/COLOC/LocusZoom.R makes for the print figure, so the site and the
+figure colour identically.
+
+Deliberately NOT sourced from an external API (FinnGen, Open Targets): those
+serve a different variant set with different QC than the one that produced our
+posterior, and a reader comparing the plot to PP.H4 would see a disagreement we
+could not explain.
+
+Loci whose harmonized table was never retained are reported, not silently
 dropped -- the viewer greys them rather than pretending they do not exist.
-
-Deliberately NOT sourced from an external API (FinnGen, Open Targets). Those
-would serve a different variant set with different QC than the one that produced
-our PP.H4, and a reader comparing the plot to the posterior would see a
-disagreement we could not explain. LD colouring is the exception and is fetched
-client-side, because we never computed LD at all.
 """
 import csv, glob, json, os, re, sys
 
 HEAP_OUT = os.environ.get("HEAP_OUTPUT", "/n/groups/patel/IGLOO/UKB/HEAP/output")
-COLOC = os.path.join(HEAP_OUT, "support", "coloc")
+WEB = os.path.join(HEAP_OUT, "support", "coloc", "web")
 FIG = "/n/groups/patel/IGLOO/UKB/HEAP/figures/website/fig_mr_coloc.json"
 OUTD = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     "build", "derived")
 
-# Thin far-from-lead noise: everything at p > 0.1 on BOTH tracks is visually
-# identical baseline. Keeps the shard small without touching anything a reader
-# would look at.
+# Thin variants that are baseline on BOTH tracks. They are visually identical
+# and dominate the row count; anything a reader would look at is kept.
 KEEP_MLOG = 1.0
 
-def num(v):
+
+def mlog(p):
+    """-log10(p), guarding p=0 (which appears for very strong pQTLs)."""
     try:
-        f = float(v)
-        return f if f == f else None          # drop NaN
+        v = float(p)
     except (TypeError, ValueError):
         return None
+    if v != v:
+        return None
+    if v <= 0:
+        return 320.0                      # below double precision; effectively infinite
+    import math
+    return round(-math.log10(v), 4)
+
 
 def main():
-    os.makedirs(OUTD, exist_ok=True)
     if not os.path.exists(FIG):
         sys.exit(f"build_coloc_locus: missing {FIG}")
+    os.makedirs(OUTD, exist_ok=True)
 
     with open(FIG) as fh:
         summ = json.load(fh)
     summ = summ if isinstance(summ, list) else summ.get("data", summ)
 
-    files = sorted(glob.glob(os.path.join(COLOC, "*_harmonized_snps.tsv")))
-    # <lead>_<protein>_<diseasetail>_harmonized_snps.tsv
-    by_pair = {}
-    for f in files:
-        stem = os.path.basename(f)[: -len("_harmonized_snps.tsv")]
+    # Index the exported loci by both naming schemes:
+    #   <arm>__<protein>__<disease>          current runner (arm explicit)
+    #   <lead>_<protein>_<disease-tail>      legacy flat outputs
+    by_id, by_pair = {}, {}
+    for f in sorted(glob.glob(os.path.join(WEB, "*_plot_table.tsv"))):
+        stem = os.path.basename(f)[: -len("_plot_table.tsv")]
+        if "__" in stem:
+            by_id[stem] = stem
+            continue
         m = re.match(r"^(rs\d+)_([A-Za-z0-9_.-]+?)_([A-Z0-9_]+)$", stem)
-        if not m:
+        if m:
+            _, prot, dz = m.groups()
+            by_pair[(prot, dz)] = stem
+        else:
             print(f"  ?? unparsed locus stem: {stem}", file=sys.stderr)
-            continue
-        lead, prot, dz = m.groups()
-        by_pair[(prot, dz)] = (f, lead)
 
-    rows_out, keys = [], []
-    n_have = 0
+    snp_rows, gene_rows, packed = [], [], 0
     for r in summ:
-        prot, tgt = r["protID"], r["target"]
-        tail = re.sub(r"^finngen_R12_", "", tgt)
-        # Arm matters. The legacy-named files (<lead>_<prot>_<disease>) come
-        # from the UK Biobank Olink pipeline; deCODE instruments a different
-        # variant set entirely, so serving one arm's SNPs under the other's
-        # label would misstate what was colocalized.
-        hit = by_pair.get((prot, tail)) if r["arm"] == "UKB" else None
-        locus_id = f"{r['arm']}__{prot}__{tgt}"
-        if hit is None:
+        prot, tgt, arm = r["protID"], r["target"], r["arm"]
+        locus_id = f"{arm}__{prot}__{tgt}"
+        stem = by_id.get(locus_id)
+        if stem is None and arm == "UKB":
+            # Legacy files came from the UK Biobank Olink pipeline. deCODE
+            # instruments a different variant set, so serving one arm's SNPs
+            # under the other's label would misstate what was colocalized.
+            stem = by_pair.get((prot, re.sub(r"^finngen_R12_", "", tgt)))
+        if stem is None:
             continue
-        path, lead = hit
-        n_have += 1
-        with open(path) as fh:
+
+        with open(os.path.join(WEB, f"{stem}_plot_table.tsv")) as fh:
             for s in csv.DictReader(fh, delimiter="\t"):
-                m1 = num(s.get("minus_log10_pval"))     # pQTL track
-                m2 = num(s.get("mlogp"))                # disease track
-                pos = num(s.get("pos.1"))
-                if pos is None or (m1 is None and m2 is None):
+                m1, m2 = mlog(s["p_trait1"]), mlog(s["p_trait2"])
+                if m1 is None and m2 is None:
                     continue
                 if max(m1 or 0, m2 or 0) < KEEP_MLOG:
                     continue
-                rows_out.append([
-                    locus_id, s["SNP"], s.get("chr.1", ""), int(pos),
-                    "" if m1 is None else round(m1, 4),
-                    "" if m2 is None else round(m2, 4),
-                    num(s.get("beta.1")) or "", num(s.get("beta.2")) or "",
-                    "TRUE" if s["SNP"] == lead else "FALSE",
-                ])
-        keys.append(locus_id)
+                try:
+                    r2 = round(float(s["r2"]), 4)
+                except (TypeError, ValueError):
+                    r2 = ""
+                snp_rows.append([locus_id, s["snp"], s["chr"], int(s["pos"]),
+                                 "" if m1 is None else m1,
+                                 "" if m2 is None else m2, r2])
+
+        gf = os.path.join(WEB, f"{stem}_genes.tsv")
+        if os.path.exists(gf):
+            with open(gf) as fh:
+                for g in csv.DictReader(fh, delimiter="\t"):
+                    gene_rows.append([locus_id, g["gene"], int(g["start"]),
+                                      int(g["end"]), g["strand"]])
+        packed += 1
 
     with open(os.path.join(OUTD, "mr_coloc_locus.tsv"), "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
         w.writerow(["locus_id", "snp", "chr", "pos", "mlog10p_pqtl",
-                    "mlog10p_disease", "beta_pqtl", "beta_disease", "is_lead"])
-        w.writerows(rows_out)
+                    "mlog10p_disease", "r2"])
+        w.writerows(snp_rows)
 
-    print(f"  mr_coloc_locus.tsv  {len(rows_out):,} SNPs across {n_have} locus/loci")
+    with open(os.path.join(OUTD, "mr_coloc_genes.tsv"), "w", newline="") as fh:
+        w = csv.writer(fh, delimiter="\t")
+        w.writerow(["locus_id", "gene", "start", "end", "strand"])
+        w.writerows(gene_rows)
+
+    print(f"  mr_coloc_locus.tsv  {len(snp_rows):,} variants across {packed} locus/loci")
+    print(f"  mr_coloc_genes.tsv  {len(gene_rows):,} genes")
     print(f"      coloc pairs in summary : {len(summ)}")
-    print(f"      with per-SNP data      : {n_have}")
-    print(f"      awaiting rerun         : {len(summ) - n_have}")
-    if n_have < len(summ):
-        print("      -> rerun HEAP/scripts/support/coloc/run_coloc_locus.R over "
-              "coloc_manifest.tsv to retain the rest")
+    print(f"      with a regional view   : {packed}")
+    print(f"      awaiting the rerun     : {len(summ) - packed}")
+    if packed < len(summ):
+        print("      -> bash slurm/coloc/HEAPcoloc_locus.sh, then "
+              "Rscript scripts/support/coloc/export_coloc_web.R")
+
 
 if __name__ == "__main__":
     main()

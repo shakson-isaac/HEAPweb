@@ -4,57 +4,82 @@ import PlotPanel from './PlotPanel';
 import { useKeys, useShard } from '../lib/useSection';
 
 // ---------------------------------------------------------------------------
-// The regional colocalization plot: the picture behind PP.H4.
+// Interactive regional colocalization plot -- the picture behind PP.H4.
 //
-// A posterior of 0.998 asks to be taken on trust. This shows the reason for it
-// -- the cis-pQTL association and the disease association rising over the same
-// variants in the same window -- so a reader can judge whether one shared signal
-// is the honest reading, or whether two distinct peaks are being averaged.
+// A posterior of 0.998 asks to be taken on trust. This shows the reason for it:
+// the cis-pQTL and the disease association over the same window, each variant
+// coloured by its LD to the lead. The LD is the part that carries the argument.
+// One shared causal variant (PP.H4) looks like a red high-r2 cluster peaking
+// together on both tracks; two distinct variants in LD (PP.H3) looks like each
+// trait peaking on variants the other does not.
 //
-// Three views of one window:
-//   * two stacked tracks, pQTL above and disease below, sharing an x axis
-//   * a scatter of the two -log10 p values, where colocalization looks like a
-//     diagonal and PP.H3 (distinct variants) looks like an L
+// The web counterpart of ModuleMR/COLOC/LocusZoom.R, and coloured from the same
+// PLINK/1000G-EUR r2 that script computes, so the site and the print figure
+// agree. Gene track from EnsDb.Hsapiens.v86, same as the figure.
 //
-// Data is the harmonized SNP table that coloc.abf itself consumed
-// (run_coloc_locus.R), never an external API: a different variant set would
-// disagree with the posterior we publish, and we could not explain the gap.
+// Variants are the harmonized set coloc.abf itself consumed, never an external
+// API: a different variant set would disagree with the posterior we publish.
 // ---------------------------------------------------------------------------
 
-const PQTL_COL = '#2C7FB8';
-const DZ_COL = '#B0653C';
-const LEAD_COL = '#D32F2F';
+// locuszoomr's LD bins, so the legend reads the same as the paper's.
+const LD_BINS = [
+  { min: 0.8, color: '#E4211C', label: '0.8 – 1.0' },
+  { min: 0.6, color: '#F7A83E', label: '0.6 – 0.8' },
+  { min: 0.4, color: '#8FD14F', label: '0.4 – 0.6' },
+  { min: 0.2, color: '#3FC0C6', label: '0.2 – 0.4' },
+  { min: -1, color: '#3B65AE', label: '< 0.2' },
+];
+const ldColor = (r2) => (r2 == null || Number.isNaN(r2)
+  ? '#BDBDBD'
+  : (LD_BINS.find((b) => r2 >= b.min) || LD_BINS[LD_BINS.length - 1]).color);
+
+const GW = -Math.log10(5e-8);
 
 export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) {
   const { data: keyIndex } = useKeys('mr_coloc_locus');
   const available = !!(keyIndex && keyIndex.keys && locusId in keyIndex.keys);
   const { data, loading, error } = useShard('mr_coloc_locus', available ? locusId : null);
+  const { data: genes } = useShard('mr_coloc_genes', available ? locusId : null);
 
   const pts = useMemo(() => {
     if (!data?.pos) return null;
     const n = data.pos.length;
-    const pos = []; const pq = []; const dz = []; const snp = [];
+    const out = {
+      mb: new Array(n), pq: new Array(n), dz: new Array(n),
+      r2: new Array(n), snp: new Array(n), color: new Array(n),
+    };
     let lead = null;
     for (let i = 0; i < n; i += 1) {
       const mb = Number(data.pos[i]) / 1e6;
-      pos.push(mb);
-      pq.push(data.mlog10p_pqtl[i] === '' ? null : Number(data.mlog10p_pqtl[i]));
-      dz.push(data.mlog10p_disease[i] === '' ? null : Number(data.mlog10p_disease[i]));
-      snp.push(data.snp[i]);
-      const isLead = data.is_lead[i] === true || data.is_lead[i] === 'TRUE';
-      if (isLead) lead = { mb, snp: data.snp[i], pq: Number(data.mlog10p_pqtl[i]),
-                           dz: Number(data.mlog10p_disease[i]) };
+      const r2 = data.r2[i] === '' || data.r2[i] == null ? null : Number(data.r2[i]);
+      const pq = data.mlog10p_pqtl[i] === '' ? null : Number(data.mlog10p_pqtl[i]);
+      const dz = data.mlog10p_disease[i] === '' ? null : Number(data.mlog10p_disease[i]);
+      out.mb[i] = mb; out.pq[i] = pq; out.dz[i] = dz;
+      out.r2[i] = r2; out.snp[i] = data.snp[i]; out.color[i] = ldColor(r2);
+      // r2 == 1 against itself identifies the lead without a separate column.
+      if (r2 != null && r2 >= 0.9999 && (lead == null || (pq ?? 0) > (lead.pq ?? 0))) {
+        lead = { mb, snp: data.snp[i], pq, dz };
+      }
     }
-    return { pos, pq, dz, snp, lead, chr: data.chr?.[0] };
+    return { ...out, lead, chr: data.chr?.[0], n };
   }, [data]);
+
+  const geneTrack = useMemo(() => {
+    if (!genes?.gene) return [];
+    return genes.gene.map((g, i) => ({
+      gene: g,
+      start: Number(genes.start[i]) / 1e6,
+      end: Number(genes.end[i]) / 1e6,
+      strand: genes.strand[i],
+    })).sort((a, b) => a.start - b.start);
+  }, [genes]);
 
   if (!available) {
     return (
       <Alert severity="info" sx={{ mt: 2 }}>
-        No per-variant data retained for this locus, so the regional plot cannot
-        be drawn yet — only the posterior above. The colocalization pipeline
-        writes the harmonized SNP table it used, but it was kept for one locus
-        only; re-running it over the manifest fills in the rest.
+        No per-variant data retained for this locus yet, so only the posterior
+        above can be shown. The pipeline writes the harmonized variant table it
+        used, but it was kept for one locus only; the rerun fills in the rest.
       </Alert>
     );
   }
@@ -62,33 +87,60 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
   if (error) return <Typography variant="body2" color="error">{String(error)}</Typography>;
   if (!pts) return null;
 
-  const track = (y, name, color) => ({
+  const hover = (which) => (
+    '<b>%{text}</b><br>' + which + ' −log10 p %{y:.2f}'
+    + '<br>r² %{customdata:.2f}<br>chr' + pts.chr + ':%{x:.3f} Mb<extra></extra>'
+  );
+
+  const track = (y, which, axis) => ([{
     type: 'scattergl',
     mode: 'markers',
-    name,
-    x: pts.pos,
+    x: pts.mb,
     y,
     text: pts.snp,
-    hovertemplate: `<b>%{text}</b><br>${name} −log10 p %{y:.2f}`
-      + '<br>chr' + pts.chr + ':%{x:.3f} Mb<extra></extra>',
-    marker: { size: 5, color, opacity: 0.7 },
-  });
-
-  const leadMark = (yVal) => (pts.lead ? [{
+    customdata: pts.r2,
+    hovertemplate: hover(which),
+    marker: { size: 6, color: pts.color, opacity: 0.85,
+              line: { width: 0.4, color: 'rgba(0,0,0,0.25)' } },
+    yaxis: axis,
+    showlegend: false,
+  }, ...(pts.lead ? [{
     type: 'scattergl',
     mode: 'markers',
-    name: 'lead',
     x: [pts.lead.mb],
-    y: [yVal],
+    y: [which === 'pQTL' ? pts.lead.pq : pts.lead.dz],
     text: [pts.lead.snp],
     hovertemplate: '<b>%{text}</b> (lead)<extra></extra>',
-    marker: { size: 12, color: LEAD_COL, symbol: 'diamond',
-              line: { width: 1, color: '#fff' } },
+    marker: { size: 13, color: '#E4211C', symbol: 'diamond',
+              line: { width: 1.2, color: '#000' } },
+    yaxis: axis,
     showlegend: false,
-  }] : []);
+  }] : [])]);
 
-  const finngenUrl = `https://results.finngen.fi/variant/${
-    pts.lead ? `${pts.chr}-${Math.round(pts.lead.mb * 1e6)}` : ''}`;
+  // Genes are laid out on stacked rows so overlapping ones stay readable, the
+  // way the figure's gene track does.
+  const geneShapes = []; const geneLabels = [];
+  const rowEnds = [];
+  geneTrack.forEach((g) => {
+    let row = rowEnds.findIndex((e) => g.start > e + 0.012);
+    if (row === -1) { rowEnds.push(g.end); row = rowEnds.length - 1; } else rowEnds[row] = g.end;
+    const y = -(row + 1);
+    geneShapes.push({
+      type: 'line', xref: 'x', yref: 'y3',
+      x0: g.start, x1: g.end, y0: y, y1: y,
+      line: { width: 3, color: '#3B4A6B' },
+    });
+    geneLabels.push({
+      xref: 'x', yref: 'y3', x: (g.start + g.end) / 2, y: y,
+      text: g.strand === '-' ? `←${g.gene}` : `${g.gene}→`,
+      showarrow: false, yshift: 9, font: { size: 8, color: '#3B4A6B' },
+    });
+  });
+  const geneRows = Math.max(1, rowEnds.length);
+
+  const finngenUrl = pts.lead
+    ? `https://results.finngen.fi/variant/${pts.chr}-${Math.round(pts.lead.mb * 1e6)}`
+    : null;
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -101,36 +153,53 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
                 label={`PP.H4 ${Number(pph4).toFixed(3)}`} />
         )}
         {pph3 != null && (
-          <Chip size="small" variant="outlined"
-                label={`PP.H3 ${Number(pph3).toFixed(3)}`} />
+          <Chip size="small" variant="outlined" label={`PP.H3 ${Number(pph3).toFixed(3)}`} />
         )}
         {pts.lead && <Chip size="small" variant="outlined" label={`lead ${pts.lead.snp}`} />}
-        <Chip size="small" variant="outlined" label={`${pts.pos.length.toLocaleString()} variants`} />
+        <Chip size="small" variant="outlined" label={`${pts.n.toLocaleString()} variants`} />
       </Box>
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 420px', minWidth: 0 }}>
+        <Box sx={{ flex: '1 1 460px', minWidth: 0 }}>
           <PlotPanel
-            data={[
-              { ...track(pts.pq, 'cis-pQTL', PQTL_COL), yaxis: 'y' },
-              ...leadMark(pts.lead?.pq).map((t) => ({ ...t, yaxis: 'y' })),
-              { ...track(pts.dz, 'disease', DZ_COL), yaxis: 'y2' },
-              ...leadMark(pts.lead?.dz).map((t) => ({ ...t, yaxis: 'y2' })),
-            ]}
-            height={430}
+            data={[...track(pts.pq, 'pQTL', 'y'), ...track(pts.dz, 'disease', 'y2')]}
+            height={520}
             layout={{
-              // Stacked tracks sharing x: the classic locuszoom read, where a
-              // shared signal is two peaks at the same position.
-              grid: { rows: 2, columns: 1, pattern: 'coupled' },
-              xaxis: { title: `chr${pts.chr} position (Mb)` },
-              yaxis: { title: 'pQTL −log10 p', domain: [0.56, 1] },
-              yaxis2: { title: 'disease −log10 p', domain: [0, 0.44], autorange: 'reversed' },
+              // Three stacked panels sharing x: pQTL, disease, genes.
+              xaxis: { title: `chr${pts.chr} position (Mb)`, anchor: 'y3' },
+              yaxis: { title: 'pQTL −log10 p', domain: [0.60, 1] },
+              yaxis2: { title: 'disease −log10 p', domain: [0.24, 0.56] },
+              yaxis3: {
+                domain: [0, 0.20], showticklabels: false, zeroline: false,
+                showgrid: false, range: [-(geneRows + 0.6), -0.4], fixedrange: true,
+              },
+              shapes: [
+                ...geneShapes,
+                { type: 'line', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: GW, y1: GW,
+                  line: { dash: 'dot', width: 1, color: '#999' } },
+                { type: 'line', xref: 'paper', yref: 'y2', x0: 0, x1: 1, y0: GW, y1: GW,
+                  line: { dash: 'dot', width: 1, color: '#999' } },
+              ],
+              annotations: geneLabels,
               showlegend: false,
-              title: { text: 'Same window, both signals', font: { size: 13 } },
+              margin: { l: 60, r: 12, t: 30, b: 45 },
+              title: { text: 'Same window, both signals, coloured by LD',
+                       font: { size: 13 } },
             }}
           />
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center',
+                     mt: 0.5, pl: 1 }}>
+            <Box sx={{ fontSize: 11, color: 'text.secondary' }}>LD r² to lead:</Box>
+            {LD_BINS.map((b) => (
+              <Box key={b.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 11, height: 11, borderRadius: '2px', bgcolor: b.color }} />
+                <Box sx={{ fontSize: 11 }}>{b.label}</Box>
+              </Box>
+            ))}
+          </Box>
         </Box>
-        <Box sx={{ flex: '1 1 320px', minWidth: 0 }}>
+
+        <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
           <PlotPanel
             data={[{
               type: 'scattergl',
@@ -138,8 +207,10 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
               x: pts.pq,
               y: pts.dz,
               text: pts.snp,
-              hovertemplate: '<b>%{text}</b><br>pQTL %{x:.2f}<br>disease %{y:.2f}<extra></extra>',
-              marker: { size: 5, color: '#78909C', opacity: 0.6 },
+              customdata: pts.r2,
+              hovertemplate: '<b>%{text}</b><br>pQTL %{x:.2f}<br>disease %{y:.2f}'
+                + '<br>r² %{customdata:.2f}<extra></extra>',
+              marker: { size: 6, color: pts.color, opacity: 0.8 },
             }, ...(pts.lead ? [{
               type: 'scattergl',
               mode: 'markers',
@@ -147,10 +218,10 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
               y: [pts.lead.dz],
               text: [pts.lead.snp],
               hovertemplate: '<b>%{text}</b> (lead)<extra></extra>',
-              marker: { size: 12, color: LEAD_COL, symbol: 'diamond',
-                        line: { width: 1, color: '#fff' } },
+              marker: { size: 13, color: '#E4211C', symbol: 'diamond',
+                        line: { width: 1.2, color: '#000' } },
             }] : [])]}
-            height={430}
+            height={520}
             layout={{
               xaxis: { title: 'pQTL −log10 p' },
               yaxis: { title: 'disease −log10 p' },
@@ -163,12 +234,12 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         Variants are the harmonized set colocalization actually used, so the plot
-        and the posterior above describe the same data. On the right, a diagonal
-        cloud means the two signals rise together over the same variants (one
-        shared causal variant, PP.H4); an L-shape means each trait peaks at
-        variants the other does not (two distinct variants in LD, PP.H3).
+        and the posterior describe the same data; r² is to the lead variant in the
+        1000 Genomes European panel. On the right, red points climbing together
+        means one shared causal variant (PP.H4); red points high on one axis and
+        flat on the other means two distinct variants in LD (PP.H3).
         {' '}
-        {pts.lead && (
+        {finngenUrl && (
           <Link href={finngenUrl} target="_blank" rel="noopener noreferrer">
             View {pts.lead.snp} in FinnGen
           </Link>
