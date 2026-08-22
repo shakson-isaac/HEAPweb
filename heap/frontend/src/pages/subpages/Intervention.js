@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import Select from 'react-select';
-import { Box, Typography, ToggleButton, ToggleButtonGroup, Chip, Alert } from '@mui/material';
+import { Box, Typography, ToggleButton, ToggleButtonGroup, Chip, Alert, Divider } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
+import InterventionConcordance from '../../components/intervention/InterventionConcordance';
+import InterventionNetwork from '../../components/intervention/InterventionNetwork';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection, useKeys, useShard } from '../../lib/useSection';
@@ -716,6 +718,19 @@ export default function Intervention() {
         are reliability-weighted by it (weight = max(r, 0)), with an effective N reported alongside.
         Read no agreement or disagreement between trial and observational estimates without it.
       </Alert>
+
+      <InterventionConcordance />
+      <InterventionNetwork />
+
+      <Divider sx={{ my: 4 }} />
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+        Superseded views
+      </Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, maxWidth: 940 }}>
+        The panels the page carried before the two above replaced them. They are fed by
+        figure exports rather than the deposit, so they show fewer exposures and no
+        standard errors; kept for now so nothing disappears without being asked for.
+      </Typography>
 
       <ScatterSection />
       <CompareSection />

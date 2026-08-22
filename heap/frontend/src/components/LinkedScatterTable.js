@@ -99,7 +99,15 @@ export default function LinkedScatterTable({
       hovertemplate: '<b>%{text}</b><br>' + (xTitle || 'x') + ' %{x:.3f}<br>'
         + (yTitle || 'y') + ' %{y:.3f}<extra></extra>',
       marker: {
-        size: shown.map((p) => (p.id === active ? 13 : 8)),
+        // A per-point `size` (in px) is honoured when supplied, so area can
+        // carry a third variable; the active point still grows so selection
+        // stays visible whatever the encoding. Points with no size fall back to
+        // the default rather than collapsing -- a vanishing marker reads as "a
+        // very small value" when it usually means "not measured".
+        size: shown.map((p) => {
+          const base = Number.isFinite(p.size) ? p.size : 8;
+          return p.id === active ? base + 5 : base;
+        }),
         color: shown.map((p) => p.color || '#5B7FA6'),
         opacity: shown.map((p) => (active && p.id !== active ? 0.35 : 0.9)),
         line: {
