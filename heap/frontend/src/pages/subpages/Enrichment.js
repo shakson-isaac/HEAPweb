@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
+import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
 import TableSection from '../../components/TableSection';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection } from '../../lib/useSection';
@@ -94,6 +95,8 @@ export default function Enrichment() {
         means the set is enriched among proteins associated with that exposure;
         negative means depleted.
       </Typography>
+      <EnrichTripartite />
+
       <EnrichHeatmap
         section="tissue_enrichment"
         title="Tissue enrichment"

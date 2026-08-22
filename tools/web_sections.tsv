@@ -99,3 +99,8 @@ intervention	intervention_concordance_full	intervention_concordance_full.tsv	K	e
 intervention	intervention_spec_correlations	intervention_spec_correlations.tsv	S		Per-exposure concordance with each trial, recomputed under every specification	bar	on	derived_tsv	
 intervention	intervention_network_nodes	intervention_network_nodes.tsv	K	disease	Shared-language network: nodes for any disease	network	on	derived_tsv	
 intervention	intervention_network_edges	intervention_network_edges.tsv	K	disease	Shared-language network: edges for any disease	network	on	derived_tsv	
+enrichment	enrich_exposure_program	enrich_exposure_program.tsv	S		Exposure to biological program edges, every exposure	network	on	derived_tsv	
+enrichment	enrich_program_tissue	enrich_program_tissue.tsv	S		Program to tissue backbone, weighted by supporting exposures	network	on	derived_tsv	
+enrichment	enrich_exposure_tissue	enrich_exposure_tissue.tsv	S		Per-exposure tissue enrichment (FDR q<0.05)	table	on	derived_tsv	
+enrichment	protein_tissue_profile	protein_tissue_profile.tsv	K	gene	GTEx tissue profile, specificity and subcellular location per protein	bar	on	derived_tsv	
+enrichment	tissue_exposures	tissue_exposures.tsv	S		Which exposures enrich each GTEx tissue	table	on	derived_tsv	
