@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Menu, MenuItem, Divider } from '@mui/material';
+import { DOC_PAGES } from '../lib/docPages';
 
 const heapLogo = `${process.env.PUBLIC_URL}/HEAPlogo.png`;
 
@@ -73,18 +74,12 @@ function Header() {
             open={Boolean(docAnchorEl)}
             onClose={() => handleDocMenuClose(null)}
           >
-            <MenuItem onClick={() => handleDocMenuClose('about')}>About HEAP</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('quickstart')}>Quick Start</MenuItem>
-            <Divider />
-            <MenuItem onClick={() => handleDocMenuClose('evidence-tiers')}>Evidence Tiers</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('models')}>Specifications</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('dictionary')}>Exposome Dictionary</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('methods')}>Detailed Methods</MenuItem>
-            <Divider />
-            <MenuItem onClick={() => handleDocMenuClose('api')}>Data API</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('changelog')}>Changelog</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('cite')}>How to Cite</MenuItem>
-            <MenuItem onClick={() => handleDocMenuClose('faqs')}>FAQs</MenuItem>
+              {DOC_PAGES.map((d) => (
+                <React.Fragment key={d.path}>
+                  {d.group && <Divider />}
+                  <MenuItem onClick={() => handleDocMenuClose(d.path)}>{d.label}</MenuItem>
+                </React.Fragment>
+              ))}
           </Menu>
         </nav>
       </Toolbar>
