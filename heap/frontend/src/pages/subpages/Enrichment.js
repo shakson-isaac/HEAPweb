@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Divider, Typography } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
 import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
+import TissueExplorer from '../../components/enrichment/TissueExplorer';
 import TableSection from '../../components/TableSection';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection } from '../../lib/useSection';
@@ -96,6 +97,18 @@ export default function Enrichment() {
         negative means depleted.
       </Typography>
       <EnrichTripartite />
+      <TissueExplorer />
+
+      <Divider sx={{ my: 4 }} />
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+        Every enrichment, as heatmaps
+      </Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, maxWidth: 940 }}>
+        The full grids behind the views above: every exposure against every tissue and
+        pathway, and the same enrichments grouped by exposure category and by variance
+        component. Useful for scanning the whole space rather than following one thread
+        through it.
+      </Typography>
 
       <EnrichHeatmap
         section="tissue_enrichment"
