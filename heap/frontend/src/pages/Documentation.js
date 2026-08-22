@@ -22,6 +22,7 @@ const ApiDocs = lazy(() => import('./subpages/ApiDocs'));
 const DetailedMethods = lazy(() => import('./subpages/DetailedMethods'));
 const Changelog = lazy(() => import('./subpages/Changelog'));
 const Cite = lazy(() => import('./subpages/Cite'));
+const Credits = lazy(() => import('./subpages/Credits'));
 const FAQs = lazy(() => import('./subpages/FAQs'));
 
 // Order is the reading order, and it drives both the sidebar and the overview.
@@ -35,6 +36,7 @@ export const DOC_PAGES = [
   { path: 'methods', label: 'Detailed methods', blurb: 'The six analysis modules and what each one computes.' },
   { path: 'changelog', label: 'Changelog', blurb: 'What changed structurally between v1 and v2.' },
   { path: 'cite', label: 'How to cite', blurb: 'Preprint DOI, license, and dataset versioning.' },
+  { path: 'credits', label: 'References and credits', blurb: 'The datasets, drawings and methods this site is built on.' },
   { path: 'faqs', label: 'FAQs', blurb: 'Short answers, each pointing at the page that carries the detail.' },
 ];
 
@@ -324,6 +326,8 @@ function Documentation() {
             <Route path="methods" element={<DetailedMethods />} />
             <Route path="changelog" element={<Changelog />} />
             <Route path="cite" element={<Cite />} />
+            <Route path="credits" element={<Credits />} />
+            <Route path="references" element={<Credits />} />
             <Route path="faqs" element={<FAQs />} />
             <Route path="faq" element={<FAQs />} />
             <Route path="*" element={<NotFound />} />
