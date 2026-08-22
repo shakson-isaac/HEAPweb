@@ -95,3 +95,7 @@ pes	pes_reads_ci	pes_read_specs.tsv	S		How well the proteome reads each exposure
 pes	pes_tracking_ci	pes_tracking_specs.tsv	S		Within-person tracking, all five covariate specifications, with 95% CIs	scatter	on	deposit_tsv	
 pes	pes_disease	pes_disease.tsv	K	exposure_id	PES disease prediction: every exposure-disease pair across covariate specifications	scatter	on	derived_tsv	
 intervention	intervention_concordance	S15_intervention_concordance.tsv	K	exposure_id	Exposure-protein effects beside the trial effects that moved the same proteins	scatter	on	deposit_tsv	
+intervention	intervention_concordance_full	intervention_concordance_full.tsv	K	exposure_id	HEAP effects beside the trials, under five covariate specifications	scatter	on	derived_tsv	in-data
+intervention	intervention_spec_correlations	intervention_spec_correlations.tsv	S		Per-exposure concordance with each trial, recomputed under every specification	bar	on	derived_tsv	
+intervention	intervention_network_nodes	intervention_network_nodes.tsv	K	disease	Shared-language network: nodes for any disease	network	on	derived_tsv	
+intervention	intervention_network_edges	intervention_network_edges.tsv	K	disease	Shared-language network: edges for any disease	network	on	derived_tsv	
