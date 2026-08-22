@@ -1,0 +1,1244 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Alert, AlertTitle, Box, Chip, Paper, ToggleButton, ToggleButtonGroup, Typography,
+} from '@mui/material';
+import Select from 'react-select';
+import SectionCard from '../SectionCard';
+import ColumnarTable from '../ColumnarTable';
+import { useSection, useShard } from '../../lib/useSection';
+import { prettyExposure } from '../../lib/palette';
+import {
+  NON_ANATOMICAL, SHARED_REGIONS, TISSUE_BODY_MAP, prettyTissue,
+} from '../../lib/tissueBodyMap';
+// Served from public/, NOT imported from src/. Create React App runs SVGR over
+// every .svg under src/ to synthesise a `ReactComponent` export, and these are
+// Inkscape files carrying sodipodi:/inkscape: namespace tags, which React's JSX
+// transform rejects outright -- "Namespace tags are not supported". The build
+// fails even though only the URL export is used. Serving them as static assets
+// sidesteps the transform entirely and keeps ~1.7 MB of anatomy out of the
+// bundle, which was the intent anyway.
+const ASSET_BASE = `${process.env.PUBLIC_URL || ''}/anatomogram`;
+const maleSvgUrl = `${ASSET_BASE}/homo_sapiens.male.svg`;
+const femaleSvgUrl = `${ASSET_BASE}/homo_sapiens.female.svg`;
+const brainSvgUrl = `${ASSET_BASE}/homo_sapiens.brain.svg`;
+
+// ---------------------------------------------------------------------------
+// THE ENTRY POINT: pick an exposure, see which tissues it touches, then open a
+// tissue and read the proteins that actually carried the enrichment.
+//
+// Every other enrichment view on this site starts from the analysis -- a
+// heatmap cell, a tripartite edge, a tissue name. This one starts from the
+// question a non-specialist arrives with: "I play strenuous sports; what does
+// that show up in?" So the first thing on screen is a body, and the only thing
+// asked of the reader is which exposure.
+//
+// THREE QUESTIONS, IN THE ORDER A READER NEEDS THEM
+//   1. WHERE   the anatomogram, painted by the exposure's tissue GSEA
+//              (bodymap_terms, kind='tissue', FDR q < 0.05).
+//   2. WHICH   click an organ -> the GSEA LEADING EDGE for that tissue: the
+//              exact proteins that carried the enrichment up to its peak
+//              (bodymap_leading_edge, sharded by exposure).
+//   3. WHY     pick one of the exposure's enriched pathways and the body
+//              narrows to the tissues that share leading-edge proteins with it.
+//
+// WHAT THE LEADING EDGE IS, AND WHAT IT IS NOT
+//   `core_enrichment` from the GSEA, exported by export_gsea_leading_edge.R.
+//   It is NOT "proteins associated with this exposure that happen to be
+//   expressed in this tissue" -- that set ignores rank and sweeps in proteins
+//   that sat below the enrichment peak and contributed nothing to it. The
+//   distinction is the whole reason this payload exists rather than an
+//   intersection computed in the browser.
+//
+// THE PATHWAY -> TISSUE LINK IS COMPUTED HERE, AND IT IS NOT THE BACKBONE
+//   Choosing a pathway lights only the tissues whose leading edge shares at
+//   least `minShared` proteins with that pathway's leading edge, WITHIN THIS
+//   ONE EXPOSURE. That is an intersection taken in this component, from the
+//   shard on screen, and it moves every time the exposure picker moves.
+//
+//   The grey program->tissue backbone in the tripartite panel is a DIFFERENT
+//   quantity that happens to be built from the same ingredient: >= 3 shared
+//   leading-edge genes with the same NES sign, computed in R by
+//   module2_program_tissue_edges.R across all 114 exposures at once, and it
+//   does not move when the exposure changes. Neither number should be read as
+//   the other, so this panel never calls its link a backbone and always states
+//   the threshold it used.
+//
+// FOUR APPEARANCES, BECAUSE "NOT TESTED" AND "TESTED, NULL" ARE NOT THE SAME
+//   The payload only carries rows that cleared q < 0.05, so a naive renderer
+//   would leave a tested-but-null tissue looking identical to a piece of
+//   anatomy the GTEx panel never covered. That would be the single most
+//   misleading thing this figure could do, so there are four states and the
+//   legend names all four -- see PAINT_STATES below.
+// ---------------------------------------------------------------------------
+
+// --- direction grammar, shared with the rest of the site --------------------
+// TissueExplorer.js:123, EnrichTripartite.js:134, InterventionNetwork.js:61.
+// Red = up / enriched, blue = down / depleted, everywhere.
+const DIR_COLOR = { up: '#B2182B', down: '#2166AC' };
+
+// Only reachable if a rebuilt payload ever put two tissues of opposite sign on
+// one shared shape. It does not happen in the published payload (0 of 79
+// shared-shape co-occurrences conflict), but a silent coin-flip between red and
+// blue is not an acceptable failure mode, so the case has its own colour.
+const MIXED_COLOR = '#7B3FA0';
+
+// Tested by the GSEA, no hit for this exposure. A real, flat, hoverable fill --
+// it has to be visibly present, because its whole job is to be distinguishable
+// from anatomy that was never in the panel (which stays unpainted).
+const NULL_FILL = '#EDE9E3';
+const NULL_STROKE = '#C9C2B8';
+
+// |NES| -> colour intensity, on a FIXED domain rather than per-exposure. An
+// autoscale would make the strongest tissue of a weak exposure look exactly as
+// loud as the strongest tissue of a strong one, so two exposures could not be
+// compared by eye -- which is the main thing a reader does with this figure.
+// The published tissue |NES| runs 1.23 to 3.43.
+const NES_LO = 1.2;
+const NES_HI = 3.0;
+const TINT_FLOOR = 0.30;   // even the weakest hit keeps 30% of its colour
+
+// The whole-brain shape on the BODY svg. It is not a GTEx tissue and is never
+// painted red or blue: doing that would invent a brain-level enrichment nobody
+// computed. It gets a neutral slate wash purely as a pointer to the brain view.
+const BRAIN_POINTER = 'brain';
+const BRAIN_POINTER_COLOR = '#8FA3B0';
+
+const SVG_URL = { male: maleSvgUrl, female: femaleSvgUrl, brain: brainSvgUrl };
+
+// Stroke widths are in SVG user units, and the two drawings are not the same
+// size (the body is ~106 units wide, the brain ~143), so one number would give
+// visibly different line weights.
+const STROKE_W = { body: 0.25, brain: 0.4 };
+
+// Opens on strenuous sports because it is the cleanest demonstration of what
+// the figure is for: heart, skeletal muscle and the arteries go up, liver,
+// kidney, lung and spleen go down, and the pathway picker separates them
+// ("Striated Muscle Contraction" -> muscle and both heart chambers,
+// "Complement cascade" -> liver). Checked against the published key list rather
+// than assumed -- a renamed key falls back to the first exposure instead of
+// leaving an empty body.
+const DEFAULT_EXPOSURES = [
+  'types_of_physical_activity_in_last_4_weeks_f6164_0_0.multi_Strenuous_sports',
+];
+
+// Minimum shared leading-edge proteins for a pathway->tissue link. 1 is the
+// default because it is the statement a reader can hold in their head ("these
+// tissues and this pathway are carried by some of the same proteins"); the
+// higher settings exist so the claim can be made stricter on demand, and the
+// count is always shown so the strength of each link is visible either way.
+const MIN_SHARED_CHOICES = [1, 2, 3, 5];
+
+// The four appearances, in the order the legend lists them.
+const PAINT_STATES = [
+  {
+    id: 'lit',
+    label: 'enriched (FDR q < 0.05)',
+    note: 'red up, blue down; colour depth is |NES| on a fixed 1.2–3.0 scale',
+  },
+  {
+    id: 'unlinked',
+    label: 'enriched, but not linked to the chosen pathway',
+    note: 'shares fewer leading-edge proteins with it than the threshold; outlined in its own direction',
+  },
+  {
+    id: 'null',
+    label: 'tested, nothing at q < 0.05',
+    note: 'in the GTEx panel this exposure was scored against, and it came back null',
+  },
+  {
+    id: 'untested',
+    label: 'not in the tested panel',
+    note: 'left unpainted — the GSEA never scored this piece of anatomy, so nothing is claimed about it',
+  },
+];
+
+// --- small helpers ----------------------------------------------------------
+
+const num = (v) => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+const RGB = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+
+/** Mix `hex` toward white. t=1 is the pure colour, t=0 is white. */
+function tint(hex, t) {
+  const c = RGB(hex).map((v) => Math.round(255 + (v - 255) * clamp(t, 0, 1)));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/** |NES| -> 0..1 on the fixed domain, floored so a hit is never invisible. */
+const nesIntensity = (nes) => TINT_FLOOR
+  + (1 - TINT_FLOOR) * clamp((Math.abs(nes) - NES_LO) / (NES_HI - NES_LO), 0, 1);
+
+const fmtQ = (v) => {
+  if (v === null) return '—';
+  if (v === 0) return '< 1e-300';
+  return v < 1e-3 ? v.toExponential(1) : v.toFixed(3);
+};
+
+const fmtNes = (v) => (v === null ? '—' : (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2)));
+
+const countShared = (a, b) => {
+  if (!a || !b) return 0;
+  const [small, big] = a.size <= b.size ? [a, b] : [b, a];
+  let n = 0;
+  small.forEach((g) => { if (big.has(g)) n += 1; });
+  return n;
+};
+
+// Which anatomogram carries which region. Derived from the hand-written map so
+// this component never re-states a pairing that lives in tissueBodyMap.js.
+const BODY_REGION_IDS = [];
+const BRAIN_REGION_IDS = [];
+Object.values(TISSUE_BODY_MAP).forEach((m) => {
+  const list = m.view === 'brain' ? BRAIN_REGION_IDS : BODY_REGION_IDS;
+  if (!list.includes(m.region)) list.push(m.region);
+});
+BODY_REGION_IDS.push(BRAIN_POINTER);
+
+// ---------------------------------------------------------------------------
+// LOADING AND HIGHLIGHTING THE VENDORED SVGs
+//
+// The ids we need sit on a <title> CHILD of each shape, not on the shape:
+//
+//     <path id="UBERON_0002107" style="fill:none;stroke:none" d="...">
+//       <title id="liver">liver</title>
+//     </path>
+//
+// So every named organ is an INVISIBLE overlay on the printed body outline, and
+// "highlighting" means giving that overlay a fill. Two consequences run through
+// everything below: a shape has to be reached via its title's parent, and an
+// unpainted shape is genuinely invisible AND unhoverable (pointer-events do not
+// fire on fill:none), which is exactly the behaviour the "not tested" state
+// wants.
+//
+// WHY FETCH + DOMParser RATHER THAN SVGR
+//   CRA hands `import x from './y.svg'` the file-loader URL and only builds the
+//   SVGR component for the `{ ReactComponent }` named export. Taking the URL and
+//   fetching it keeps the bytes exactly as vendored, keeps ~1.7 MB of anatomy
+//   out of the JS bundle, and loads a drawing only when someone looks at it.
+//   DOMParser in 'image/svg+xml' mode is used rather than innerHTML because
+//   these are XML files with sodipodi:/inkscape: namespaced attributes, which
+//   the HTML parser is entitled to mangle.
+//
+// The three files also reuse ids between them (`amygdala` is in both the male
+// body and the brain), so every lookup is scoped to its own container element.
+// Nothing here queries `document`.
+// ---------------------------------------------------------------------------
+
+// One in-flight request per file, shared by every mount, kept for the life of
+// the page -- the same promise-cache discipline heapdata.js uses.
+const svgTextCache = new Map();
+
+function loadSvgText(url) {
+  if (!svgTextCache.has(url)) {
+    svgTextCache.set(url, fetch(url).then((r) => {
+      if (!r.ok) {
+        svgTextCache.delete(url);
+        throw new Error(`${r.status} ${r.statusText} fetching the anatomogram`);
+      }
+      return r.text();
+    }));
+  }
+  return svgTextCache.get(url);
+}
+
+// Shapes are <path>, but also <g> wrappers, <rect>, <ellipse>, <circle>. A <g>
+// wrapper is not enough on its own: the male `renal_cortex` group holds two
+// paths that each carry their own `fill:none`, which would beat a fill set on
+// the parent. So a paint is applied to the titled element AND every shape under
+// it.
+const SHAPE_SELECTOR = 'path, g, rect, circle, ellipse, polygon, polyline, line, use';
+
+/**
+ * The declared region id -> the element to paint, inside one container.
+ *
+ * The fallback is not cosmetic: the female drawing spells two of its regions
+ * with a space (`coronary artery`, `parotid gland`) where the male one uses an
+ * underscore. Without the retry, coronary artery would silently vanish from the
+ * female figure even though the shape is right there.
+ */
+function findShape(root, region) {
+  const title = root.querySelector(`title[id="${region}"]`)
+    || root.querySelector(`title[id="${region.replace(/_/g, ' ')}"]`);
+  return title ? title.parentElement : null;
+}
+
+const shapeTargets = (el) => [el, ...el.querySelectorAll(SHAPE_SELECTOR)];
+
+/**
+ * Remember each shape's vendored inline style once.
+ *
+ * Necessary because the vendored style IS `fill:none;stroke:none` and it lives
+ * in the style attribute. Clearing `el.style.fill` to un-paint a shape would
+ * delete that declaration and let the SVG default (solid black) through, which
+ * paints a black blob over the body. Un-painting therefore restores the
+ * remembered string rather than guessing at it.
+ */
+function rememberBaseStyle(el) {
+  shapeTargets(el).forEach((t) => {
+    if (t.dataset.heapBase === undefined) t.dataset.heapBase = t.getAttribute('style') || '';
+  });
+}
+
+function resetShape(el) {
+  shapeTargets(el).forEach((t) => {
+    const base = t.dataset.heapBase;
+    if (base) t.setAttribute('style', base);
+    else t.removeAttribute('style');
+  });
+}
+
+// Appended after the vendored declarations so ours win by source order, which
+// keeps the original string intact for resetShape().
+function paintShape(el, css) {
+  shapeTargets(el).forEach((t) => {
+    t.setAttribute('style', `${t.dataset.heapBase || ''};${css}`);
+  });
+}
+
+/**
+ * One anatomogram: fetch, inject, paint, and report which regions it actually
+ * carries.
+ *
+ * `paint` is a Map(regionId -> css string). A region present in the drawing but
+ * absent from the Map is reset to invisible, which is the "not in the tested
+ * panel" state.
+ *
+ * `onResolved(ids)` fires once per drawing with the region ids that resolved.
+ * The caller uses it to route anything unresolvable into the side panel instead
+ * of dropping it -- see the female spinal cord, below.
+ */
+function Anatomogram({
+  url, regionIds, paint, minHeight, onPick, onResolved, renderTooltip,
+}) {
+  const hostRef = useRef(null);
+  const shapesRef = useRef(null);
+  const [text, setText] = useState(null);
+  const [error, setError] = useState(null);
+  const [injected, setInjected] = useState(0);
+  const [hover, setHover] = useState(null);
+
+  // Callbacks go through a ref so a parent re-render never re-injects 900 KB of
+  // anatomy; the injection effect depends only on the file and the id list.
+  const cb = useRef({ onPick, onResolved });
+  cb.current = { onPick, onResolved };
+
+  useEffect(() => {
+    let alive = true;
+    setText(null);
+    setError(null);
+    loadSvgText(url)
+      .then((t) => { if (alive) setText(t); })
+      .catch((e) => { if (alive) setError(e); });
+    return () => { alive = false; };
+  }, [url]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || !text) return undefined;
+
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const svg = doc.documentElement;
+    // Browsers report an XML parse failure by handing back a <parsererror>
+    // document rather than throwing, and they disagree about which namespace it
+    // sits in -- so the reliable test is "did we get an <svg> back".
+    if (!svg || svg.localName !== 'svg' || doc.getElementsByTagName('parsererror').length) {
+      setError(new Error('the vendored anatomogram did not parse'));
+      return undefined;
+    }
+
+    // Inkscape ships a fixed width/height alongside the viewBox, which pins the
+    // drawing at ~106 x 195 px however much room it is given. Dropping the two
+    // attributes and letting the viewBox scale is what makes it responsive.
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    svg.setAttribute('style', 'width:100%;height:100%;display:block');
+    // Editor-only nodes that never render: sodipodi:namedview carries Inkscape's
+    // canvas colours and grid, <metadata> the RDF credit block.
+    svg.querySelectorAll('namedview, metadata').forEach((n) => n.remove());
+
+    host.replaceChildren(document.importNode(svg, true));
+    const root = host.firstElementChild;
+
+    const found = new Map();
+    regionIds.forEach((region) => {
+      const el = findShape(root, region);
+      if (!el) return;
+      rememberBaseStyle(el);
+      // Stamped on the shape so hover and click need ONE listener on the host
+      // rather than one per organ, and so a click landing on a child path of a
+      // <g> still resolves to the region.
+      el.dataset.heapRegion = region;
+      found.set(region, el);
+    });
+    shapesRef.current = found;
+    cb.current.onResolved(Array.from(found.keys()));
+
+    const hit = (ev) => (ev.target.closest ? ev.target.closest('[data-heap-region]') : null);
+    const onMove = (ev) => {
+      const el = hit(ev);
+      if (!el) { setHover(null); return; }
+      const box = host.getBoundingClientRect();
+      setHover({
+        region: el.dataset.heapRegion,
+        x: ev.clientX - box.left,
+        y: ev.clientY - box.top,
+        w: box.width,
+      });
+    };
+    const onLeave = () => setHover(null);
+    const onClick = (ev) => {
+      const el = hit(ev);
+      if (el) cb.current.onPick(el.dataset.heapRegion);
+    };
+    host.addEventListener('mousemove', onMove);
+    host.addEventListener('mouseleave', onLeave);
+    host.addEventListener('click', onClick);
+    setInjected((n) => n + 1);
+
+    return () => {
+      host.removeEventListener('mousemove', onMove);
+      host.removeEventListener('mouseleave', onLeave);
+      host.removeEventListener('click', onClick);
+      host.replaceChildren();
+      shapesRef.current = null;
+    };
+  }, [text, regionIds]);
+
+  // Repaint. Separate from injection so changing exposure, sex-view, pathway or
+  // threshold restyles the existing DOM instead of re-parsing the file.
+  useEffect(() => {
+    const found = shapesRef.current;
+    if (!found) return;
+    found.forEach((el, region) => {
+      const css = paint.get(region);
+      if (css) paintShape(el, css);
+      else resetShape(el);
+    });
+  }, [paint, injected]);
+
+  const tip = hover ? renderTooltip(hover.region) : null;
+
+  return (
+    <Box sx={{ position: 'relative', minHeight, display: 'flex', flexDirection: 'column' }}>
+      {error && (
+        <Alert severity="warning" sx={{ my: 1 }}>
+          Could not draw the anatomogram: {String(error.message || error)}. The tissue results are
+          unaffected — every enriched tissue is still listed beside the figure.
+        </Alert>
+      )}
+      {!text && !error && (
+        <Typography variant="caption" sx={{ color: 'text.secondary', p: 1 }}>Loading the anatomogram…</Typography>
+      )}
+      <Box ref={hostRef} sx={{ flex: 1, minHeight: 0, '& svg': { height: '100%' } }} />
+      {tip && (
+        <Paper
+          elevation={6}
+          sx={{
+            position: 'absolute',
+            left: clamp(hover.x, 90, Math.max(90, (hover.w || 0) - 90)),
+            top: hover.y,
+            transform: hover.y < 150 ? 'translate(-40%, 20px)' : 'translate(-40%, calc(-100% - 16px))',
+            p: 1.25,
+            minWidth: 230,
+            maxWidth: 340,
+            pointerEvents: 'none',
+            zIndex: 8,
+          }}
+        >
+          {tip}
+        </Paper>
+      )}
+    </Box>
+  );
+}
+
+// A colour chip that uses the same fill the body uses, so the side panel and
+// the legend cannot drift from the figure.
+function Swatch({ color, dashed }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-block',
+        width: 16,
+        height: 16,
+        flex: '0 0 auto',
+        borderRadius: 0.5,
+        bgcolor: dashed ? NULL_FILL : color,
+        border: '1px solid',
+        borderColor: dashed ? color : 'rgba(0,0,0,0.25)',
+        borderStyle: dashed ? 'dashed' : 'solid',
+      }}
+    />
+  );
+}
+
+// One line of the side panel. Lit exactly like an organ, because these tissues
+// are results too -- they simply have nowhere to sit on a drawing of a body.
+function SideRow({ entry, onClick, active }) {
+  const lit = entry.state === 'lit' || entry.state === 'unlinked';
+  return (
+    <Box
+      onClick={lit ? onClick : undefined}
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1,
+        px: 1,
+        py: 0.6,
+        borderRadius: 1,
+        cursor: lit ? 'pointer' : 'default',
+        bgcolor: active ? 'action.selected' : 'transparent',
+        '&:hover': lit ? { bgcolor: 'action.hover' } : undefined,
+      }}
+    >
+      <Box sx={{ pt: 0.3 }}>
+        <Swatch
+          color={entry.state === 'null' ? NULL_STROKE : entry.color}
+          dashed={entry.state === 'unlinked'}
+        />
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="body2" sx={{ fontWeight: lit ? 600 : 400, lineHeight: 1.25 }}>
+          {prettyTissue(entry.tissue)}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>
+          {entry.state === 'null'
+            ? 'tested, nothing at q < 0.05'
+            : `NES ${fmtNes(entry.nes)} · q = ${fmtQ(entry.q)} · ${entry.nLead} leading-edge proteins`}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3, fontStyle: 'italic' }}>
+          {entry.why}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+export default function ExposureBodyMap() {
+  const { data: terms, loading, error } = useSection('bodymap_terms');
+
+  const [exposure, setExposure] = useState(null);
+  const [sex, setSex] = useState('male');
+  const [pathway, setPathway] = useState(null);
+  const [minShared, setMinShared] = useState(1);
+  const [openTissue, setOpenTissue] = useState(null);
+  // viewKey -> Set of region ids the drawing actually carries. Measured from the
+  // injected DOM rather than assumed, because the two body drawings are not
+  // mirror images of each other: the female one has no `spinal_cord` shape at
+  // all, so an enriched cervical spinal cord has to be routed somewhere rather
+  // than quietly failing to paint.
+  const [available, setAvailable] = useState({});
+
+  const { data: shard, loading: shardLoading, error: shardError } = useShard('bodymap_leading_edge', exposure);
+
+  // --- bodymap_terms: every exposure, and the tested tissue panel -----------
+  const parsed = useMemo(() => {
+    if (!terms?.exposure) return null;
+    const byExposure = new Map();
+    const testedTissues = new Set();
+    for (let i = 0; i < terms.exposure.length; i += 1) {
+      const key = terms.exposure[i];
+      let rec = byExposure.get(key);
+      if (!rec) { rec = { tissues: [], pathways: [] }; byExposure.set(key, rec); }
+      const row = {
+        term: terms.term[i],
+        label: terms.term_label[i],
+        nes: num(terms.nes[i]),
+        q: num(terms.q[i]),
+        dir: terms.dir[i],
+        setSize: num(terms.set_size[i]),
+        nLead: num(terms.n_leading_edge[i]),
+      };
+      if (terms.kind[i] === 'tissue') {
+        rec.tissues.push(row);
+        // The tested panel is read off the data (the union of tissues scored
+        // anywhere) rather than off the hand-written map, so the "tested, null"
+        // state stays correct if the GSEA panel is ever widened or narrowed.
+        testedTissues.add(row.term);
+      } else {
+        rec.pathways.push(row);
+      }
+    }
+    return { byExposure, testedTissues, exposures: Array.from(byExposure.keys()).sort() };
+  }, [terms]);
+
+  useEffect(() => {
+    if (exposure || !parsed?.exposures.length) return;
+    const hit = DEFAULT_EXPOSURES.find((k) => parsed.byExposure.has(k))
+      || parsed.exposures.find((k) => /strenuous/i.test(k))
+      || parsed.exposures[0];
+    setExposure(hit);
+  }, [parsed, exposure]);
+
+  // A pathway and an open tissue belong to one exposure; carrying either across
+  // a change of exposure would show a drill-in for a term the new exposure does
+  // not have.
+  useEffect(() => {
+    setPathway(null);
+    setOpenTissue(null);
+  }, [exposure]);
+
+  // --- the shard: leading-edge proteins for this exposure -------------------
+  const leadingEdge = useMemo(() => {
+    if (!shard?.gene) return null;
+    const byTerm = new Map();          // "kind|term" -> Set(gene)
+    const tissuesPerGene = new Map();  // gene -> # enriched tissues carrying it
+    const pathwaysPerGene = new Map(); // gene -> # enriched pathways carrying it
+    for (let i = 0; i < shard.gene.length; i += 1) {
+      const kind = shard.kind[i];
+      const key = `${kind}|${shard.term[i]}`;
+      let set = byTerm.get(key);
+      if (!set) { set = new Set(); byTerm.set(key, set); }
+      set.add(shard.gene[i]);
+      const counter = kind === 'tissue' ? tissuesPerGene : pathwaysPerGene;
+      counter.set(shard.gene[i], (counter.get(shard.gene[i]) || 0) + 1);
+    }
+    return { byTerm, tissuesPerGene, pathwaysPerGene };
+  }, [shard]);
+
+  // --- the whole view: placement, paint, side panel, counts -----------------
+  const view = useMemo(() => {
+    if (!parsed || !exposure) return null;
+    const rec = parsed.byExposure.get(exposure) || { tissues: [], pathways: [] };
+    const pathwayRow = pathway ? rec.pathways.find((p) => p.term === pathway) : null;
+    const pathwayGenes = pathwayRow && leadingEdge
+      ? leadingEdge.byTerm.get(`pathway|${pathway}`)
+      : null;
+    const availSet = available[sex];
+
+    // 1. every enriched tissue: how it links to the pathway, and where it goes.
+    const tissues = rec.tissues.map((row) => {
+      const map = TISSUE_BODY_MAP[row.term];
+      const genes = leadingEdge ? leadingEdge.byTerm.get(`tissue|${row.term}`) : null;
+      const shared = pathwayGenes ? countShared(genes, pathwayGenes) : null;
+      // Not yet loaded is treated as "linked" so the body never flickers to a
+      // narrower picture and back while the shard is in flight.
+      const linked = pathwayGenes ? shared >= minShared : true;
+
+      let place = 'body';
+      let region = map ? map.region : null;
+      let why = '';
+      if (!map) {
+        place = 'panel';
+        why = NON_ANATOMICAL[row.term] || 'no anatomogram shape exists for this term';
+      } else if (map.view === 'brain') {
+        place = 'brain';
+      } else if (map.sex && map.sex !== sex) {
+        place = 'panel';
+        why = `drawn only on the ${map.sex} figure`;
+        region = null;
+      } else if (availSet && !availSet.has(map.region)) {
+        // Measured, not predicted: the female anatomogram simply has no
+        // `spinal_cord` shape. An enrichment must not disappear because of
+        // which drawing happens to be on screen.
+        place = 'panel';
+        why = `the ${sex} anatomogram carries no “${map.region.replace(/_/g, ' ')}” shape`;
+        region = null;
+      }
+      return {
+        ...row,
+        map,
+        region,
+        place,
+        why,
+        shared,
+        linked,
+        state: linked ? 'lit' : 'unlinked',
+        color: DIR_COLOR[row.dir] || MIXED_COLOR,
+      };
+    });
+
+    // 2. collapse onto shapes. Several GTEx tissues share one organ, so a shape
+    //    can carry two different enrichments and the hover has to name both.
+    const regions = new Map();
+    tissues.forEach((t) => {
+      if (t.place !== 'body' && t.place !== 'brain') return;
+      let r = regions.get(t.region);
+      if (!r) { r = { region: t.region, view: t.place, tissues: [] }; regions.set(t.region, r); }
+      r.tissues.push(t);
+    });
+    regions.forEach((r) => {
+      r.tissues.sort((a, b) => Math.abs(b.nes) - Math.abs(a.nes));
+      const dirs = new Set(r.tissues.map((t) => t.dir));
+      r.mixed = dirs.size > 1;
+      r.anyLinked = r.tissues.some((t) => t.linked);
+      const lead = r.tissues.find((t) => t.linked) || r.tissues[0];
+      r.lead = lead;
+      r.color = r.mixed ? MIXED_COLOR : (DIR_COLOR[lead.dir] || MIXED_COLOR);
+      r.state = r.anyLinked ? 'lit' : 'unlinked';
+      r.approximate = r.tissues.some((t) => t.map && t.map.approximate);
+    });
+
+    // 3. tested-but-null shapes. Everything mapped and in the tested panel that
+    //    this exposure did not hit, so null never borrows the appearance of
+    //    untested.
+    const enriched = new Set(rec.tissues.map((r) => r.term));
+    const nullRegions = new Map();
+    Object.entries(TISSUE_BODY_MAP).forEach(([tissue, m]) => {
+      if (enriched.has(tissue) || !parsed.testedTissues.has(tissue)) return;
+      if (m.sex && m.sex !== sex) return;
+      if (regions.has(m.region)) return;
+      let r = nullRegions.get(m.region);
+      if (!r) { r = { region: m.region, view: m.view, tissues: [] }; nullRegions.set(m.region, r); }
+      r.tissues.push(tissue);
+    });
+
+    // 4. the paint maps, one per drawing.
+    const paintBody = new Map();
+    const paintBrain = new Map();
+    const info = new Map();
+    const put = (viewKey, region, css, meta) => {
+      (viewKey === 'brain' ? paintBrain : paintBody).set(region, css);
+      info.set(`${viewKey}|${region}`, meta);
+    };
+    regions.forEach((r) => {
+      const sw = STROKE_W[r.view === 'brain' ? 'brain' : 'body'];
+      const css = r.state === 'lit'
+        ? `fill:${tint(r.color, nesIntensity(r.lead.nes))};stroke:${r.color};`
+          + `stroke-width:${sw};stroke-opacity:0.85;cursor:pointer`
+        : `fill:${NULL_FILL};stroke:${r.color};stroke-width:${sw * 1.2};`
+          + `stroke-dasharray:${sw * 3} ${sw * 2.4};cursor:pointer`;
+      put(r.view, r.region, css, { kind: 'region', region: r });
+    });
+    nullRegions.forEach((r) => {
+      const viewKey = r.view === 'brain' ? 'brain' : 'body';
+      const sw = STROKE_W[viewKey];
+      put(
+        viewKey,
+        r.region,
+        `fill:${NULL_FILL};stroke:${NULL_STROKE};stroke-width:${sw * 0.6};cursor:default`,
+        { kind: 'null', region: r },
+      );
+    });
+
+    // 5. the whole-brain shape on the body, as a pointer only. Deliberately
+    //    outside the red/blue grammar: GTEx scores 13 brain subregions, never a
+    //    brain, so painting it by direction would invent a result.
+    const brainHits = tissues.filter((t) => t.place === 'brain');
+    if (brainHits.length) {
+      put(
+        'body',
+        BRAIN_POINTER,
+        `fill:${tint(BRAIN_POINTER_COLOR, 0.5)};stroke:${BRAIN_POINTER_COLOR};`
+        + `stroke-width:${STROKE_W.body};stroke-dasharray:0.8 0.6;cursor:default`,
+        { kind: 'brainPointer', n: brainHits.length },
+      );
+    }
+
+    // 6. the side panel: everything with nowhere to sit, plus the three terms
+    //    that will never have anywhere to sit, shown null when they are null.
+    const panel = tissues.filter((t) => t.place === 'panel');
+    const panelTerms = new Set(panel.map((t) => t.term));
+    Object.entries(NON_ANATOMICAL).forEach(([tissue, why]) => {
+      if (panelTerms.has(tissue) || !parsed.testedTissues.has(tissue)) return;
+      panel.push({
+        term: tissue, tissue, state: 'null', why, nes: null, q: null, nLead: 0, place: 'panel',
+      });
+    });
+    panel.forEach((p) => { p.tissue = p.term; });
+    panel.sort((a, b) => {
+      if ((a.state === 'null') !== (b.state === 'null')) return a.state === 'null' ? 1 : -1;
+      return Math.abs(b.nes || 0) - Math.abs(a.nes || 0);
+    });
+
+    // Sex-specific anatomy that is not enriched is not listed row by row -- it
+    // would be a dozen lines of nothing -- but it is counted, so the reader can
+    // see that the figure is not showing everything the panel covers.
+    const hiddenNull = Object.entries(TISSUE_BODY_MAP).filter(([tissue, m]) => (
+      !enriched.has(tissue) && parsed.testedTissues.has(tissue) && m.sex && m.sex !== sex
+    )).length;
+
+    const nLinked = pathwayGenes ? tissues.filter((t) => t.linked).length : null;
+
+    return {
+      rec,
+      tissues,
+      regions,
+      info,
+      paintBody,
+      paintBrain,
+      panel,
+      hiddenNull,
+      pathwayRow,
+      pathwayGenes,
+      nLinked,
+      brainHits: brainHits.length,
+      counts: {
+        enriched: tissues.length,
+        tested: parsed.testedTissues.size,
+        onBody: tissues.filter((t) => t.place === 'body').length,
+        onBrain: brainHits.length,
+        inPanel: tissues.filter((t) => t.place === 'panel').length,
+      },
+    };
+  }, [parsed, exposure, sex, pathway, minShared, leadingEdge, available]);
+
+  // --- the drill-in ---------------------------------------------------------
+  const drill = useMemo(() => {
+    if (!view || !openTissue) return null;
+    const row = view.tissues.find((t) => t.term === openTissue);
+    if (!row) return null;
+    const genes = leadingEdge ? leadingEdge.byTerm.get(`tissue|${openTissue}`) : null;
+    if (!genes) return { row, table: null, siblings: [] };
+
+    const list = Array.from(genes).map((g) => ({
+      gene: g,
+      tissues: leadingEdge.tissuesPerGene.get(g) || 0,
+      programs: leadingEdge.pathwaysPerGene.get(g) || 0,
+      inPathway: view.pathwayGenes ? (view.pathwayGenes.has(g) ? 'yes' : '—') : null,
+    }));
+    // Most tissue-SPECIFIC first. The payload carries no per-gene statistic --
+    // every leading-edge row of a term repeats that term's NES and q -- so
+    // there is nothing to rank by within the tissue. Breadth across the
+    // exposure's other enriched tissues is a real quantity computed from the
+    // shard, and it answers the question a reader actually has next: is this
+    // protein this tissue's own signal, or the exposure's shared one?
+    list.sort((a, b) => (a.tissues - b.tissues) || a.gene.localeCompare(b.gene));
+
+    const table = {
+      protein: list.map((r) => r.gene),
+      'in # of this exposure’s enriched tissues': list.map((r) => r.tissues),
+      'in # of its enriched pathways': list.map((r) => r.programs),
+    };
+    const columns = Object.keys(table);
+    if (view.pathwayGenes) {
+      table[`in ${view.pathwayRow.label}`] = list.map((r) => r.inPathway);
+      columns.push(`in ${view.pathwayRow.label}`);
+    }
+
+    // A shared shape carries more than one tissue; the drill-in has to let the
+    // reader move between them rather than pretending the organ is one result.
+    const siblings = row.map
+      ? (SHARED_REGIONS[row.map.region] || [])
+        .filter((t) => t !== openTissue)
+        .map((t) => view.tissues.find((x) => x.term === t))
+        .filter(Boolean)
+      : [];
+
+    return { row, table, columns, siblings, nGenes: list.length };
+  }, [view, openTissue, leadingEdge]);
+
+  // --- handlers -------------------------------------------------------------
+  const handleResolved = (viewKey, ids) => {
+    setAvailable((prev) => (prev[viewKey] ? prev : { ...prev, [viewKey]: new Set(ids) }));
+  };
+
+  const pickRegion = (viewKey, region) => {
+    const meta = view?.info.get(`${viewKey}|${region}`);
+    if (!meta || meta.kind !== 'region') return;   // null shapes and the brain pointer are inert
+    setOpenTissue(meta.region.lead.term);
+  };
+
+  const exposureOptions = useMemo(() => (parsed
+    ? parsed.exposures.map((k) => ({ value: k, label: prettyExposure(k) }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    : []), [parsed]);
+
+  const pathwayOptions = useMemo(() => (view
+    ? view.rec.pathways
+      .slice()
+      .sort((a, b) => Math.abs(b.nes) - Math.abs(a.nes))
+      .map((p) => ({
+        value: p.term,
+        label: `${p.label} — ${p.dir}, NES ${fmtNes(p.nes)}, ${p.nLead} proteins`,
+      }))
+    : []), [view]);
+
+  // --- tooltips -------------------------------------------------------------
+  const renderTooltip = (viewKey, region) => {
+    const meta = view?.info.get(`${viewKey}|${region}`);
+    if (!meta) return null;
+
+    if (meta.kind === 'brainPointer') {
+      return (
+        <>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Brain</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            {`${meta.n} brain subregion${meta.n === 1 ? '' : 's'} enriched — shown on the brain view beside this one.`}
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+            Not itself a tested tissue: GTEx scores the subregions, never a whole brain, so this
+            shape is a pointer and carries no direction or NES.
+          </Typography>
+        </>
+      );
+    }
+
+    if (meta.kind === 'null') {
+      const names = meta.region.tissues.map(prettyTissue);
+      return (
+        <>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{names.join(' · ')}</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            Tested against this exposure, nothing at FDR q &lt; 0.05.
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+            A null result, not a missing one. Anatomy the GSEA never scored is left unpainted.
+          </Typography>
+        </>
+      );
+    }
+
+    const r = meta.region;
+    return (
+      <>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          {r.tissues.length > 1 ? `${r.region.replace(/_/g, ' ')} — ${r.tissues.length} tissues` : prettyTissue(r.tissues[0].term)}
+        </Typography>
+        {r.tissues.length > 1 && (
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}>
+            One shape, more than one GTEx tissue. Both results are listed; the fill follows the
+            stronger one.
+          </Typography>
+        )}
+        {r.tissues.map((t) => (
+          <Typography key={t.term} variant="caption" sx={{ display: 'block' }}>
+            <b>{r.tissues.length > 1 ? prettyTissue(t.term) : 'enrichment'}</b>
+            {` — NES ${fmtNes(t.nes)} (${t.dir}) · q = ${fmtQ(t.q)} · ${t.nLead} of ${t.setSize} genes in the leading edge`}
+            {t.shared !== null ? ` · ${t.shared} shared with ${view.pathwayRow.label}` : ''}
+          </Typography>
+        ))}
+        {r.mixed && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: MIXED_COLOR }}>
+            The tissues on this shape point in opposite directions, so the shape is drawn in the
+            mixed colour rather than picking one.
+          </Typography>
+        )}
+        {r.approximate && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
+            Indicative placement, not anatomical: the anatomogram has no tibial artery, so this
+            result is shown on the nearest arterial shape.
+          </Typography>
+        )}
+        {r.state === 'unlinked' && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+            Enriched, but sharing fewer than {minShared} leading-edge protein
+            {minShared === 1 ? '' : 's'} with the chosen pathway — outlined rather than filled.
+          </Typography>
+        )}
+        {r.state === 'lit' && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>Click for the proteins that carried it.</Typography>}
+      </>
+    );
+  };
+
+  const counts = view?.counts;
+
+  return (
+    <SectionCard
+      title="What does this exposure touch, and which proteins carry it?"
+      subtitle={
+        'Pick an exposure and the body shows the tissues whose expression signature its plasma '
+        + 'proteins concentrate in (GSEA, FDR q < 0.05). Click an organ for the exact proteins '
+        + 'that drove that enrichment — the GSEA leading edge, not every associated protein that '
+        + 'happens to be expressed there. Choosing one of the exposure’s enriched pathways narrows '
+        + 'the figure to the tissues that share leading-edge proteins with it.'
+      }
+      loading={loading}
+      error={error}
+      empty={!loading && !error && !parsed}
+    >
+      {view && (
+        <>
+          {/* --- controls ------------------------------------------------- */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end', mb: 1.5 }}>
+            <Box sx={{ flex: '1 1 360px', minWidth: 0 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                {`Exposure (${parsed.exposures.length} with any enrichment)`}
+              </Typography>
+              <Select
+                options={exposureOptions}
+                value={exposureOptions.find((o) => o.value === exposure) || null}
+                onChange={(o) => setExposure(o ? o.value : exposure)}
+                isSearchable
+                placeholder="Search an exposure…"
+                styles={{ menu: (b) => ({ ...b, zIndex: 20 }) }}
+              />
+            </Box>
+
+            <Box sx={{ flex: '1 1 360px', minWidth: 0 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                {`Pathway (${view.rec.pathways.length} enriched for this exposure — optional)`}
+              </Typography>
+              <Select
+                options={pathwayOptions}
+                value={pathwayOptions.find((o) => o.value === pathway) || null}
+                onChange={(o) => setPathway(o ? o.value : null)}
+                isSearchable
+                isClearable
+                placeholder="All tissues — or narrow by a pathway…"
+                styles={{ menu: (b) => ({ ...b, zIndex: 20 }) }}
+              />
+            </Box>
+
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                Body
+              </Typography>
+              <ToggleButtonGroup size="small" exclusive value={sex} onChange={(_, v) => v && setSex(v)}>
+                <ToggleButton value="male" sx={{ textTransform: 'none', px: 1.5 }}>male</ToggleButton>
+                <ToggleButton value="female" sx={{ textTransform: 'none', px: 1.5 }}>female</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {pathway && (
+              <Box>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                  Shared proteins needed for a link
+                </Typography>
+                <ToggleButtonGroup size="small" exclusive value={minShared} onChange={(_, v) => v && setMinShared(v)}>
+                  {MIN_SHARED_CHOICES.map((v) => (
+                    <ToggleButton key={v} value={v} sx={{ textTransform: 'none', px: 1.5 }}>{`≥ ${v}`}</ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </Box>
+            )}
+          </Box>
+
+          {/* --- counts: what is enriched, and where each one ended up ----- */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 1.5 }}>
+            <Chip
+              size="small"
+              color={counts.enriched ? 'primary' : 'default'}
+              label={`${counts.enriched} of ${counts.tested} tested tissues enriched (q < 0.05)`}
+            />
+            <Chip size="small" variant="outlined" label={`${counts.onBody} on the ${sex} body`} />
+            <Chip size="small" variant="outlined" label={`${counts.onBrain} on the brain view`} />
+            <Chip
+              size="small"
+              variant="outlined"
+              color={counts.inPanel ? 'warning' : 'default'}
+              label={`${counts.inPanel} with no shape — in the side panel`}
+            />
+            {view.pathwayRow && (
+              <Chip
+                size="small"
+                color="secondary"
+                label={`${view.nLinked} of ${counts.enriched} share ≥ ${minShared} leading-edge protein${minShared === 1 ? '' : 's'} with ${view.pathwayRow.label}`}
+              />
+            )}
+            {shardLoading && <Chip size="small" variant="outlined" label="loading leading-edge proteins…" />}
+          </Box>
+
+          {shardError && (
+            <Alert severity="warning" sx={{ mb: 1.5 }}>
+              The leading-edge shard for this exposure did not load ({String(shardError.message || shardError)}).
+              The body is still painted from the tissue enrichments, but the protein drill-in and the
+              pathway link are unavailable until it does.
+            </Alert>
+          )}
+
+          {view.pathwayRow && (
+            <Alert severity="info" icon={false} sx={{ mb: 1.5 }}>
+              <AlertTitle sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                This pathway→tissue link is computed here, and it is not the published backbone
+              </AlertTitle>
+              <Typography variant="body2" component="div">
+                A tissue stays lit if its leading edge and <b>{view.pathwayRow.label}</b>&rsquo;s leading
+                edge share at least {minShared} protein, <b>within this one exposure</b>. It is an
+                intersection taken in your browser from the shard on screen, so it moves whenever the
+                exposure picker moves.
+                <br />
+                The grey program&rarr;tissue backbone in the tripartite panel is a different quantity:
+                &ge; 3 shared leading-edge genes with the same NES sign, computed in R across all 114
+                exposures at once, and fixed regardless of which exposure is selected. Do not read
+                one as the other.
+              </Typography>
+            </Alert>
+          )}
+
+          {/* --- the figure ----------------------------------------------- */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'stretch' }}>
+            <Paper variant="outlined" sx={{ flex: '0 1 300px', minWidth: 220, p: 1, bgcolor: '#fff' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+                {`${sex} body — ${counts.onBody} enriched`}
+              </Typography>
+              <Anatomogram
+                url={SVG_URL[sex]}
+                regionIds={BODY_REGION_IDS}
+                paint={view.paintBody}
+                minHeight={520}
+                onPick={(region) => pickRegion('body', region)}
+                onResolved={(ids) => handleResolved(sex, ids)}
+                renderTooltip={(region) => renderTooltip('body', region)}
+              />
+            </Paper>
+
+            {/* The brain sits beside the body ALWAYS, not only when a brain
+                subregion is enriched. If it appeared on demand, its absence
+                would read as "the brain was not tested" — which is precisely the
+                not-tested / tested-null confusion the four paint states exist to
+                prevent. Drawn permanently, an all-neutral brain is a visible
+                null result: 13 subregions were scored and none of them hit. */}
+            <Paper variant="outlined" sx={{ flex: '0 1 340px', minWidth: 240, p: 1, bgcolor: '#fff' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+                {`brain subregions — ${counts.onBrain} enriched`}
+              </Typography>
+              <Anatomogram
+                url={SVG_URL.brain}
+                regionIds={BRAIN_REGION_IDS}
+                paint={view.paintBrain}
+                minHeight={300}
+                onPick={(region) => pickRegion('brain', region)}
+                onResolved={(ids) => handleResolved('brain', ids)}
+                renderTooltip={(region) => renderTooltip('brain', region)}
+              />
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                GTEx scores 13 brain subregions separately. The slate wash on the body is only a
+                pointer to this panel, never a brain-level result.
+              </Typography>
+            </Paper>
+
+            {/* --- side panel + legend ---------------------------------- */}
+            <Box sx={{ flex: '1 1 320px', minWidth: 280, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Paper variant="outlined" sx={{ p: 1.25 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.75 }}>
+                  Nowhere to sit on a body — lit the same way
+                </Typography>
+                {view.panel.length === 0 && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Nothing for this exposure.
+                  </Typography>
+                )}
+                {view.panel.map((entry) => (
+                  <SideRow
+                    key={entry.term}
+                    entry={entry}
+                    active={openTissue === entry.term}
+                    onClick={() => setOpenTissue(entry.term)}
+                  />
+                ))}
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
+                  Whole blood and the two cell lines are not places and never will be. Anything else
+                  here is a real anatomical result that the drawing on screen cannot carry — sex-specific
+                  tissue on the other body, or a shape this anatomogram does not have. Switch the body
+                  toggle and watch it move onto the figure rather than vanish.
+                  {view.hiddenNull > 0 && ` A further ${view.hiddenNull} tested tissue${view.hiddenNull === 1 ? '' : 's'} of the other sex ${view.hiddenNull === 1 ? 'is' : 'are'} null for this exposure and not listed.`}
+                </Typography>
+              </Paper>
+
+              <Paper variant="outlined" sx={{ p: 1.25 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.75 }}>
+                  Two channels: direction, and strength
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1.5, mb: 1 }}>
+                  {['up', 'down'].map((d) => (
+                    <Box key={d} sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: DIR_COLOR[d] }}>
+                        {d === 'up' ? 'up — enriched' : 'down — depleted'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', mt: 0.25 }}>
+                        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+                          <Box
+                            key={f}
+                            sx={{
+                              flex: 1,
+                              height: 12,
+                              bgcolor: tint(DIR_COLOR[d], TINT_FLOOR + (1 - TINT_FLOOR) * f),
+                              border: '1px solid rgba(0,0,0,0.12)',
+                            }}
+                          />
+                        ))}
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                        {`|NES| ${NES_LO.toFixed(1)} → ${NES_HI.toFixed(1)}+`}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+                {PAINT_STATES.map((s) => (
+                  <Box key={s.id} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 0.4 }}>
+                    <Box sx={{ pt: 0.25 }}>
+                      <Swatch
+                        color={s.id === 'null' ? NULL_STROKE : (s.id === 'untested' ? '#FFFFFF' : DIR_COLOR.up)}
+                        dashed={s.id === 'unlinked'}
+                      />
+                    </Box>
+                    <Typography variant="caption" sx={{ lineHeight: 1.3 }}>
+                      <b>{s.label}</b>
+                      {` — ${s.note}`}
+                    </Typography>
+                  </Box>
+                ))}
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
+                  Anatomogram shapes from EBI Expression Atlas (Apache-2.0). Several GTEx tissues share
+                  one shape — both adipose depots, both skin sites, both colon segments, both esophagus
+                  layers — and the hover names every tissue behind a shape it lights.
+                </Typography>
+              </Paper>
+            </Box>
+          </Box>
+
+          {/* --- drill-in --------------------------------------------------- */}
+          <Box sx={{ mt: 2 }}>
+            {!drill && (
+              <Alert severity="info">
+                Click any lit organ — or any lit row in the side panel — for the proteins that carried
+                its enrichment.
+              </Alert>
+            )}
+            {drill && (
+              <Paper variant="outlined" sx={{ p: 1.5 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                  <Swatch color={drill.row.color} dashed={drill.row.state === 'unlinked'} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {prettyTissue(drill.row.term)}
+                  </Typography>
+                  <Chip size="small" variant="outlined" label={`NES ${fmtNes(drill.row.nes)} (${drill.row.dir})`} />
+                  <Chip size="small" variant="outlined" label={`FDR q = ${fmtQ(drill.row.q)}`} />
+                  <Chip size="small" variant="outlined" label={`${drill.row.nLead} of ${drill.row.setSize} genes in the leading edge`} />
+                  <Chip size="small" variant="outlined" label="clear" onClick={() => setOpenTissue(null)} />
+                </Box>
+
+                {drill.siblings.length > 0 && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center', mb: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      shares its shape with:
+                    </Typography>
+                    {drill.siblings.map((s) => (
+                      <Chip
+                        key={s.term}
+                        size="small"
+                        label={`${prettyTissue(s.term)} — NES ${fmtNes(s.nes)}`}
+                        onClick={() => setOpenTissue(s.term)}
+                      />
+                    ))}
+                  </Box>
+                )}
+
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                  The GSEA leading edge (<code>core_enrichment</code>): the ranked plasma proteins that
+                  carried this tissue&rsquo;s enrichment up to its peak. Not the proteins associated with
+                  the exposure that happen to be expressed here — that set ignores rank and includes
+                  proteins which contributed nothing.
+                  {' '}
+                  Every leading-edge row of a term repeats that term&rsquo;s NES and q, so there is no
+                  per-protein statistic to rank by; rows are ordered most tissue-specific first, using
+                  how many of this exposure&rsquo;s other enriched tissues also carry the protein. Sort
+                  the other way for the proteins this exposure moves everywhere.
+                </Typography>
+
+                {drill.table
+                  ? <ColumnarTable data={drill.table} columns={drill.columns} initialRowsPerPage={10} />
+                  : (
+                    <Alert severity="info">
+                      {shardLoading
+                        ? 'Loading this exposure’s leading-edge proteins…'
+                        : 'No leading-edge proteins in the payload for this tissue.'}
+                    </Alert>
+                  )}
+              </Paper>
+            )}
+          </Box>
+        </>
+      )}
+    </SectionCard>
+  );
+}

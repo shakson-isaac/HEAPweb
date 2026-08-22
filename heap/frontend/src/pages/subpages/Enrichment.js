@@ -3,6 +3,7 @@ import { Box, Divider, Typography } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
 import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
 import TissueExplorer from '../../components/enrichment/TissueExplorer';
+import ExposureBodyMap from '../../components/enrichment/ExposureBodyMap';
 import TableSection from '../../components/TableSection';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection } from '../../lib/useSection';
@@ -96,6 +97,7 @@ export default function Enrichment() {
         means the set is enriched among proteins associated with that exposure;
         negative means depleted.
       </Typography>
+      <ExposureBodyMap />
       <EnrichTripartite />
       <TissueExplorer />
 
