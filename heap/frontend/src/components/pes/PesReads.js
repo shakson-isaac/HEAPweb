@@ -6,6 +6,7 @@ import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
 import PlotPanel from '../PlotPanel';
 import { useSection } from '../../lib/useSection';
+import { SPECS } from '../../lib/covariateSpecs';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
@@ -29,20 +30,8 @@ import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 // it, so it stays honest if the export is rebuilt.
 // ---------------------------------------------------------------------------
 
-// From HEAP/config/covariates/covariate_sets.yml. `base` is PRIMARY and is what
-// the printed figures use; the rest are sensitivity layers on top of it.
-const SPECS = [
-  { id: 'base', label: 'Primary (base)', refits: false,
-    note: 'base: age, age², sex, their interactions, assessment centre, 20 genetic PCs' },
-  { id: 'base_bmi', label: '+ BMI', refits: false,
-    note: 'base + BMI in the covariate benchmark. A sensitivity layer, not a mediation test — attenuation here cannot separate mediation from confounding' },
-  { id: 'base_clinical', label: '+ clinical', refits: false,
-    note: 'base + BMI, fasting time, season and medication classes (maximal explicit adjustment)' },
-  { id: 'base_draw', label: '+ blood draw', refits: false,
-    note: 'base + fasting time and assessment season' },
-  { id: 'base_exclprev', label: 'Healthy at baseline', refits: true,
-    note: 'base, restricted to participants without prevalent major disease — the sample changes, so the score is refitted' },
-];
+// SPECS now lives in lib/covariateSpecs.js -- four panels each had a copy and
+// they had drifted apart in both labels and order.
 
 // A view fixes the exposure type AND the metric together, which is the point:
 // continuous exposures are scored in held-out R² and binary ones in AUC, and no

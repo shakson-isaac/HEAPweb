@@ -11,6 +11,7 @@ import { useKeys, useSection, useShard } from '../../lib/useSection';
 // shards at once (they are keyed by PROTEIN), and useShard is one key per hook.
 import { getShard } from '../../lib/heapdata';
 import { prettyExposure } from '../../lib/palette';
+import { SpecPicker, assocSectionFor, specById } from '../../lib/covariateSpecs';
 import {
   NON_ANATOMICAL, SHARED_REGIONS, TISSUE_BODY_MAP, prettyTissue,
 } from '../../lib/tissueBodyMap';
@@ -189,17 +190,12 @@ const LABEL_H = 30;
 const LABEL_GAP = 3;
 const LEADER_COLOR = 'rgba(60,60,60,0.55)';
 
-// --- the five covariate specifications the associations were fitted under ----
-// Same 1,562 protein keys and the same exposure-protein pairs in all five; only
-// the estimate changes. `base` is the paper's primary model and opens here.
-const ASSOC_SPECS = [
-  { id: 'assoc_base', label: 'base' },
-  { id: 'assoc_base_plus_bmi', label: '+ BMI' },
-  { id: 'assoc_base_plus_blood_draw', label: '+ blood draw' },
-  { id: 'assoc_base_plus_clinical', label: '+ clinical' },
-  { id: 'assoc_exclude_prevalent_disease', label: 'healthy at baseline' },
-];
-const specLabel = (id) => (ASSOC_SPECS.find((s) => s.id === id) || {}).label || id;
+// The covariate specifications live in lib/covariateSpecs.js. This component
+// used to carry its own copy keyed by PAYLOAD SECTION NAME (assoc_base_plus_bmi)
+// while the enrichment exports key the same specification as `base_bmi`, so the
+// two layers on this page could be set to different models at the same time --
+// a base-specification body map read beside +BMI effect sizes. One picker now
+// drives both, and specById().assocSection does the translation.
 
 // HOW THE TOP TEN ARE PICKED, AND WHY IT IS A SHORTLIST
 //   assoc_* is sharded by PROTEIN, so N proteins is N requests. Ranking by
@@ -857,7 +853,9 @@ export default function ExposureBodyMap() {
   // The protein whose GTEx profile is shown under the leading-edge table.
   const [gene, setGene] = useState(null);
   // Which covariate specification the effect sizes are read from.
-  const [spec, setSpec] = useState(ASSOC_SPECS[0].id);
+  const [spec, setSpec] = useState('base');
+  const assocSection = assocSectionFor(spec);
+  const specLabel = specById(spec).label;
   // viewKey -> Set of region ids the drawing actually carries. Measured from the
   // injected DOM rather than assumed, because the two body drawings are not
   // mirror images of each other: the female one has no `spinal_cord` shape at
@@ -873,6 +871,7 @@ export default function ExposureBodyMap() {
     const byExposure = new Map();
     const testedTissues = new Set();
     for (let i = 0; i < terms.exposure.length; i += 1) {
+      if (terms.spec && terms.spec[i] !== spec) continue;
       const key = terms.exposure[i];
       let rec = byExposure.get(key);
       if (!rec) { rec = { tissues: [], pathways: [] }; byExposure.set(key, rec); }
@@ -896,7 +895,7 @@ export default function ExposureBodyMap() {
       }
     }
     return { byExposure, testedTissues, exposures: Array.from(byExposure.keys()).sort() };
-  }, [terms]);
+  }, [terms, spec]);
 
   useEffect(() => {
     if (exposure || !parsed?.exposures.length) return;
@@ -921,6 +920,10 @@ export default function ExposureBodyMap() {
     const tissuesPerGene = new Map();  // gene -> # enriched tissues carrying it
     const pathwaysPerGene = new Map(); // gene -> # enriched pathways carrying it
     for (let i = 0; i < shard.gene.length; i += 1) {
+      // Each exposure's shard now carries all five specifications, so the rows
+      // have to be narrowed here. Without this the leading edge would be the
+      // union across specifications while the terms above were a single one.
+      if (shard.spec && shard.spec[i] !== spec) continue;
       const kind = shard.kind[i];
       const key = `${kind}|${shard.term[i]}`;
       let set = byTerm.get(key);
@@ -930,7 +933,7 @@ export default function ExposureBodyMap() {
       counter.set(shard.gene[i], (counter.get(shard.gene[i]) || 0) + 1);
     }
     return { byTerm, tissuesPerGene, pathwaysPerGene };
-  }, [shard]);
+  }, [shard, spec]);
 
   // --- the whole view: placement, paint, side panel, counts -----------------
   const view = useMemo(() => {
@@ -1335,7 +1338,7 @@ export default function ExposureBodyMap() {
   }, [profile, openTissue]);
 
   // --- top exposure-protein effect sizes for this tissue ---------------------
-  const { data: assocKeys } = useKeys(spec);
+  const { data: assocKeys } = useKeys(assocSection);
 
   // The shortlist, decided from what the leading edge already gives us. See
   // EFFECT_SHORTLIST for why leading-edge order is a usable proxy and why the
@@ -1373,7 +1376,7 @@ export default function ExposureBodyMap() {
     const genes = effectGeneKey.split(',');
     let alive = true;
     setEffects({ loading: true, error: null, rows: null, nFetched: 0 });
-    Promise.all(genes.map((g) => getShard(spec, g)
+    Promise.all(genes.map((g) => getShard(assocSection, g)
       .then((d) => [g, d])
       .catch(() => [g, null])))
       .then((pairs) => {
@@ -1413,7 +1416,7 @@ export default function ExposureBodyMap() {
       })
       .catch((e) => { if (alive) setEffects({ loading: false, error: e, rows: null, nFetched: 0 }); });
     return () => { alive = false; };
-  }, [effectGeneKey, exposure, spec]);
+  }, [effectGeneKey, exposure, assocSection]);
 
   const effectTop = useMemo(
     () => (effects.rows ? effects.rows.slice(0, EFFECT_TOP_N) : null),
@@ -1542,6 +1545,14 @@ export default function ExposureBodyMap() {
       {view && (
         <>
           {/* --- controls ------------------------------------------------- */}
+          {/* One picker for the whole section. It re-runs the body map from that
+              specification's GSEA and reads the effect sizes from the matching
+              association export, so the two can no longer disagree. */}
+          <SpecPicker
+            value={spec}
+            onChange={(v) => { setSpec(v); setOpenTissue(null); setGene(null); }}
+            label="Covariate specification — applies to the enrichment, the leading edge and the effect sizes"
+          />
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end', mb: 1.5 }}>
             <Box sx={{ flex: '1 1 360px', minWidth: 0 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>
@@ -2058,18 +2069,10 @@ export default function ExposureBodyMap() {
                       {effects.loading && <Chip size="small" variant="outlined" label="fetching effect sizes…" />}
                     </Box>
 
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 1 }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-                        Covariate specification
-                      </Typography>
-                      <ToggleButtonGroup size="small" exclusive value={spec} onChange={(_, v) => v && setSpec(v)}>
-                        {ASSOC_SPECS.map((s) => (
-                          <ToggleButton key={s.id} value={s.id} sx={{ textTransform: 'none', px: 1.25 }}>
-                            {s.label}
-                          </ToggleButton>
-                        ))}
-                      </ToggleButtonGroup>
-                    </Box>
+                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 1 }}>
+                      Effect sizes follow the <b>{specLabel}</b> specification chosen at the top of
+                      this section, the same model the enrichment above was run under.
+                    </Typography>
 
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
                       Held-out β with a 95% Wald interval (β ± 1.96 × SE), from the test split — the same
@@ -2090,7 +2093,7 @@ export default function ExposureBodyMap() {
 
                     {effects.error && (
                       <Alert severity="warning">
-                        The {specLabel(spec)} association shards did not load
+                        The {specLabel} association shards did not load
                         ({String(effects.error.message || effects.error)}).
                       </Alert>
                     )}
@@ -2137,7 +2140,7 @@ export default function ExposureBodyMap() {
                           height={Math.max(280, effectTop.length * 34 + 130)}
                           layout={{
                             xaxis: {
-                              title: `held-out exposure→protein β, 95% CI — ${specLabel(spec)}`,
+                              title: `held-out exposure→protein β, 95% CI — ${specLabel}`,
                               zeroline: true,
                               zerolinecolor: '#999',
                               zerolinewidth: 1,
@@ -2160,7 +2163,7 @@ export default function ExposureBodyMap() {
                           {view.pathwayRow && effectPlan
                             ? `Restricted to the ${effectPlan.nScoped} of this tissue's ${effectPlan.nLeading} leading-edge proteins that are also in ${view.pathwayRow.label}. `
                             : `Drawn from this tissue's ${effectPlan ? effectPlan.nLeading : 0} leading-edge proteins. `}
-                          {effectPlan?.nNoIndex > 0 && `${effectPlan.nNoIndex} of those have no association row for any exposure in the ${specLabel(spec)} export and cannot be plotted — that is missing data, not an effect of zero. `}
+                          {effectPlan?.nNoIndex > 0 && `${effectPlan.nNoIndex} of those have no association row for any exposure in the ${specLabel} export and cannot be plotted — that is missing data, not an effect of zero. `}
                           {effects.rows && effects.nFetched > effects.rows.length
                             && `${effects.nFetched - effects.rows.length} of the ${effects.nFetched} fetched carry no row for this exposure specifically, and are likewise absent rather than zero. `}
                           {'A categorical exposure is fitted one term per level; the strongest level is the one plotted and the hover names it.'}
@@ -2171,7 +2174,7 @@ export default function ExposureBodyMap() {
                     {!effects.loading && !effects.error && effectTop && effectTop.length === 0 && (
                       <Alert severity="info">
                         None of the {effects.nFetched} shortlisted proteins has an association row for{' '}
-                        <b>{prettyExposure(exposure)}</b> in the {specLabel(spec)} export. The export carries
+                        <b>{prettyExposure(exposure)}</b> in the {specLabel} export. The export carries
                         the exposure-protein pairs that cleared discovery, so an absent pair was tested and
                         did not clear it — it is not an effect of zero.
                       </Alert>

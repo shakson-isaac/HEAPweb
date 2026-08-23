@@ -6,6 +6,7 @@ import Select from 'react-select';
 import SectionCard from '../SectionCard';
 import { useSection } from '../../lib/useSection';
 import { prettyExposure } from '../../lib/palette';
+import { SpecPicker } from '../../lib/covariateSpecs';
 
 // ---------------------------------------------------------------------------
 // Main Figure 2d -- exposure -> biological program -> tissue -- for any of the
@@ -212,6 +213,12 @@ export default function EnrichTripartite() {
   // opening view exactly Fig 2d (38 edges over the exemplars, as published);
   // one click brings the remainder back rather than dropping it in silence.
   const [showOther, setShowOther] = useState(false);
+  // Which covariate specification the enrichment was run under. The exposure
+  // layers re-filter; the program -> tissue backbone does NOT, because it is a
+  // leading-edge overlap computed once over the primary specification and
+  // published that way. That asymmetry is stated on screen rather than hidden --
+  // see the note under the picker.
+  const [specId, setSpecId] = useState('base');
   const [hover, setHover] = useState(null);     // {kind: exposure|program|organ, id}
   const [openEdge, setOpenEdge] = useState(null); // {exposure, program}
 
@@ -222,6 +229,7 @@ export default function EnrichTripartite() {
     // 1. exposure -> program. Per-exposure; this is what the picker drives.
     const byExposure = new Map();
     for (let i = 0; i < epData.exposure.length; i += 1) {
+      if (epData.spec && epData.spec[i] !== specId) continue;
       const id = epData.exposure[i];
       const paths = String(epData.pathways?.[i] || '').split('; ').filter(Boolean);
       if (!byExposure.has(id)) byExposure.set(id, []);
@@ -259,6 +267,7 @@ export default function EnrichTripartite() {
     // outside those groups are kept aside to be named, not discarded.
     const tissueBy = new Map();
     for (let i = 0; i < etData.exposure.length; i += 1) {
+      if (etData.spec && etData.spec[i] !== specId) continue;
       const id = etData.exposure[i];
       const tissue = etData.tissue[i];
       if (!tissueBy.has(id)) tissueBy.set(id, { byOrgan: new Map(), outside: [] });
@@ -299,9 +308,11 @@ export default function EnrichTripartite() {
       maxNpath: Math.max(1, ...allEdges.map((e) => e.npath)),
       maxNexp: Math.max(1, ...backbone.map((b) => b.nExp)),
       nEdges: allEdges.length,
-      nTissueRows: etData.exposure.length,
+      nTissueRows: etData.spec
+        ? etData.exposure.filter((_, i) => etData.spec[i] === specId).length
+        : etData.exposure.length,
     };
-  }, [epData, ptData, etData]);
+  }, [epData, ptData, etData, specId]);
 
   // --- lay out --------------------------------------------------------------
   const view = useMemo(() => {
@@ -466,6 +477,19 @@ export default function EnrichTripartite() {
       {view && (
         <>
           {/* --- controls ------------------------------------------------- */}
+          <SpecPicker
+            value={specId}
+            onChange={(v) => { setSpecId(v); setOpenEdge(null); }}
+            label="Covariate specification — the model the exposure→protein associations were fitted under before the enrichment was run"
+          />
+          {specId !== 'base' && (
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 1.5, maxWidth: 900 }}>
+              The gray <b>program→tissue</b> backbone does not move with this picker. It is a
+              leading-edge overlap computed once under the primary specification and published
+              that way, so it is the same skeleton in every view; the coloured exposure→program
+              and the organ column are re-derived from the selected enrichment.
+            </Typography>
+          )}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, alignItems: 'flex-end', mb: 2 }}>
             <Box sx={{ flex: '1 1 420px', minWidth: 0 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 0.5 }}>

@@ -9,6 +9,7 @@ import ColumnarTable from '../ColumnarTable';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useKeys, useSection, useShard } from '../../lib/useSection';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
+import { SpecPicker } from '../../lib/covariateSpecs';
 
 // ---------------------------------------------------------------------------
 // The two entry points this page has never offered.
@@ -513,15 +514,19 @@ function ProteinMode() {
 // MODE 2 -- pick a tissue, see which exposures enrich for it.
 // ---------------------------------------------------------------------------
 function TissueMode() {
-  const { data, loading, error } = useSection('tissue_exposures');
-  // tissue_exposures carries no category column, and neither does
-  // enrich_exposure_tissue, which holds the same pairs. pes_reads_ci is the
+  // Reads enrich_exposure_tissue rather than tissue_exposures. The two were
+  // verified to hold the same 1,724 base-specification pairs with identical
+  // nes/q/dir, but only this one carries the other four covariate
+  // specifications, so pointing here adds the picker without a second builder.
+  const { data, loading, error } = useSection('enrich_exposure_tissue');
+  // It carries no category column. pes_reads_ci is the
   // published section that maps exposure -> category, so the colour is joined
   // from there. Its failure is not fatal: without it the points fall back to
   // direction colouring and the panel says which one it is showing, rather than
   // inventing a category.
   const { data: cats } = useSection('pes_reads_ci');
   const [picked, setPicked] = useState('lung');
+  const [specId, setSpecId] = useState('base');
 
   const catMap = useMemo(() => {
     const m = new Map();
@@ -532,10 +537,11 @@ function TissueMode() {
     return m;
   }, [cats]);
 
-  const tissues = useMemo(
-    () => (data?.tissue ? [...new Set(data.tissue)].sort() : []),
-    [data],
-  );
+  const tissues = useMemo(() => {
+    if (!data?.tissue) return [];
+    const keep = data.tissue.filter((_, i) => !data.spec || data.spec[i] === specId);
+    return [...new Set(keep)].sort();
+  }, [data, specId]);
   const tissue = useMemo(() => {
     if (!tissues.length) return null;
     return tissues.includes(picked) ? picked : tissues[0];
@@ -547,6 +553,7 @@ function TissueMode() {
     if (!data?.tissue || !tissue) return [];
     const out = [];
     for (let i = 0; i < data.tissue.length; i += 1) {
+      if (data.spec && data.spec[i] !== specId) continue;
       if (data.tissue[i] !== tissue) continue;
       const nes = num(data.nes?.[i]);
       const q = num(data.q?.[i]);
@@ -567,16 +574,20 @@ function TissueMode() {
     // question asks for while the plot keeps significance on its own axis.
     out.sort((a, b) => Math.abs(b.x) - Math.abs(a.x));
     return out;
-  }, [data, tissue, catMap, byCategory]);
+  }, [data, tissue, catMap, byCategory, specId]);
 
   // set_size is the number of panel proteins in this tissue's signature. It is
   // identical on every row for the tissue, so it is stated once here; as a
   // column it would read as 98 different set sizes.
+  // indexOf would return the first row for this tissue across ALL five
+  // specifications, i.e. always the base one, so it is matched on both.
   const setSize = useMemo(() => {
     if (!data?.tissue || !tissue) return null;
-    const i = data.tissue.indexOf(tissue);
+    const i = data.tissue.findIndex(
+      (t, k) => t === tissue && (!data.spec || data.spec[k] === specId),
+    );
     return i < 0 ? null : num(data.set_size?.[i]);
-  }, [data, tissue]);
+  }, [data, tissue, specId]);
 
   const presentCats = useMemo(() => {
     const s = new Set();
@@ -629,6 +640,7 @@ function TissueMode() {
 
   return (
     <SectionCard loading={loading} error={error} empty={!loading && !error && !tissues.length}>
+      <SpecPicker value={specId} onChange={setSpecId} />
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', mb: 1.5 }}>
         <Box sx={{ minWidth: 260, flex: '1 1 260px', maxWidth: 400 }}>
           <Select

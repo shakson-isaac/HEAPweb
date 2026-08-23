@@ -6,6 +6,7 @@ import Select from 'react-select';
 import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useKeys, useShard } from '../../lib/useSection';
+import { SPECS } from '../../lib/covariateSpecs';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
@@ -34,13 +35,8 @@ import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 
 const DEFAULT_EXPOSURE = 'pack_years_of_smoking_f20161_0_0';
 
-const SPECS = [
-  { id: 'base', label: 'Primary (base)' },
-  { id: 'base_bmi', label: '+ BMI' },
-  { id: 'base_clinical', label: '+ clinical' },
-  { id: 'base_draw', label: '+ blood draw' },
-  { id: 'base_exclprev', label: 'Healthy at baseline' },
-];
+// SPECS now lives in lib/covariateSpecs.js -- four panels each had a copy and
+// they had drifted apart in both labels and order.
 const SPEC_LABEL = Object.fromEntries(SPECS.map((s) => [s.id, s.label]));
 
 // Color carries direction and significance of the hazard ratio, and keeps that

@@ -5,6 +5,7 @@ import {
 import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useSection } from '../../lib/useSection';
+import { SPECS } from '../../lib/covariateSpecs';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
@@ -35,13 +36,8 @@ import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 // compare a score to a benchmark it was never fit against.
 // ---------------------------------------------------------------------------
 
-const SPECS = [
-  { id: 'base', label: 'base' },
-  { id: 'base_bmi', label: '+ BMI' },
-  { id: 'base_draw', label: '+ draw' },
-  { id: 'base_clinical', label: '+ clinical' },
-  { id: 'base_exclprev', label: 'excl. prevalent' },
-];
+// SPECS now lives in lib/covariateSpecs.js -- four panels each had a copy and
+// they had drifted apart in both labels and order.
 
 const TYPES = [
   { id: 'continuous', label: 'Continuous' },

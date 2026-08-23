@@ -22,6 +22,9 @@ different quantity wearing the same name.
 import csv, os, sys
 from collections import defaultdict
 
+SPECS = [("base", ""), ("base_bmi", "_base_bmi"), ("base_clinical", "_base_clinical"),
+         ("base_draw", "_base_draw"), ("base_exclprev", "_base_exclprev")]
+
 E = os.environ.get("HEAP_ENRICH",
                    "/n/groups/patel/IGLOO/UKB/HEAP/output/module4_enrichment")
 PT = os.path.join(E, "program_tissue")
@@ -41,16 +44,28 @@ def main():
     os.makedirs(OUTD, exist_ok=True)
 
     # pathway -> program cluster, the curated map the printed panel uses
+    # program_clusters_all.tsv covers every pathway in EVERY specification (180),
+    # produced by calling the canonical heap_program_cluster() in R rather than
+    # porting its regexes here -- verified to reproduce all 112 published
+    # assignments. cluster_membership.tsv is the base-only fallback and leaves 68
+    # pathways unclassified once the other specifications are included.
     p2c = {}
-    with open(os.path.join(PT, "cluster_membership.tsv")) as fh:
+    allp = os.path.join(E, "program_clusters_all.tsv")
+    src = allp if os.path.exists(allp) else os.path.join(PT, "cluster_membership.tsv")
+    with open(src) as fh:
         for r in csv.DictReader(fh, delimiter="\t"):
             p2c[r["Description"]] = r["clust"]
+    print(f"  program map: {len(p2c)} pathways from {os.path.basename(src)}")
 
     # ---- exposure -> program --------------------------------------------
     agg = defaultdict(lambda: {"npath": 0, "up": 0, "dn": 0, "net": 0.0,
                                "paths": []})
     unmapped = set()
-    with open(os.path.join(E, "pathway_enrichment.csv")) as fh:
+    for spec, suffix in SPECS:
+      src = os.path.join(E, f"pathway_enrichment{suffix}.csv")
+      if not os.path.exists(src):
+        continue
+      with open(src) as fh:
         for r in csv.DictReader(fh):
             q = num(r["p.adjust"])
             nes = num(r["NES"])
@@ -60,7 +75,7 @@ def main():
             if clust is None:
                 unmapped.add(r["Description"])
                 continue
-            a = agg[(r["cID"], clust)]
+            a = agg[(spec, r["cID"], clust)]
             a["npath"] += 1
             a["net"] += nes
             a["up" if nes > 0 else "dn"] += 1
@@ -68,10 +83,10 @@ def main():
 
     with open(os.path.join(OUTD, "enrich_exposure_program.tsv"), "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
-        w.writerow(["exposure", "program", "npath", "n_up", "n_dn",
+        w.writerow(["spec", "exposure", "program", "npath", "n_up", "n_dn",
                     "net_nes", "dir", "pathways"])
-        for (exp, clust), a in sorted(agg.items()):
-            w.writerow([exp, clust, a["npath"], a["up"], a["dn"],
+        for (spec, exp, clust), a in sorted(agg.items()):
+            w.writerow([spec, exp, clust, a["npath"], a["up"], a["dn"],
                         round(a["net"], 4),
                         "up" if a["net"] > 0 else "down",
                         "; ".join(sorted(a["paths"]))])
@@ -92,21 +107,25 @@ def main():
     # tissue link). This is the selected exposure's OWN tissue enrichment, which
     # is a different question and must not be conflated with it.
     et = []
-    with open(os.path.join(E, "tissue_enrichment.csv")) as fh:
+    for spec, suffix in SPECS:
+      src = os.path.join(E, f"tissue_enrichment{suffix}.csv")
+      if not os.path.exists(src):
+        continue
+      with open(src) as fh:
         for r in csv.DictReader(fh):
             q = num(r["p.adjust"])
             nes = num(r["NES"])
             if q is None or nes is None or q >= Q:
                 continue
-            et.append([r["cID"], r["Description"], round(nes, 4), q,
+            et.append([spec, r["cID"], r["Description"], round(nes, 4), q,
                        "up" if nes > 0 else "down", r["setSize"]])
     with open(os.path.join(OUTD, "enrich_exposure_tissue.tsv"), "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
-        w.writerow(["exposure", "tissue", "nes", "q", "dir", "set_size"])
+        w.writerow(["spec", "exposure", "tissue", "nes", "q", "dir", "set_size"])
         w.writerows(et)
 
-    exps = {e for e, _ in agg}
-    progs = {c for _, c in agg}
+    exps = {e for _, e, _ in agg}
+    progs = {c for _, _, c in agg}
     print(f"  enrich_exposure_program.tsv  {len(agg):,} edges  "
           f"{len(exps)} exposures x {len(progs)} programs")
     print(f"  enrich_program_tissue.tsv    {len(prog_tissue)} edges "

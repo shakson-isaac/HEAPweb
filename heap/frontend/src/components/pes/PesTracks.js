@@ -6,6 +6,7 @@ import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useSection } from '../../lib/useSection';
+import { SPECS } from '../../lib/covariateSpecs';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
@@ -53,20 +54,8 @@ import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 // available trade.
 // ---------------------------------------------------------------------------
 
-// From HEAP/config/covariates/covariate_sets.yml. `base` is PRIMARY; the rest
-// are sensitivity layers on top of it.
-const SPECS = [
-  { id: 'base', label: 'Primary (base)', refits: false,
-    note: 'base: age, age², sex, their interactions, assessment centre, 20 genetic PCs' },
-  { id: 'base_bmi', label: '+ BMI', refits: false,
-    note: 'base + BMI in the covariate benchmark. A sensitivity layer, not a mediation test' },
-  { id: 'base_clinical', label: '+ clinical', refits: false,
-    note: 'base + BMI, fasting time, season and medication classes (maximal explicit adjustment)' },
-  { id: 'base_draw', label: '+ blood draw', refits: false,
-    note: 'base + fasting time and assessment season' },
-  { id: 'base_exclprev', label: 'Healthy at baseline', refits: true,
-    note: 'base, restricted to participants without prevalent major disease — the sample changes, so the score is refitted' },
-];
+// SPECS now lives in lib/covariateSpecs.js -- four panels each had a copy and
+// they had drifted apart in both labels and order.
 
 // A Δ-correlation from a few dozen changed pairs is noise with an interval
 // attached. Nothing is dropped for it -- low-n points are drawn faded and the
