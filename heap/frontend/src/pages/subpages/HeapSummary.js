@@ -4,6 +4,9 @@ import SectionCard from '../../components/SectionCard';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection } from '../../lib/useSection';
+import Disclosure from '../../components/Disclosure';
+import CategoryReachPanel from '../../components/redesign/CategoryReach';
+import CategoryProfile from '../../components/redesign/CategoryProfile';
 import { pivot } from '../../lib/heapdata';
 import { ecatColor, prettyCategory } from '../../lib/palette';
 
@@ -412,11 +415,24 @@ export default function HeapSummary() {
         be negative; category colors follow the canonical HEAP exposure palette.
       </Typography>
 
-      <CategoryReach />
-      <CategoryDist />
-      <CategoryHeatmap />
-      <TrainTest />
-      <CategoryBiology />
+      {/* The two lead visuals, both specification-aware. */}
+      <CategoryReachPanel />
+      <CategoryProfile />
+
+      <Disclosure
+        title="the earlier panels"
+        count={5}
+        note={
+          'Five figure exports fixed at the base specification, including the category heatmap '
+          + 'and the train/test stability check. Kept because several have no other view here.'
+        }
+      >
+        <CategoryReach />
+        <CategoryDist />
+        <CategoryHeatmap />
+        <TrainTest />
+        <CategoryBiology />
+      </Disclosure>
     </Box>
   );
 }

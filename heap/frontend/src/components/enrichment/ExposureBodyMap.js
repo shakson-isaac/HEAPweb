@@ -2173,10 +2173,24 @@ export default function ExposureBodyMap() {
 
                     {!effects.loading && !effects.error && effectTop && effectTop.length === 0 && (
                       <Alert severity="info">
-                        None of the {effects.nFetched} shortlisted proteins has an association row for{' '}
-                        <b>{prettyExposure(exposure)}</b> in the {specLabel} export. The export carries
-                        the exposure-protein pairs that cleared discovery, so an absent pair was tested and
-                        did not clear it — it is not an effect of zero.
+                        <AlertTitle sx={{ fontSize: '0.85rem' }}>
+                          No individual association to plot — but the enrichment above still stands
+                        </AlertTitle>
+                        {effectPlan?.genes?.length
+                          ? <>The shortlisted proteins here are <b>{effectPlan.genes.join(', ')}</b>. None
+                            of them has</>
+                          : <>None of the {effects.nFetched} shortlisted proteins has</>}
+                        {' '}an association row for <b>{prettyExposure(exposure)}</b> in the{' '}
+                        {specLabel} export, which carries only the pairs that cleared this
+                        exposure&apos;s discovery threshold.
+                        {' '}
+                        <b>That is not a contradiction with the enrichment.</b> GSEA scores the whole
+                        ranked list of tested proteins, so a protein reaches the leading edge by sitting
+                        near the top of the ranking together with the rest of its set — it never had to
+                        be individually significant. This exposure has more leading-edge proteins than
+                        it has rows in the association export, so this combination is expected rather
+                        than rare: the set moves coherently while no single member clears the
+                        per-protein bar.
                       </Alert>
                     )}
                   </Box>

@@ -17,6 +17,9 @@ const Enrichment = lazy(() => import('./subpages/Enrichment'));
 const Causal = lazy(() => import('./subpages/Causal'));
 const Pes = lazy(() => import('./subpages/Pes'));
 const Gwas = lazy(() => import('./subpages/Gwas'));
+// Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
+// typing the path, and reads scratch data, so it cannot affect the live site.
+const DesignPreview = lazy(() => import('./subpages/DesignPreview'));
 
 function Loading() {
   return (
@@ -46,6 +49,7 @@ function Results() {
             <Route path="causal" element={<Causal />} />
             <Route path="pes" element={<Pes />} />
             <Route path="gwas" element={<Gwas />} />
+            <Route path="design-preview" element={<DesignPreview />} />
           </Routes>
         </Suspense>
       </div>

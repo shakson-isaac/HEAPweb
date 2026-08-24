@@ -136,8 +136,21 @@ def audit(src):
 
         nrow = max((len(v) for v in d.values() if isinstance(v, list)), default=0)
         if nrow >= PARTICIPANT_SCALE:
-            warn.append(f"{rel}: {nrow:,} rows -- at participant scale, confirm "
-                        f"the key is not a person")
+            # A LONG table is rows = entity x specification x component, so its
+            # row count says nothing about how many entities it covers. What
+            # matters is how many DISTINCT values the key column holds: 2,686
+            # proteins across 9 specifications is 96,696 rows and no risk.
+            keyed = None
+            for k in ("protein", "gene", "protID", "disease", "exposure", "term"):
+                if k in d and isinstance(d[k], list):
+                    keyed = (k, len(set(d[k])))
+                    break
+            if keyed:
+                warn.append(f"{rel}: {nrow:,} rows, but keyed by {keyed[0]} with "
+                            f"{keyed[1]:,} distinct values -- long format, not per-person")
+            else:
+                warn.append(f"{rel}: {nrow:,} rows -- at participant scale and no "
+                            f"recognised entity key, confirm the key is not a person")
 
         for col, v in d.items():
             # RULE 2 -- identifiers

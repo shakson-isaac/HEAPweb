@@ -106,3 +106,9 @@ enrichment	protein_tissue_profile	protein_tissue_profile.tsv	K	gene	GTEx tissue 
 enrichment	tissue_exposures	tissue_exposures.tsv	S		Which exposures enrich each GTEx tissue	table	on	derived_tsv	
 enrichment	bodymap_leading_edge	bodymap_leading_edge.tsv	K	exposure	Leading-edge proteins per exposure, tissue and pathway	table	on	derived_tsv	
 enrichment	bodymap_terms	bodymap_terms.tsv	S		Enriched tissues and pathways per exposure, with leading-edge counts	table	on	derived_tsv	
+main	varcomp_reach	varcomp_reach.tsv	S		Reach of each variance component across the proteome	line	on	derived_tsv	
+main	varcomp_protein	varcomp_protein.tsv	S		Per-protein variance components with 95% intervals	bar	on	derived_tsv	
+main	varcomp_specs_meta	varcomp_specs_meta.tsv	S		Specification catalog for the variance views	table	on	derived_tsv	
+main	varcomp_gradient	varcomp_gradient.tsv	S		GREML variance components beside HEAP prediction R2	scatter	on	derived_tsv	
+categories	varcat_protein	varcat_protein.tsv	S		Per-protein variance explained by each exposure category	bar	on	derived_tsv	
+categories	varcat_reach	varcat_reach.tsv	S		Reach of each exposure category across the proteome	bar	on	derived_tsv	

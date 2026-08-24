@@ -2,6 +2,10 @@ import React, { useMemo } from 'react';
 import { Alert, Box, Chip, Typography } from '@mui/material';
 import { COMP_COLORS } from '../../lib/palette';
 import SectionCard from '../../components/SectionCard';
+import Disclosure from '../../components/Disclosure';
+import VarianceReach from '../../components/redesign/VarianceReach';
+import VarianceStack from '../../components/redesign/VarianceStack';
+import ExposomicGradient from '../../components/redesign/ExposomicGradient';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection } from '../../lib/useSection';
@@ -619,15 +623,31 @@ export default function MainResults() {
         Associations page.
       </Typography>
 
-      <GenoVsExpo />
-      <R2Decomposition />
-      <PredictiveR2 />
-      <ReachCdf />
-      <DistributionDonut />
-      <TopEgProteins />
-      <ExemplarDecomp />
-      <VarianceArchitecture />
-      <PartitionMotivation />
+      {/* The three lead visuals. Each takes a specification picker, which the
+          nine panels below do not -- they are figure exports fixed at base. */}
+      <VarianceReach />
+      <VarianceStack />
+      <ExposomicGradient />
+
+      <Disclosure
+        title="the earlier panels"
+        count={9}
+        note={
+          'Nine figure exports, each fixed at the base specification. The three visuals above '
+          + 'cover the same ground and can be read under any of the nine specifications; these '
+          + 'are kept because several exports have no other view on the site.'
+        }
+      >
+        <GenoVsExpo />
+        <R2Decomposition />
+        <PredictiveR2 />
+        <ReachCdf />
+        <DistributionDonut />
+        <TopEgProteins />
+        <ExemplarDecomp />
+        <VarianceArchitecture />
+        <PartitionMotivation />
+      </Disclosure>
     </Box>
   );
 }

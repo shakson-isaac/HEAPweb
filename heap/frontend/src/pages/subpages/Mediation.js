@@ -5,6 +5,11 @@ import {
   Alert, Box, Chip, Link, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
+import Disclosure from '../../components/Disclosure';
+import PleiotropySpectrum from '../../components/redesign/PleiotropySpectrum';
+import MediationGrid from '../../components/redesign/MediationGrid';
+import DriverComparison from '../../components/redesign/DriverComparison';
+import MediationLandscape from '../../components/redesign/MediationLandscape';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import { useSection, useKeys, useShard } from '../../lib/useSection';
@@ -843,13 +848,31 @@ export default function Mediation() {
       </Typography>
       <Caveat withLink />
 
-      <ProteinLinks />
-      <ScaleGrid />
-      <Keystones />
-      <Dumbbell />
-      <Exemplars />
-      <Conduits />
-      <Prioritization />
+      {/* Four lead visuals, left all visible while the remaining partitioned
+          specifications finish. Which one deserves to lead depends on how they
+          read across five specifications rather than one, so the order here is
+          provisional and the page says so. */}
+      <PleiotropySpectrum />
+      <MediationGrid />
+      <DriverComparison />
+      <MediationLandscape />
+
+      <Disclosure
+        title="the earlier panels"
+        count={7}
+        note={
+          'Seven figure exports fixed at the base specification. Kept because several have no '
+          + 'other view on the site.'
+        }
+      >
+        <ProteinLinks />
+        <ScaleGrid />
+        <Keystones />
+        <Dumbbell />
+        <Exemplars />
+        <Conduits />
+        <Prioritization />
+      </Disclosure>
     </Box>
   );
 }
