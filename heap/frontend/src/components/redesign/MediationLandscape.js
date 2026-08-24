@@ -5,8 +5,9 @@ import {
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
-import { ecatColor } from '../../lib/palette';
-import { useMockup } from '../../lib/mockupData';
+import { compColor } from '../../lib/palette';
+import { useSection } from '../../lib/useSection';
+import { SPEC_LABEL, driverIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- "reporter or intermediate?"
@@ -27,46 +28,36 @@ import { useMockup } from '../../lib/mockupData';
 // than left for the visitor to reach on their own.
 // ---------------------------------------------------------------------------
 
-const SPEC_LABEL = {
-  base: 'Primary',
-  base_plus_bmi: '+ BMI',
-  base_plus_clinical: '+ clinical',
-  base_plus_blood_draw: '+ blood draw',
-  exclude_prevalent_disease: 'Healthy at baseline',
-  estimator_ridge: 'Ridge',
-  estimator_elastic_net: 'Elastic net',
-};
-const ORDER = ['base', 'base_plus_bmi', 'base_plus_clinical', 'base_plus_blood_draw',
-  'exclude_prevalent_disease', 'estimator_ridge', 'estimator_elastic_net'];
-
 // Movable, because no principled cut exists here. The default is a round number,
 // not a finding.
 const CUTS = [0.05, 0.10, 0.15, 0.25, 0.50];
 
 export default function MediationLandscape() {
-  const { data, loading, error } = useMockup('mediation');
+  const { data, loading, error } = useSection('med_drivers');
   const [spec, setSpec] = useState('base');
   const [disease, setDisease] = useState(null);
   const [cut, setCut] = useState(0.10);
 
-  const specs = useMemo(() => {
-    if (!data) return [];
-    return ORDER.filter((s) => data.specs.includes(s));
-  }, [data]);
+  const specs = useMemo(() => specsIn(data), [data]);
+  const bySpec = useMemo(() => driverIndex(data), [data]);
+  const rows = bySpec[spec] || null;
 
-  const rows = data?.links?.[spec] || null;
-  const summary = data?.summary?.[spec] || null;
-
-  // Column order comes from the payload rather than being assumed.
-  const C = useMemo(() => {
-    const m = {};
-    (data?.cols || []).forEach((c, i) => { m[c] = i; });
-    return m;
-  }, [data]);
+  // Counted here rather than shipped: the section is one row per link, so the
+  // per-specification totals are a pass over what is already in memory.
+  const summary = useMemo(() => {
+    if (!rows) return null;
+    const sig = rows.filter((r) => r.pxs.sig);
+    return {
+      n_sig: sig.length,
+      n_disease: new Set(sig.map((r) => r.disease)).size,
+      n_protein: new Set(sig.map((r) => r.protein)).size,
+      diseases: [...new Set(sig.map((r) => r.disease))].sort(),
+    };
+  }, [rows]);
 
   const dist = useMemo(() => {
     if (!rows) return null;
-    const pm = rows.map((r) => r[C.prop_mediated]).filter((v) => v != null);
+    const pm = rows.filter((r) => r.pxs.sig).map((r) => r.pm).filter((v) => v != null);
     const below = pm.filter((v) => v < cut).length;
     const sorted = [...pm].sort((a, b) => a - b);
     const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
@@ -82,42 +73,36 @@ export default function MediationLandscape() {
       median,
       pct: pm.length ? (100 * below) / pm.length : 0,
     };
-  }, [rows, C, cut]);
+  }, [rows, cut]);
 
-  const diseases = useMemo(() => (
-    summary ? summary.by_disease.map((d) => d[0]) : []
-  ), [summary]);
+  const diseases = summary ? summary.diseases : [];
 
   // One disease's mediators, strongest indirect effect first, coloured by the
   // exposure category the link starts from.
   const forest = useMemo(() => {
     if (!rows || !disease) return null;
-    const sel = rows.filter((r) => r[C.disease] === disease);
+    const sel = rows.filter((r) => r.disease === disease && r.pxs.sig);
     if (!sel.length) return null;
-    sel.sort((a, b) => Math.abs((b[C.nie_HR] || 1) - 1) - Math.abs((a[C.nie_HR] || 1) - 1));
+    sel.sort((a, b) => Math.abs((b.pxs.hr || 1) - 1) - Math.abs((a.pxs.hr || 1) - 1));
     const top = sel.slice(0, 25).reverse();
     return [{
       type: 'scatter',
       mode: 'markers',
-      x: top.map((r) => r[C.nie_HR]),
-      y: top.map((r) => `${r[C.protein]}  ·  ${String(r[C.category]).replace(/_/g, ' ')}`),
-      marker: {
-        size: 9,
-        color: top.map((r) => ecatColor(r[C.category])),
-        line: { color: '#333', width: 0.6 },
-      },
+      x: top.map((r) => r.pxs.hr),
+      y: top.map((r) => r.protein),
+      marker: { size: 9, color: compColor('E'), line: { color: '#333', width: 0.6 } },
       error_x: {
         type: 'data',
         symmetric: false,
-        array: top.map((r) => (r[C.hi] != null ? r[C.hi] - r[C.nie_HR] : 0)),
-        arrayminus: top.map((r) => (r[C.lo] != null ? r[C.nie_HR] - r[C.lo] : 0)),
+        array: top.map((r) => (r.pxs.hi != null ? r.pxs.hi - r.pxs.hr : 0)),
+        arrayminus: top.map((r) => (r.pxs.lo != null ? r.pxs.hr - r.pxs.lo : 0)),
         color: '#777', thickness: 1.1, width: 0,
       },
-      customdata: top.map((r) => [r[C.prop_mediated], r[C.n_cases]]),
+      customdata: top.map((r) => [r.pm, r.nCases]),
       hovertemplate: '<b>%{y}</b><br>indirect effect HR %{x:.4f}<br>'
         + 'proportion mediated %{customdata[0]}<br>%{customdata[1]} cases<extra></extra>',
     }];
-  }, [rows, disease, C]);
+  }, [rows, disease]);
 
   return (
     <SectionCard
@@ -183,7 +168,7 @@ export default function MediationLandscape() {
                 Fewer links here is a sensitivity result, not evidence of what mediates
               </AlertTitle>
               This specification leaves {dist.n.toLocaleString()} significant links against{' '}
-              {data.summary.base.n_sig.toLocaleString()} under the primary model. It is tempting
+              {(bySpec.base || []).filter((r) => r.pxs.sig).length.toLocaleString()} under the primary model. It is tempting
               to read a drop under adjustment as showing that the adjusted-for variable was the
               real mediator. <b>It does not show that.</b> A variable can be a confounder, a
               mediator, or both at once, and adjusting for it moves the estimate in the same

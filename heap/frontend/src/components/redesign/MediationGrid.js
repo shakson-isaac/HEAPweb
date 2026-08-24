@@ -5,7 +5,8 @@ import {
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { ecatColor } from '../../lib/palette';
-import { useMockup } from '../../lib/mockupData';
+import { useSection } from '../../lib/useSection';
+import { SPEC_LABEL, diseaseClass, gridIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS, alternative B -- main Figure 3b made interactive.
@@ -35,32 +36,31 @@ import { useMockup } from '../../lib/mockupData';
 // ---------------------------------------------------------------------------
 
 const prettyCat = (c) => String(c).replace(/_/g, ' ');
-const SPEC_LABEL = {
-  base: 'Primary', base_bmi: '+ BMI', base_clinical: '+ clinical',
-  base_draw: '+ blood draw', base_exclprev: 'Healthy at baseline',
-};
+
 
 export default function MediationGrid() {
-  const { data, loading, error } = useMockup('med_structure');
+  const g0 = useSection('med_grid');
+  const dc = useSection('med_disease');
+  const loading = g0.loading || dc.loading;
+  const error = g0.error || dc.error;
+  const specs = useMemo(() => specsIn(g0.data), [g0.data]);
+  const grids = useMemo(() => gridIndex(g0.data), [g0.data]);
+  const sysOf = useMemo(() => diseaseClass(dc.data), [dc.data]);
   const [spec, setSpec] = useState('base');
   const [nDz, setNDz] = useState(24);
   const [cell, setCell] = useState(null);
 
   const view = useMemo(() => {
-    const g = data?.grid_by_spec?.[spec];
+    const g = grids[spec];
     if (!g) return null;
-    const sysOf = data.system || {};
-    const total = {};
-    g.diseases.forEach((d) => {
-      total[d] = g.categories.reduce((s, c) => s + (g.counts[`${c}|${d}`] || 0), 0);
-    });
+    const total = Object.fromEntries(g.total);
     // Take the strongest diseases, then regroup them by class so the columns
     // arrive in blocks. Selecting first and grouping second keeps the cut on
     // "most mediators" rather than giving every class an equal share.
     const top = [...g.diseases].sort((a, b) => total[b] - total[a]).slice(0, nDz);
     const bySys = new Map();
     top.forEach((d) => {
-      const k = sysOf[d] || 'Other';
+      const k = sysOf.get(d) || 'Other';
       if (!bySys.has(k)) bySys.set(k, []);
       bySys.get(k).push(d);
     });
@@ -78,19 +78,19 @@ export default function MediationGrid() {
       list.forEach((d) => dz.push(d));
     });
     const cats = [...g.categories].sort((a, b) => (
-      dz.reduce((s, d) => s + (g.counts[`${b}|${d}`] || 0), 0)
-      - dz.reduce((s, d) => s + (g.counts[`${a}|${d}`] || 0), 0)
+      dz.reduce((s, d) => s + (g.counts.get(`${b}|${d}`) || 0), 0)
+      - dz.reduce((s, d) => s + (g.counts.get(`${a}|${d}`) || 0), 0)
     ));
-    const z = cats.map((c) => dz.map((d) => g.counts[`${c}|${d}`] || 0));
+    const z = cats.map((c) => dz.map((d) => g.counts.get(`${c}|${d}`) || 0));
     return { dz, cats, z, total, bands, nAll: g.diseases.length };
-  }, [data, nDz, spec]);
+  }, [grids, sysOf, nDz, spec]);
 
   const detail = useMemo(() => {
-    const g = data?.grid_by_spec?.[spec];
+    const g = grids[spec];
     if (!g || !cell) return null;
     const key = `${cell.cat}|${cell.dz}`;
-    return { n: g.counts[key] || 0, proteins: g.proteins[key] || [] };
-  }, [data, cell, spec]);
+    return { n: g.counts.get(key) || 0, proteins: g.proteins.get(key) || [] };
+  }, [grids, cell, spec]);
 
   return (
     <SectionCard
@@ -102,7 +102,7 @@ export default function MediationGrid() {
       loading={loading}
       error={error}
     >
-      {view && (
+      {view && specs.length > 0 && (
         <>
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
             <Box sx={{ minWidth: 280, flex: '1 1 280px' }}>
@@ -118,7 +118,7 @@ export default function MediationGrid() {
               </Typography>
               <ToggleButtonGroup size="small" exclusive value={spec}
                                  onChange={(_, v) => { if (v) { setSpec(v); setCell(null); } }}>
-                {(data.specs || ['base']).map((x) => (
+                {specs.map((x) => (
                   <ToggleButton key={x} value={x} sx={{ textTransform: 'none' }}>
                     {SPEC_LABEL[x] || x}
                   </ToggleButton>

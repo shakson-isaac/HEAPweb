@@ -5,7 +5,8 @@ import {
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { compColor } from '../../lib/palette';
-import { useMockup } from '../../lib/mockupData';
+import { useSection } from '../../lib/useSection';
+import { SPEC_LABEL, driverIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- an exposomic effect against its genetic counterparts.
@@ -31,11 +32,6 @@ import { useMockup } from '../../lib/mockupData';
 // left out of the picker rather than offered and inert.
 // ---------------------------------------------------------------------------
 
-const SPEC_LABEL = {
-  base: 'Primary', base_bmi: '+ BMI', base_clinical: '+ clinical',
-  base_draw: '+ blood draw', base_exclprev: 'Healthy at baseline',
-};
-
 const DRIVERS = [
   { key: 'pxs', label: 'PXS — exposome', color: compColor('E') },
   { key: 'cis', label: 'cis — own locus', color: '#B8860B' },
@@ -43,22 +39,19 @@ const DRIVERS = [
 ];
 
 export default function DriverComparison() {
-  const { data, loading, error } = useMockup('drivers');
+  const { data, loading, error } = useSection('med_drivers');
   const [spec, setSpec] = useState('base');
   const [mode, setMode] = useState('overview');
   const [protein, setProtein] = useState(null);
 
-  const C = useMemo(() => {
-    const m = {};
-    (data?.cols || []).forEach((c, i) => { m[c] = i; });
-    return m;
-  }, [data]);
+  const specs = useMemo(() => specsIn(data), [data]);
+  const bySpec = useMemo(() => driverIndex(data), [data]);
 
-  const rows = useMemo(() => data?.rows_by_spec?.[spec] || null, [data, spec]);
+  const rows = useMemo(() => bySpec[spec] || null, [bySpec, spec]);
 
   const proteins = useMemo(() => (
-    rows ? [...new Set(rows.map((r) => r[C.protein]))].sort() : []
-  ), [rows, C]);
+    rows ? [...new Set(rows.map((r) => r.protein))].sort() : []
+  ), [rows]);
 
   // Distribution of the mediated effect under each driver, significant links
   // only. Drawn as |HR - 1| in percent so the three are on one scale and a
@@ -68,9 +61,9 @@ export default function DriverComparison() {
     const t = DRIVERS.map((d) => {
       const v = [];
       rows.forEach((r) => {
-        if (!r[C[`${d.key}_sig`]]) return;
-        const hr = r[C[d.key]];
-        if (hr != null) v.push(Math.abs(hr - 1) * 100);
+        const g = r[d.key];
+        if (!g?.sig || g.hr == null) return;
+        v.push(Math.abs(g.hr - 1) * 100);
       });
       return {
         type: 'violin', name: `${d.label} (${v.length.toLocaleString()})`,
@@ -81,35 +74,35 @@ export default function DriverComparison() {
       };
     });
     return t;
-  }, [rows, C]);
+  }, [rows]);
 
   // One protein: every disease it links to, all four drivers with intervals.
   const detail = useMemo(() => {
     if (!rows || !protein) return null;
-    const sel = rows.filter((r) => r[C.protein] === protein);
+    const sel = rows.filter((r) => r.protein === protein);
     if (!sel.length) return null;
-    sel.sort((a, b) => Math.abs((b[C.pxs] || 1) - 1) - Math.abs((a[C.pxs] || 1) - 1));
+    sel.sort((a, b) => Math.abs((b.pxs.hr || 1) - 1) - Math.abs((a.pxs.hr || 1) - 1));
     const top = sel.slice(0, 12).reverse();
     return DRIVERS.map((d) => ({
       type: 'scatter', mode: 'markers', name: d.label,
-      x: top.map((r) => r[C[d.key]]),
-      y: top.map((r) => r[C.disease]),
+      x: top.map((r) => r[d.key].hr),
+      y: top.map((r) => r.disease),
       marker: {
         size: 9, color: d.color,
-        symbol: top.map((r) => (r[C[`${d.key}_sig`]] ? 'circle' : 'circle-open')),
+        symbol: top.map((r) => (r[d.key].sig ? 'circle' : 'circle-open')),
         line: { color: d.color, width: 1.5 },
       },
       error_x: {
         type: 'data', symmetric: false,
-        array: top.map((r) => ((r[C[`${d.key}_hi`]] != null && r[C[d.key]] != null)
-          ? r[C[`${d.key}_hi`]] - r[C[d.key]] : 0)),
-        arrayminus: top.map((r) => ((r[C[`${d.key}_lo`]] != null && r[C[d.key]] != null)
-          ? r[C[d.key]] - r[C[`${d.key}_lo`]] : 0)),
+        array: top.map((r) => ((r[d.key].hi != null && r[d.key].hr != null)
+          ? r[d.key].hi - r[d.key].hr : 0)),
+        arrayminus: top.map((r) => ((r[d.key].lo != null && r[d.key].hr != null)
+          ? r[d.key].hr - r[d.key].lo : 0)),
         color: d.color, thickness: 1.1, width: 0,
       },
       hovertemplate: `<b>%{y}</b><br>${d.label}: HR %{x:.4f}<extra></extra>`,
     }));
-  }, [rows, protein, C]);
+  }, [rows, protein]);
 
   return (
     <SectionCard
@@ -130,7 +123,7 @@ export default function DriverComparison() {
             </ToggleButtonGroup>
             <ToggleButtonGroup size="small" exclusive value={spec}
                                onChange={(_, v) => { if (v) { setSpec(v); setProtein(null); } }}>
-              {(data.specs || ['base']).map((x) => (
+              {specs.map((x) => (
                 <ToggleButton key={x} value={x} sx={{ textTransform: 'none' }}>
                   {SPEC_LABEL[x] || x}
                 </ToggleButton>

@@ -112,3 +112,7 @@ main	varcomp_specs_meta	varcomp_specs_meta.tsv	S		Specification catalog for the 
 main	varcomp_gradient	varcomp_gradient.tsv	S		GREML variance components beside HEAP prediction R2	scatter	on	derived_tsv	
 categories	varcat_protein	varcat_protein.tsv	S		Per-protein variance explained by each exposure category	bar	on	derived_tsv	
 categories	varcat_reach	varcat_reach.tsv	S		Reach of each exposure category across the proteome	bar	on	derived_tsv	
+disease	med_spectrum	med_spectrum.tsv	S		Mediator proteins by disease pleiotropy and strongest effect	scatter	on	derived_tsv	
+disease	med_grid	med_grid.tsv	S		Mediator proteins per exposure category and disease	heatmap	on	derived_tsv	
+disease	med_drivers	med_drivers.tsv	S		Mediated effect under exposome, cis, trans and total genetic drivers	scatter	on	derived_tsv	
+disease	med_disease	med_disease.tsv	S		Disease class, for sectioning the mediation grid	table	on	derived_tsv	

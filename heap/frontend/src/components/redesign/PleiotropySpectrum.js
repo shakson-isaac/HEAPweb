@@ -4,7 +4,8 @@ import {
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
-import { useMockup } from '../../lib/mockupData';
+import { useSection } from '../../lib/useSection';
+import { SPEC_LABEL, spectrumIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS, alternative A -- main Figure 3c made interactive.
@@ -17,15 +18,17 @@ import { useMockup } from '../../lib/mockupData';
 // mediated and could not, because that quantity does not say it: its median is
 // 0.127 and its bulk sits between 0.10 and 0.25 regardless of breadth.
 //
-// TWO DRIVERS, AND THEY DO NOT AGREE. The printed panel counts, per protein,
-// the diseases mediated by its DOMINANT exposure category, from the per-category
-// deposit: 325 disease-specific, 303 pleiotropic. Only the total-exposome arm
-// was refitted under the other specifications, so a spec-aware version has to
-// count diseases mediated by the TOTAL score, which at base gives 361 and 438.
+// PLEIOTROPY IS COUNTED THE WAY THE PRINTED PANEL COUNTS IT: diseases mediated
+// by the protein's DOMINANT exposure category, read from the same file Figure 3c
+// is drawn from. At base that is 325 disease-specific and 303 pleiotropic, the
+// published numbers.
 //
-// Both are offered and both are labeled. Silently showing the total-driver
-// numbers under the paper's framing would put figures on the site that do not
-// match Figure 3c and give no way to tell why.
+// An earlier version also offered a TOTAL-exposome driver, because only that arm
+// had been refitted under the other specifications and it was the only way to
+// show more than base. It gave different numbers for the same word -- 361 and
+// 438 at base -- and needed a paragraph to explain why. The partitioned runs
+// have since been fitted for the other specifications, so the workaround is
+// gone and the picker simply offers whichever ones are summarised.
 // ---------------------------------------------------------------------------
 
 const SPECIFIC_AT = 3;
@@ -33,54 +36,26 @@ const HUB_AT = 20;
 const COL = { specific: '#5E3C99', intermediate: '#B5B5B5', hub: '#C51B7D' };
 const N_LABEL = 8;
 
-const SPEC_LABEL = {
-  base: 'Primary',
-  base_plus_bmi: '+ BMI',
-  base_plus_clinical: '+ clinical',
-  base_plus_blood_draw: '+ blood draw',
-  exclude_prevalent_disease: 'Healthy at baseline',
-};
 
 export default function PleiotropySpectrum() {
-  const { data, loading, error } = useMockup('med_structure');
-  const sp = useMockup('spectrum_specs');
+  const { data, loading, error } = useSection('med_spectrum');
   const [find, setFind] = useState(null);
-  const [driver, setDriver] = useState('category');   // 'category' = as printed
   const [spec, setSpec] = useState('base');
-  const [catSpec, setCatSpec] = useState('base');
 
-  // Point size is the number of driving exposure categories, which only the
-  // per-category deposit knows. Under the total-exposome driver there is one
-  // driver by construction, so the size channel is switched off rather than
-  // filled with a constant that would read as information.
-  const sizeOf = useMemo(() => {
-    const m = new Map();
-    const s = data?.spectrum_by_spec?.[catSpec];
-    if (s) s.proteins.forEach((p, i) => m.set(p, s.n_exposures[i] || 1));
-    return m;
-  }, [data, catSpec]);
+  const specs = useMemo(() => specsIn(data), [data]);
+  const bySpec = useMemo(() => spectrumIndex(data), [data]);
 
   const view = useMemo(() => {
-    // The category driver now has its own specification set -- whichever
-    // partitioned runs have been summarised -- and it is NOT the same set the
-    // total driver offers, so each keeps its own selection.
-    const s = driver === 'category'
-      ? data?.spectrum_by_spec?.[catSpec]
-      : sp.data?.by_spec?.[spec];
-    if (!s) return null;
-    const pts = s.proteins.map((p, i) => ({
-      p,
-      x: s.pleiotropy[i] || 0,
-      y: s.max_eff[i],
-      n: driver === 'category' ? (s.n_exposures?.[i] || 1) : (sizeOf.get(p) || 1),
-      dz: s.diseases[i] || [],
-      tier: (s.pleiotropy[i] || 0) <= SPECIFIC_AT ? 'specific'
-        : (s.pleiotropy[i] || 0) >= HUB_AT ? 'hub' : 'intermediate',
+    const rows = bySpec[spec];
+    if (!rows) return null;
+    const pts = rows.map((d) => ({
+      ...d,
+      tier: d.x <= SPECIFIC_AT ? 'specific' : d.x >= HUB_AT ? 'hub' : 'intermediate',
     })).filter((d) => d.x > 0);
     const hubs = pts.filter((d) => d.tier === 'hub').sort((a, b) => b.y - a.y).slice(0, N_LABEL);
     // NOT `spec` -- that shadows the specification state read a few lines above
-    // in this same scope, putting it in the temporal dead zone and throwing the
-    // moment the total-exposome driver is selected.
+    // in this same scope, putting it in the temporal dead zone and throwing on
+    // the next render.
     const specific = pts.filter((d) => d.tier === 'specific').sort((a, b) => b.y - a.y).slice(0, 6);
     return {
       pts,
@@ -88,7 +63,7 @@ export default function PleiotropySpectrum() {
       nSpec: pts.filter((d) => d.tier === 'specific').length,
       nHub: pts.filter((d) => d.tier === 'hub').length,
     };
-  }, [data, sp.data, driver, spec, catSpec, sizeOf]);
+  }, [bySpec, spec]);
 
   const traces = useMemo(() => {
     if (!view) return [];
@@ -105,7 +80,7 @@ export default function PleiotropySpectrum() {
         customdata: g.map((d) => d.n),
         marker: {
           color: COL[k], opacity: 0.75, line: { width: 0 },
-          size: driver === 'category' ? g.map((d) => 4 + 3 * Math.min(d.n, 4)) : 6,
+          size: g.map((d) => 4 + 3 * Math.min(d.n, 4)),
         },
         hovertemplate: '<b>%{text}</b><br>mediates %{x} diseases<br>'
           + 'strongest effect %{y:.2f}% per SD<br>%{customdata} driving exposures<extra></extra>',
@@ -129,7 +104,7 @@ export default function PleiotropySpectrum() {
       }
     }
     return t;
-  }, [view, find, driver]);
+  }, [view, find]);
 
   const picked = useMemo(() => (
     view && find ? view.pts.find((d) => d.p === find) : null
@@ -150,64 +125,29 @@ export default function PleiotropySpectrum() {
           <Box sx={{ display: 'flex', gap: 2.5, flexWrap: 'wrap', alignItems: 'flex-end', mb: 1.5 }}>
             <Box>
               <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
-                Count diseases mediated by
+                Specification
               </Typography>
-              <ToggleButtonGroup size="small" exclusive value={driver}
-                                 onChange={(_, v) => v && setDriver(v)}>
-                <ToggleButton value="category" sx={{ textTransform: 'none' }}>
-                  dominant exposure category
-                </ToggleButton>
-                <ToggleButton value="total" sx={{ textTransform: 'none' }}>
-                  total exposome score
-                </ToggleButton>
+              <ToggleButtonGroup size="small" exclusive value={spec}
+                                 onChange={(_, v) => v && setSpec(v)}>
+                {specs.map((x) => (
+                  <ToggleButton key={x} value={x} sx={{ textTransform: 'none' }}>
+                    {SPEC_LABEL[x] || x}
+                  </ToggleButton>
+                ))}
               </ToggleButtonGroup>
             </Box>
-            {driver === 'category' && (data.specs || []).length > 1 && (
-              <Box>
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
-                  Specification
-                </Typography>
-                <ToggleButtonGroup size="small" exclusive value={catSpec}
-                                   onChange={(_, v) => v && setCatSpec(v)}>
-                  {(data.specs || []).map((x) => (
-                    <ToggleButton key={x} value={x} sx={{ textTransform: 'none' }}>
-                      {SPEC_LABEL[x] || x}
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Box>
-            )}
-            {driver === 'total' && (
-              <Box>
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
-                  Specification
-                </Typography>
-                <ToggleButtonGroup size="small" exclusive value={spec}
-                                   onChange={(_, v) => v && setSpec(v)}>
-                  {(sp.data?.specs || []).map((x) => (
-                    <ToggleButton key={x} value={x} sx={{ textTransform: 'none' }}>
-                      {SPEC_LABEL[x] || x}
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Box>
-            )}
           </Box>
 
-          <Alert severity={driver === 'category' ? 'success' : 'info'} sx={{ mb: 2 }}>
-            {driver === 'category'
-              ? (catSpec === 'base'
-                ? `As printed in Figure 3c: pleiotropy is the number of diseases a protein
-                   mediates through its dominant exposure category, and point size is how many
-                   categories drive it. This is the published view — 325 and 303.`
-                : `Pleiotropy through the dominant exposure category, as in Figure 3c, but under
-                   a different adjustment: ${view.nSpec} disease-specific and ${view.nHub}
-                   pleiotropic against the published 325 and 303.`)
-              : `Pleiotropy here counts diseases mediated by the TOTAL exposome score, which is the
-                 only arm refitted under other specifications. At base this gives ${view.nSpec}
-                 disease-specific and ${view.nHub} pleiotropic against the 325 and 303 printed in
-                 Figure 3c — a different driver, not a different result. Point size is off, because
-                 the total score is one driver by construction.`}
+          <Alert severity={spec === 'base' ? 'success' : 'info'} sx={{ mb: 2 }}>
+            {spec === 'base'
+              ? `As printed in Figure 3c: pleiotropy is the number of diseases a protein mediates
+                 through its dominant exposure category, and point size is how many categories
+                 drive it. This is the published view — ${view.nSpec} disease-specific and
+                 ${view.nHub} pleiotropic.`
+              : `The same count under a different adjustment: ${view.nSpec} disease-specific and
+                 ${view.nHub} pleiotropic, against the 325 and 303 printed in Figure 3c. Fewer
+                 links clear significance under this specification, so proteins move left as
+                 well as out of the plot entirely.`}
           </Alert>
 
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1.5 }}>
