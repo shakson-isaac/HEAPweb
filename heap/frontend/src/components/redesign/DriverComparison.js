@@ -5,8 +5,10 @@ import {
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { compColor } from '../../lib/palette';
-import { useSection } from '../../lib/useSection';
-import { SPEC_LABEL, diseaseInfo, driverIndex, specsIn } from '../../lib/mediation';
+import { useKeys, useSection, useShard } from '../../lib/useSection';
+import {
+  SPEC_LABEL, diseaseInfo, distIndex, shardRows, specsIn,
+} from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- an exposomic effect against its genetic counterparts.
@@ -39,8 +41,11 @@ const DRIVERS = [
 ];
 
 export default function DriverComparison() {
-  const { data, loading, error } = useSection('med_drivers');
+  // The overview reads BINNED distributions, not the links -- it only ever drew
+  // a shape from them. The per-protein view fetches that protein's shard.
+  const { data, loading, error } = useSection('med_driver_dist');
   const dcSec = useSection('med_disease');
+  const { data: keys } = useKeys('med_drivers');
   const [spec, setSpec] = useState('base');
   const [mode, setMode] = useState('overview');
   const [protein, setProtein] = useState(null);
@@ -48,36 +53,36 @@ export default function DriverComparison() {
   const specs = useMemo(() => specsIn(data), [data]);
   const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);
   const nameOf = (id) => dz.label.get(id) || id;
-  const bySpec = useMemo(() => driverIndex(data), [data]);
+  const dist = useMemo(() => distIndex(data, 'effect_pct', 'driver'), [data]);
 
-  const rows = useMemo(() => bySpec[spec] || null, [bySpec, spec]);
-
-  const proteins = useMemo(() => (
-    rows ? [...new Set(rows.map((r) => r.protein))].sort() : []
-  ), [rows]);
+  // Protein keys come from the shard index, so the picker lists everything the
+  // section holds without fetching any of it.
+  const proteins = useMemo(() => (keys?.keys ? Object.keys(keys.keys).sort() : []), [keys]);
+  const { data: shard } = useShard('med_drivers', protein);
+  const rows = useMemo(
+    () => shardRows(shard).filter((r) => r.spec === spec),
+    [shard, spec],
+  );
 
   // Distribution of the mediated effect under each driver, significant links
   // only. Drawn as |HR - 1| in percent so the three are on one scale and a
   // protective and a harmful effect of the same size sit together.
   const overview = useMemo(() => {
-    if (!rows) return null;
-    const t = DRIVERS.map((d) => {
-      const v = [];
-      rows.forEach((r) => {
-        const g = r[d.key];
-        if (!g?.sig || g.hr == null) return;
-        v.push(Math.abs(g.hr - 1) * 100);
-      });
+    const byDriver = dist[spec];
+    if (!byDriver) return null;
+    return DRIVERS.map((d) => {
+      const g = byDriver[d.key];
+      if (!g) return null;
+      const n = g.y.reduce((a, b) => a + b, 0);
       return {
-        type: 'violin', name: `${d.label} (${v.length.toLocaleString()})`,
-        y: v, box: { visible: true }, meanline: { visible: true },
-        line: { color: d.color }, fillcolor: d.color, opacity: 0.45,
-        points: false, spanmode: 'hard',
-        hovertemplate: '%{y:.2f}% per SD<extra></extra>',
+        type: 'bar', name: `${d.label} (${n.toLocaleString()})`,
+        x: g.x, y: g.y,
+        marker: { color: d.color, line: { width: 0 } },
+        opacity: 0.55,
+        hovertemplate: `<b>${d.label}</b><br>%{x}% per SD<br>%{y} links<extra></extra>`,
       };
-    });
-    return t;
-  }, [rows]);
+    }).filter(Boolean);
+  }, [dist, spec]);
 
   // One protein: every disease it links to, all four drivers with intervals.
   const detail = useMemo(() => {
@@ -117,7 +122,7 @@ export default function DriverComparison() {
       loading={loading}
       error={error}
     >
-      {data && rows && (
+      {data && specs.length > 0 && (
         <>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 1.5 }}>
             <ToggleButtonGroup size="small" exclusive value={mode} onChange={(_, v) => v && setMode(v)}>
@@ -149,18 +154,20 @@ export default function DriverComparison() {
                 data={overview}
                 height={420}
                 layout={{
-                  yaxis: { title: 'mediated effect |HR − 1| (% per SD)', rangemode: 'tozero' },
-                  xaxis: { showticklabels: false },
+                  barmode: 'overlay',
+                  xaxis: { title: 'mediated effect |HR − 1| (% per SD)', range: [0, 12] },
+                  yaxis: { title: 'significant links' },
                   legend: { orientation: 'h', y: 1.12, x: 0 },
-                  margin: { l: 80, r: 30, t: 45, b: 30 },
+                  margin: { l: 80, r: 30, t: 45, b: 60 },
                 }}
               />
               <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, maxWidth: 900 }}>
-                Significant links only, so each violin is conditioned on its own driver clearing
-                FDR — the counts differ and the shapes are not directly a statement about which
-                driver is stronger overall. What they do show is the size of effect each driver
+Significant links only, so each distribution is conditioned on its own driver
+                clearing FDR — the counts differ, and the shapes are not a statement about which
+                driver is stronger overall. What they show is the size of effect each driver
                 delivers when it delivers one, which is the number to hold an exposomic effect
-                against.
+                against. Binned at 0.25%, with everything above 30% in the last bar; the axis is
+                clipped at 12% where the mass is.
               </Typography>
             </>
           )}

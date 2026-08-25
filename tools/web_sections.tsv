@@ -114,5 +114,8 @@ categories	varcat_protein	varcat_protein.tsv	S		Per-protein variance explained b
 categories	varcat_reach	varcat_reach.tsv	S		Reach of each exposure category across the proteome	bar	on	derived_tsv	
 disease	med_spectrum	med_spectrum.tsv	S		Mediator proteins by disease pleiotropy and strongest effect	scatter	on	derived_tsv	
 disease	med_grid	med_grid.tsv	S		Mediator proteins per exposure category and disease	heatmap	on	derived_tsv	
-disease	med_drivers	med_drivers.tsv	S		Mediated effect under exposome, cis, trans and total genetic drivers	scatter	on	derived_tsv	
+disease	med_drivers	med_drivers.tsv	K	protein	Mediated effect per protein under exposome, cis, trans and total genetic drivers	scatter	on	derived_tsv	
 disease	med_disease	med_disease.tsv	S		Disease class, for sectioning the mediation grid	table	on	derived_tsv	
+disease	med_dz_links	med_dz_links.tsv	K	disease_id	Mediated effect per disease, all drivers	scatter	on	derived_tsv	
+disease	med_driver_dist	med_driver_dist.tsv	S		Binned mediated-effect distribution per driver	violin	on	derived_tsv	
+disease	med_pm_dist	med_pm_dist.tsv	S		Binned proportion-mediated distribution	histogram	on	derived_tsv	

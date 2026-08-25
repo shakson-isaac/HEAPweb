@@ -10,7 +10,22 @@ the repeated specification strings:
   med_grid       per (exposure category, disease): how many proteins carry a
                  significant mediated effect, and which
   med_drivers    per (protein, disease): the mediated effect under the exposome
-                 score and under cis, trans and total genetic drivers
+                 score and under cis, trans and total genetic drivers.
+                 SHARDED BY PROTEIN.
+  med_dz_links   the same links keyed the other way, SHARDED BY DISEASE
+  med_driver_dist  binned effect-size distributions, one small table
+
+WHY THE LINKS SHIP THREE TIMES OVER. Two panels read them and they drill on
+different keys: the driver comparison opens one PROTEIN across its diseases, the
+landscape opens one DISEASE across its proteins. A single sharded section can
+only have one key, and shipping the whole 105,360-row table so either panel can
+slice it client-side means every visitor downloads 2.35 MB to draw one forest.
+
+So the detail is sharded twice -- by protein and by disease -- and the two
+overviews, which need every link at once but only to draw a distribution, read
+precomputed bins instead. Binning server-side is not a compromise: a histogram
+of 105,360 values IS bins, and the browser was being sent the raw values only to
+count them itself.
   med_disease    per disease: its identifier, display label and class
 
 EVERY DISEASE IS KEYED ON DZ_ID, NOT ON ITS NAME. The two sources spell disease
@@ -66,6 +81,24 @@ def read(path):
         idx = {c: i for i, c in enumerate(head)}
         for row in r:
             yield row, idx
+
+
+# Effect sizes are |HR - 1| as a percentage. 0.25% bins to 30%, then a tail
+# bucket, which is finer than any screen can resolve and keeps the table tiny.
+def bin_pct(v):
+    if v is None:
+        return None
+    if v >= 30:
+        return 30.0
+    return round(round(v / 0.25) * 0.25, 2)
+
+
+def bin_unit(v):
+    """Proportion mediated: 0-1 in 0.01 bins. Values outside are clamped."""
+    if v is None:
+        return None
+    v = max(0.0, min(1.0, v))
+    return round(round(v / 0.01) * 0.01, 2)
 
 
 def write(name, cols, rows):
@@ -185,12 +218,43 @@ def main():
     write("med_spectrum", ["spec", "protein", "pleiotropy", "max_eff_pct",
                            "n_exposure_categories", "disease_ids"], spectrum)
     write("med_grid", ["spec", "category", "disease_id", "n_proteins", "proteins"], grid)
-    write("med_drivers",
-          ["spec", "protein", "disease_id", "n_cases",
-           "pxs", "pxs_lo", "pxs_hi", "pxs_sig", "prop_mediated",
-           "cis", "cis_lo", "cis_hi", "cis_sig",
-           "trans", "trans_lo", "trans_hi", "trans_sig",
-           "pgs", "pgs_lo", "pgs_hi", "pgs_sig"], drivers)
+    DCOLS = ["spec", "protein", "disease_id", "n_cases",
+             "pxs", "pxs_lo", "pxs_hi", "pxs_sig", "prop_mediated",
+             "cis", "cis_lo", "cis_hi", "cis_sig",
+             "trans", "trans_lo", "trans_hi", "trans_sig",
+             "pgs", "pgs_lo", "pgs_hi", "pgs_sig"]
+    write("med_drivers", DCOLS, drivers)
+
+    # Same rows, disease first, so the packer can shard them the other way.
+    ix = {c: k for k, c in enumerate(DCOLS)}
+    rest = [c for c in DCOLS if c not in ("spec", "protein", "disease_id")]
+    dz_cols = ["disease_id", "spec", "protein"] + rest
+    dz_first = [[r[ix["disease_id"]], r[ix["spec"]], r[ix["protein"]]]
+                + [r[ix[c]] for c in rest]
+                for r in drivers]
+    write("med_dz_links", dz_cols, dz_first)
+
+    # Binned distributions for the two overviews.
+    dist = collections.Counter()
+    pmd = collections.Counter()
+    for r in drivers:
+        for drv in ("pxs", "cis", "trans", "pgs"):
+            if not r[ix[f"{drv}_sig"]]:
+                continue
+            hr = r[ix[drv]]
+            if hr is None:
+                continue
+            b = bin_pct(abs(hr - 1) * 100)
+            if b is not None:
+                dist[(r[ix["spec"]], drv, b)] += 1
+        if r[ix["pxs_sig"]]:
+            b = bin_unit(r[ix["prop_mediated"]])
+            if b is not None:
+                pmd[(r[ix["spec"]], b)] += 1
+    write("med_driver_dist", ["spec", "driver", "effect_pct", "n_links"],
+          [[k[0], k[1], k[2], v] for k, v in sorted(dist.items())])
+    write("med_pm_dist", ["spec", "prop_mediated", "n_links"],
+          [[k[0], k[1], v] for k, v in sorted(pmd.items())])
     write("med_disease", ["disease_id", "disease", "class"],
           [[k, v[0], v[1]] for k, v in sorted(dz_class.items())])
 

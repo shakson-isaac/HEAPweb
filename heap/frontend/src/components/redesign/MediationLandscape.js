@@ -6,8 +6,10 @@ import {
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { compColor } from '../../lib/palette';
-import { useSection } from '../../lib/useSection';
-import { SPEC_LABEL, diseaseInfo, driverIndex, specsIn } from '../../lib/mediation';
+import { useKeys, useSection, useShard } from '../../lib/useSection';
+import {
+  SPEC_LABEL, binMedian, diseaseInfo, distIndex, shardRows, specsIn,
+} from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- "reporter or intermediate?"
@@ -33,8 +35,9 @@ import { SPEC_LABEL, diseaseInfo, driverIndex, specsIn } from '../../lib/mediati
 const CUTS = [0.05, 0.10, 0.15, 0.25, 0.50];
 
 export default function MediationLandscape() {
-  const { data, loading, error } = useSection('med_drivers');
+  const { data, loading, error } = useSection('med_pm_dist');
   const dcSec = useSection('med_disease');
+  const { data: dzKeys } = useKeys('med_dz_links');
   const [spec, setSpec] = useState('base');
   const [disease, setDisease] = useState(null);
   const [cut, setCut] = useState(0.10);
@@ -42,50 +45,60 @@ export default function MediationLandscape() {
   const specs = useMemo(() => specsIn(data), [data]);
   const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);
   const nameOf = (id) => dz.label.get(id) || id;
-  const bySpec = useMemo(() => driverIndex(data), [data]);
-  const rows = bySpec[spec] || null;
+  const pm = useMemo(() => distIndex(data, 'prop_mediated', null), [data]);
+  const { data: shard } = useShard('med_dz_links', disease);
+  const rows = useMemo(
+    () => shardRows(shard).filter((r) => r.spec === spec && r.pxs.sig),
+    [shard, spec],
+  );
 
-  // Counted here rather than shipped: the section is one row per link, so the
-  // per-specification totals are a pass over what is already in memory.
-  const summary = useMemo(() => {
-    if (!rows) return null;
-    const sig = rows.filter((r) => r.pxs.sig);
-    return {
-      n_sig: sig.length,
-      n_disease: new Set(sig.map((r) => r.disease)).size,
-      n_protein: new Set(sig.map((r) => r.protein)).size,
-      diseases: [...new Set(sig.map((r) => r.disease))].sort(),
-    };
-  }, [rows]);
-
+  // Everything the header and the histogram need comes from the BINS. The link
+  // rows are no longer in memory -- only the selected disease's shard is -- so a
+  // count over them would report that one disease rather than the whole
+  // specification.
   const dist = useMemo(() => {
-    if (!rows) return null;
-    const pm = rows.filter((r) => r.pxs.sig).map((r) => r.pm).filter((v) => v != null);
-    const below = pm.filter((v) => v < cut).length;
-    const sorted = [...pm].sort((a, b) => a - b);
-    const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+    const g = pm[spec];
+    const b = g && g.all;
+    if (!b) return null;
+    const total = b.y.reduce((a, c) => a + c, 0);
+    let below = 0;
+    for (let i = 0; i < b.x.length; i += 1) if (b.x[i] < cut) below += b.y[i];
     return {
       trace: [{
-        type: 'histogram',
-        x: pm,
-        nbinsx: 60,
-        marker: { color: '#1B6CA8', line: { color: 'white', width: 0.5 } },
+        type: 'bar',
+        x: b.x,
+        y: b.y,
+        marker: { color: '#1B6CA8', line: { width: 0 } },
         hovertemplate: 'proportion mediated %{x}<br>%{y} links<extra></extra>',
       }],
-      n: pm.length,
-      median,
-      pct: pm.length ? (100 * below) / pm.length : 0,
+      n: total,
+      median: binMedian(b),
+      pct: total ? (100 * below) / total : 0,
     };
-  }, [rows, cut]);
+  }, [pm, spec, cut]);
 
-  const diseases = summary ? summary.diseases : [];
+  const summary = useMemo(() => {
+    if (!dist) return null;
+    return { n_sig: dist.n, n_disease: (dzKeys?.keys ? Object.keys(dzKeys.keys).length : 0) };
+  }, [dist, dzKeys]);
+
+  const diseases = useMemo(() => (dzKeys?.keys ? Object.keys(dzKeys.keys).sort() : []), [dzKeys]);
+
+  // The primary model's link count, for the sensitivity note. Summed from the
+  // same bins rather than a link table -- the links are no longer held in
+  // memory, only the selected disease's shard.
+  const baseN = useMemo(() => {
+    const b = pm.base?.all;
+    return b ? b.y.reduce((a, c) => a + c, 0) : null;
+  }, [pm]);
 
   // One disease's mediators, strongest indirect effect first, coloured by the
   // exposure category the link starts from.
   const forest = useMemo(() => {
-    if (!rows || !disease) return null;
-    const sel = rows.filter((r) => r.disease === disease && r.pxs.sig);
-    if (!sel.length) return null;
+    // `rows` IS this disease's shard, already filtered to significant exposomic
+    // links, so there is nothing left to select on.
+    if (!rows?.length || !disease) return null;
+    const sel = rows;
     sel.sort((a, b) => Math.abs((b.pxs.hr || 1) - 1) - Math.abs((a.pxs.hr || 1) - 1));
     const top = sel.slice(0, 25).reverse();
     return [{
@@ -156,7 +169,6 @@ export default function MediationLandscape() {
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
             <Chip size="small" variant="outlined" label={`${dist.n.toLocaleString()} significant links`} />
             <Chip size="small" variant="outlined" label={`${summary.n_disease} diseases`} />
-            <Chip size="small" variant="outlined" label={`${summary.n_protein.toLocaleString()} proteins`} />
             <Chip
               size="small"
               label={`median link carries ${dist.median != null ? (100 * dist.median).toFixed(1) : '—'}%`}
@@ -171,7 +183,7 @@ export default function MediationLandscape() {
                 Fewer links here is a sensitivity result, not evidence of what mediates
               </AlertTitle>
               This specification leaves {dist.n.toLocaleString()} significant links against{' '}
-              {(bySpec.base || []).filter((r) => r.pxs.sig).length.toLocaleString()} under the primary model. It is tempting
+              {baseN ? baseN.toLocaleString() : '—'} under the primary model. It is tempting
               to read a drop under adjustment as showing that the adjusted-for variable was the
               real mediator. <b>It does not show that.</b> A variable can be a confounder, a
               mediator, or both at once, and adjusting for it moves the estimate in the same

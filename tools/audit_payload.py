@@ -116,10 +116,70 @@ def load(path):
         return None
 
 
-def audit(src):
-    files = [f for f in glob.glob(os.path.join(src, '**', '*'), recursive=True)
-             if os.path.isfile(f) and f.endswith(('.json', '.json.gz'))]
-    print(f"auditing {len(files):,} objects under {src}")
+def file_list(src):
+    """Every published object, from the MANIFEST rather than the filesystem.
+
+    A recursive glob over this tree spent nearly nine minutes enumerating 20,749
+    files without opening one of them: each readdir and stat is an NFS round
+    trip. build/web/manifest.tsv already lists every object the packer wrote,
+    so the same question is one local read. Falls back to walking if the ledger
+    is missing.
+    """
+    ledger = os.path.join(os.path.dirname(src.rstrip('/')), 'manifest.tsv')
+    if os.path.exists(ledger):
+        out = []
+        with open(ledger) as fh:
+            next(fh, None)
+            for line in fh:
+                rel = line.split('\t', 1)[0]
+                if rel.endswith(('.json', '.json.gz')):
+                    out.append(os.path.join(src, rel))
+        if out:
+            return out, True
+    return ([f for f in glob.glob(os.path.join(src, '**', '*'), recursive=True)
+             if os.path.isfile(f) and f.endswith(('.json', '.json.gz'))], False)
+
+
+def load_audited(path):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except Exception:
+        return {}
+
+
+def audit(src, incremental=True):
+    files, from_ledger = file_list(src)
+    print(f"auditing {len(files):,} objects under {src}"
+          f"{' (from manifest.tsv)' if from_ledger else ' (filesystem walk)'}")
+
+    # Objects whose bytes are unchanged since a PASSING audit are not re-read.
+    # Identical bytes cannot have become unsafe, and re-reading 20,749 gzipped
+    # files over NFS to re-derive the same verdict is the bulk of the runtime.
+    # Keyed on the packer's own sha256 for each path, so a rewritten file always
+    # re-audits. --full ignores this entirely.
+    seen_path = os.path.join(os.path.dirname(src.rstrip('/')), '.audit_cache.json')
+    audited = load_audited(seen_path) if incremental else {}
+    ledger_sha = {}
+    ledger = os.path.join(os.path.dirname(src.rstrip('/')), 'manifest.tsv')
+    if os.path.exists(ledger):
+        with open(ledger) as fh:
+            next(fh, None)
+            for line in fh:
+                bits = line.rstrip('\n').split('\t')
+                if len(bits) >= 2:
+                    ledger_sha[bits[0]] = bits[1]
+    reaudit = []
+    for f in files:
+        rel = os.path.relpath(f, src)
+        sha = ledger_sha.get(rel)
+        if incremental and sha and audited.get(rel) == sha:
+            continue
+        reaudit.append(f)
+    if incremental:
+        print(f"  {len(files) - len(reaudit):,} unchanged since a passing audit; "
+              f"re-auditing {len(reaudit):,}")
+    files = reaudit
 
     viol = []
     warn = []
@@ -193,6 +253,16 @@ def audit(src):
         if len(viol) > 40:
             print(f"  ... and {len(viol) - 40} more")
         return 1
+    # Record what passed, so the next run can skip unchanged bytes. Written ONLY
+    # on a pass: a failing run must never mark anything as cleared.
+    if incremental or True:
+        audited.update({os.path.relpath(f, src): ledger_sha.get(os.path.relpath(f, src))
+                        for f in files if ledger_sha.get(os.path.relpath(f, src))})
+        try:
+            with open(seen_path, 'w') as fh:
+                json.dump(audited, fh)
+        except OSError:
+            pass
     print("PASS -- aggregates only, no participant identifiers, no cell "
           f"below {MIN_CELL} people")
     return 0
@@ -202,5 +272,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap.add_argument('--src', default=os.path.join(repo, 'build', 'web', 'v1'))
+    ap.add_argument('--full', action='store_true',
+                    help='re-audit every object, ignoring the incremental cache')
     a = ap.parse_args()
-    sys.exit(audit(a.src))
+    sys.exit(audit(a.src, incremental=not a.full))

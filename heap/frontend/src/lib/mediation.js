@@ -96,7 +96,67 @@ export function diseaseInfo(d) {
   return { label, cls };
 }
 
-const DRIVER_COLS = ['pxs', 'cis', 'trans', 'pgs'];
+export const DRIVER_COLS = ['pxs', 'cis', 'trans', 'pgs'];
+
+/**
+ * med_driver_dist / med_pm_dist -> {spec: {driver: {x:[], y:[]}}}
+ *
+ * Binned server-side. A histogram of 105,360 values IS bins, and shipping the
+ * raw values so the browser could count them itself cost 2.35 MB on every page
+ * load. `key` names the value column, since the two tables bin different things.
+ */
+export function distIndex(d, key, driverCol) {
+  const out = {};
+  if (!d?.spec) return out;
+  for (let i = 0; i < d.spec.length; i += 1) {
+    const drv = driverCol ? d[driverCol][i] : 'all';
+    const s = (out[d.spec[i]] ||= {});
+    const g = (s[drv] ||= { x: [], y: [] });
+    g.x.push(num(d[key][i]));
+    g.y.push(num(d.n_links[i]));
+  }
+  return out;
+}
+
+/** Median of a binned distribution, without the raw values. */
+export function binMedian(g) {
+  if (!g?.y?.length) return null;
+  const total = g.y.reduce((a, b) => a + b, 0);
+  let seen = 0;
+  for (let i = 0; i < g.x.length; i += 1) {
+    seen += g.y[i];
+    if (seen >= total / 2) return g.x[i];
+  }
+  return g.x[g.x.length - 1];
+}
+
+/** Rows of one shard (med_drivers by protein, med_dz_links by disease). */
+export function shardRows(d) {
+  if (!d) return [];
+  const cols = Object.keys(d);
+  if (!cols.length) return [];
+  const n = d[cols[0]].length;
+  const out = [];
+  for (let i = 0; i < n; i += 1) {
+    const rec = {
+      spec: d.spec?.[i],
+      protein: d.protein?.[i],
+      disease: d.disease_id?.[i],
+      nCases: num(d.n_cases?.[i]),
+      pm: num(d.prop_mediated?.[i]),
+    };
+    DRIVER_COLS.forEach((c) => {
+      rec[c] = {
+        hr: num(d[c]?.[i]),
+        lo: num(d[`${c}_lo`]?.[i]),
+        hi: num(d[`${c}_hi`]?.[i]),
+        sig: String(d[`${c}_sig`]?.[i]) === '1',
+      };
+    });
+    out.push(rec);
+  }
+  return out;
+}
 
 /** med_drivers -> {spec: [{protein, disease, nCases, pm, pxs:{hr,lo,hi,sig}, ...}]} */
 export function driverIndex(d) {

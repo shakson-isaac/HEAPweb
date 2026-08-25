@@ -119,6 +119,65 @@ def gzip_bytes(raw):
     return buf.getvalue()
 
 
+# ---------------------------------------------------------------------------
+# Incremental packing
+#
+# A full run re-reads and re-packs all 117 sections. A typical edit changes
+# three, and the other 114 are re-read off NFS only to produce byte-identical
+# output -- about forty minutes of pure waste per iteration on this filesystem.
+#
+# The cache records, per section, the sha256 of its SOURCE file and the manifest
+# entry that source produced. On a later run a section is skipped only when the
+# source hash still matches AND every output file it produced is still on disk.
+# Anything else -- changed source, missing shard, unreadable cache -- repacks.
+#
+# The manifest is still assembled from every section, changed or not. That is
+# the difference between this and the existing --only flag, which rebuilds the
+# manifest from the sections it packed and leaves every other page reporting
+# "unknown section".
+def source_stamp(path):
+    """(mtime_ns, size) -- a stat, not a read.
+
+    An earlier version hashed the file. That is stronger, but hashing every
+    source means reading every source, which is the exact cost the cache exists
+    to avoid: on this NFS mount it took longer than packing. mtime+size is what
+    make and rsync trust, and a source that is rewritten with identical size and
+    an unchanged mtime is not a case this pipeline produces -- every generator
+    here writes a fresh file. `--force` covers the paranoid case.
+    """
+    st = os.stat(path)
+    return [st.st_mtime_ns, st.st_size]
+
+
+def load_cache(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def cache_usable(rec, out_dir):
+    """A cache hit must still have its output on disk.
+
+    SAMPLED, not exhaustive. A sharded section can be thousands of files and
+    every os.path.exists on this mount is an NFS round trip -- verifying all
+    21,315 outputs took longer than the packing it was meant to skip. First and
+    last are checked, which catches a deleted or half-written directory; a
+    surgically removed middle shard would slip through, and `--force` is the
+    answer if that is ever a real worry.
+    """
+    if not rec or "entry" not in rec or "outputs" not in rec:
+        return False
+    outs = rec["outputs"]
+    if not outs:
+        return False
+    for o in (outs[0], outs[-1]):
+        if not os.path.exists(os.path.join(out_dir, o["path"])):
+            return False
+    return True
+
+
 class Writer:
     def __init__(self, out, gz=True):
         self.out, self.gz = out, gz
@@ -182,6 +241,8 @@ def main():
     ap.add_argument("--out", default=None, help="default: <repo>/build/web/v1")
     ap.add_argument("--only", action="append", help="section_id or page to build (repeatable)")
     ap.add_argument("--no-gzip", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                    help="ignore the incremental cache and repack every section")
     args = ap.parse_args()
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -193,7 +254,11 @@ def main():
 
     pages = OrderedDict()
     skipped, missing = [], []
+    reused = []
     src_total = 0
+    cache_path = os.path.join(os.path.dirname(out.rstrip("/")), ".pack_cache.json")
+    cache = {} if args.force else load_cache(cache_path)
+    new_cache = {}
 
     for row in cfg:
         sid, page = row["section_id"], row["page"]
@@ -222,6 +287,20 @@ def main():
 
         src_bytes = os.path.getsize(src)
         src_total += src_bytes
+
+        # Incremental: reuse this section's previous output when the source is
+        # unchanged and everything it produced is still on disk.
+        stamp = source_stamp(src)
+        hit = cache.get(sid)
+        if (not args.force and hit and hit.get("stamp") == stamp
+                and cache_usable(hit, out)):
+            pages.setdefault(page, []).append(hit["entry"])
+            w.entries.extend(hit["outputs"])
+            new_cache[sid] = hit
+            reused.append(sid)
+            continue
+        w_mark = len(w.entries)
+
         records = (read_tsv_records(src)
                    if kind in ("stats_tsv", "deposit_tsv", "derived_tsv")
                    else json.load(open(src)))
@@ -297,6 +376,9 @@ def main():
             print(f"  [S] {sid:28s} {src_bytes/1048576:8.1f} MB -> {n/1024:8.1f} KB")
 
         pages.setdefault(page, []).append(entry)
+        # Everything this section wrote, so a later run can prove it is intact.
+        new_cache[sid] = {"stamp": stamp, "entry": entry,
+                          "outputs": w.entries[w_mark:]}
 
     if w.gz:  # record the .gz suffix the client must request
         for secs in pages.values():
@@ -308,6 +390,11 @@ def main():
     manifest = {"version": "v1", "gzipped": w.gz,
                 "pages": [{"page": p, "sections": s} for p, s in pages.items()]}
     w.write("manifest.json", manifest)
+    with open(cache_path, "w") as f:
+        json.dump(new_cache, f)
+    print(f"  packed {len(new_cache) - len(reused)}, reused {len(reused)} unchanged")
+    if reused:
+        print("    reused: " + ", ".join(sorted(reused)))
 
     # Ledger of what was built. Lives OUTSIDE the synced tree: it is the record
     # committed to git, not an asset the browser fetches.
