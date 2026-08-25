@@ -5,6 +5,12 @@
 // specification and disease strings repeat on every row and collapse to almost
 // nothing once packed.
 //
+// DISEASES ARE KEYED ON DZ_ID AND LABELLED SEPARATELY. The two upstream sources
+// spell disease names differently -- the deposit keeps the British forms it was
+// written with, disease_mediators.tsv has been Americanised -- and twelve names
+// disagree. Joining on the label silently lost those twelve. med_disease carries
+// id -> label, and every panel renders through it.
+//
 // SPECIFICATIONS COME FROM THE DATA. Only a partitioned run fits the 13 exposure
 // categories and cis/trans separately, so which specifications these panels can
 // offer depends on which partitioned runs have been summarised -- a moving
@@ -44,7 +50,7 @@ export function spectrumIndex(d) {
       x: num(d.pleiotropy[i]) || 0,
       y: num(d.max_eff_pct[i]) || 0,
       n: num(d.n_exposure_categories?.[i]) || 1,
-      dz: d.diseases?.[i] ? String(d.diseases[i]).split('; ') : [],
+      dz: d.disease_ids?.[i] ? String(d.disease_ids[i]).split('; ') : [],
     });
   }
   return out;
@@ -62,13 +68,14 @@ export function gridIndex(d) {
       counts: new Map(), proteins: new Map(), cats: new Set(), dzs: new Set(),
       total: new Map(),
     });
-    const key = `${d.category[i]}|${d.disease[i]}`;
+    const dz = d.disease_id[i];
+    const key = `${d.category[i]}|${dz}`;
     const n = num(d.n_proteins[i]) || 0;
     g.counts.set(key, n);
     g.proteins.set(key, d.proteins?.[i] ? String(d.proteins[i]).split('; ') : []);
     g.cats.add(d.category[i]);
-    g.dzs.add(d.disease[i]);
-    g.total.set(d.disease[i], (g.total.get(d.disease[i]) || 0) + n);
+    g.dzs.add(dz);
+    g.total.set(dz, (g.total.get(dz) || 0) + n);
   }
   Object.values(out).forEach((g) => {
     g.categories = [...g.cats].sort();
@@ -77,12 +84,16 @@ export function gridIndex(d) {
   return out;
 }
 
-/** med_disease -> Map(disease -> class) */
-export function diseaseClass(d) {
-  const m = new Map();
-  if (!d?.disease) return m;
-  d.disease.forEach((x, i) => m.set(x, d.class?.[i] || 'Other'));
-  return m;
+/** med_disease -> {label: Map(id -> name), cls: Map(id -> class)} */
+export function diseaseInfo(d) {
+  const label = new Map();
+  const cls = new Map();
+  if (!d?.disease_id) return { label, cls };
+  d.disease_id.forEach((id, i) => {
+    label.set(id, d.disease?.[i] || id);
+    cls.set(id, d.class?.[i] || 'Other');
+  });
+  return { label, cls };
 }
 
 const DRIVER_COLS = ['pxs', 'cis', 'trans', 'pgs'];
@@ -94,7 +105,7 @@ export function driverIndex(d) {
   for (let i = 0; i < d.spec.length; i += 1) {
     const rec = {
       protein: d.protein[i],
-      disease: d.disease[i],
+      disease: d.disease_id[i],
       nCases: num(d.n_cases?.[i]),
       pm: num(d.prop_mediated?.[i]),
     };

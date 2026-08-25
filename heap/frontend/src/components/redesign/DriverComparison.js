@@ -6,7 +6,7 @@ import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { compColor } from '../../lib/palette';
 import { useSection } from '../../lib/useSection';
-import { SPEC_LABEL, driverIndex, specsIn } from '../../lib/mediation';
+import { SPEC_LABEL, diseaseInfo, driverIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- an exposomic effect against its genetic counterparts.
@@ -40,11 +40,14 @@ const DRIVERS = [
 
 export default function DriverComparison() {
   const { data, loading, error } = useSection('med_drivers');
+  const dcSec = useSection('med_disease');
   const [spec, setSpec] = useState('base');
   const [mode, setMode] = useState('overview');
   const [protein, setProtein] = useState(null);
 
   const specs = useMemo(() => specsIn(data), [data]);
+  const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);
+  const nameOf = (id) => dz.label.get(id) || id;
   const bySpec = useMemo(() => driverIndex(data), [data]);
 
   const rows = useMemo(() => bySpec[spec] || null, [bySpec, spec]);
@@ -86,7 +89,7 @@ export default function DriverComparison() {
     return DRIVERS.map((d) => ({
       type: 'scatter', mode: 'markers', name: d.label,
       x: top.map((r) => r[d.key].hr),
-      y: top.map((r) => r.disease),
+      y: top.map((r) => nameOf(r.disease)),
       marker: {
         size: 9, color: d.color,
         symbol: top.map((r) => (r[d.key].sig ? 'circle' : 'circle-open')),

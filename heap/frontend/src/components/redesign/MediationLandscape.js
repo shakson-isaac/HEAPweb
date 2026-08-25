@@ -7,7 +7,7 @@ import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { compColor } from '../../lib/palette';
 import { useSection } from '../../lib/useSection';
-import { SPEC_LABEL, driverIndex, specsIn } from '../../lib/mediation';
+import { SPEC_LABEL, diseaseInfo, driverIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- "reporter or intermediate?"
@@ -34,11 +34,14 @@ const CUTS = [0.05, 0.10, 0.15, 0.25, 0.50];
 
 export default function MediationLandscape() {
   const { data, loading, error } = useSection('med_drivers');
+  const dcSec = useSection('med_disease');
   const [spec, setSpec] = useState('base');
   const [disease, setDisease] = useState(null);
   const [cut, setCut] = useState(0.10);
 
   const specs = useMemo(() => specsIn(data), [data]);
+  const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);
+  const nameOf = (id) => dz.label.get(id) || id;
   const bySpec = useMemo(() => driverIndex(data), [data]);
   const rows = bySpec[spec] || null;
 
@@ -203,6 +206,7 @@ export default function MediationLandscape() {
             <Autocomplete
               size="small"
               options={diseases}
+              getOptionLabel={nameOf}
               value={disease}
               onChange={(_, v) => setDisease(v)}
               renderInput={(p) => <TextField {...p} placeholder="Search a disease — e.g. type 2 diabetes" />}

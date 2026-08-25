@@ -11,7 +11,14 @@ the repeated specification strings:
                  significant mediated effect, and which
   med_drivers    per (protein, disease): the mediated effect under the exposome
                  score and under cis, trans and total genetic drivers
-  med_disease    per disease: its class, for sectioning the grid
+  med_disease    per disease: its identifier, display label and class
+
+EVERY DISEASE IS KEYED ON DZ_ID, NOT ON ITS NAME. The two sources spell disease
+names differently: the deposit has the British forms it was written with
+("diarrhoea", "ischaemic", "oesophagitis") while disease_mediators.tsv has been
+run through heap_americanize. Twelve names disagree, so joining the grid to its
+disease class by label silently dropped those twelve into "Other". DZ_ID is a
+stable identifier and does not move when a label is respelled.
 
 SPECIFICATIONS ARE DISCOVERED, NOT LISTED. Only a `partitioned_categories` run
 fits the 13 categories and cis/trans separately; `primary_total` fits one
@@ -108,8 +115,10 @@ def main():
                 except (TypeError, ValueError):
                     pass
                 b["cats"].add(row[i["dom_cat"]])
-                b["dz"].add(row[i["disease"]])
-                dz_class.setdefault(row[i["disease"]], row[i["system"]])
+                b["dz"].add(row[i["DZ_ID"]])
+                # The Americanised label wins where the two sources disagree:
+                # it is the house spelling and the one the figures render.
+                dz_class[row[i["DZ_ID"]]] = (row[i["disease"]], row[i["system"]])
             for p in sorted(per):
                 b = per[p]
                 spectrum.append([spec, p, b["pl"], round(b["eff"], 4), len(b["cats"]),
@@ -124,7 +133,10 @@ def main():
         for row, i in read(os.path.join(dep, "med_exposure_categories.tsv")):
             if row[i["sig"]] != "TRUE":
                 continue
-            cells[(row[i["exposure_category"]], row[i["disease"]])].add(row[i["protID"]])
+            cells[(row[i["exposure_category"]], row[i["DZ_ID"]])].add(row[i["protID"]])
+            # Keep the deposit's label only as a fallback for diseases that
+            # never appear in disease_mediators.tsv.
+            dz_class.setdefault(row[i["DZ_ID"]], (row[i["disease"]], "Other"))
         for (cat, dz), ps in sorted(cells.items()):
             # The protein list is capped: a cell can hold hundreds and the panel
             # names them as a hint, not as a table. The count is exact.
@@ -139,12 +151,17 @@ def main():
             continue
         gen = collections.defaultdict(dict)
         for row, i in read(gfile):
-            gen[(row[i["protID"]], row[i["disease"]])][row[i["component"]]] = (
+            gen[(row[i["protID"]], row[i["DZ_ID"]])][row[i["component"]]] = (
                 rd(row[i["nie_HR"]]), rd(row[i["nie_l95"]]), rd(row[i["nie_u95"]]),
                 1 if row[i["sig"]] == "TRUE" else 0)
         n = 0
         for row, i in read(efile):
-            key = (row[i["protID"]], row[i["disease"]])
+            key = (row[i["protID"]], row[i["DZ_ID"]])
+            # Register a fallback label here too. A disease can carry a driver
+            # effect while never reaching significance at the category level, so
+            # it appears in this file and not in disease_mediators.tsv -- 37 of
+            # them do. Without this they render as raw DZ_IDs in the panel.
+            dz_class.setdefault(row[i["DZ_ID"]], (row[i["disease"]], "Other"))
             g = gen.get(key, {})
             esig = 1 if row[i["sig"]] == "TRUE" else 0
             # A link significant under no driver says nothing about which route
@@ -166,16 +183,16 @@ def main():
         print(f"    drivers  {spec:14s} {n:6,} links")
 
     write("med_spectrum", ["spec", "protein", "pleiotropy", "max_eff_pct",
-                           "n_exposure_categories", "diseases"], spectrum)
-    write("med_grid", ["spec", "category", "disease", "n_proteins", "proteins"], grid)
+                           "n_exposure_categories", "disease_ids"], spectrum)
+    write("med_grid", ["spec", "category", "disease_id", "n_proteins", "proteins"], grid)
     write("med_drivers",
-          ["spec", "protein", "disease", "n_cases",
+          ["spec", "protein", "disease_id", "n_cases",
            "pxs", "pxs_lo", "pxs_hi", "pxs_sig", "prop_mediated",
            "cis", "cis_lo", "cis_hi", "cis_sig",
            "trans", "trans_lo", "trans_hi", "trans_sig",
            "pgs", "pgs_lo", "pgs_hi", "pgs_sig"], drivers)
-    write("med_disease", ["disease", "class"],
-          [[d, c] for d, c in sorted(dz_class.items())])
+    write("med_disease", ["disease_id", "disease", "class"],
+          [[k, v[0], v[1]] for k, v in sorted(dz_class.items())])
 
 
 if __name__ == "__main__":

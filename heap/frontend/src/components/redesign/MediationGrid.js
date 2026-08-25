@@ -6,7 +6,7 @@ import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import { ecatColor } from '../../lib/palette';
 import { useSection } from '../../lib/useSection';
-import { SPEC_LABEL, diseaseClass, gridIndex, specsIn } from '../../lib/mediation';
+import { SPEC_LABEL, diseaseInfo, gridIndex, specsIn } from '../../lib/mediation';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS, alternative B -- main Figure 3b made interactive.
@@ -45,7 +45,11 @@ export default function MediationGrid() {
   const error = g0.error || dc.error;
   const specs = useMemo(() => specsIn(g0.data), [g0.data]);
   const grids = useMemo(() => gridIndex(g0.data), [g0.data]);
-  const sysOf = useMemo(() => diseaseClass(dc.data), [dc.data]);
+  // NOT `dz` -- the view memo already declares a local `dz` array of disease
+  // ids, and a same-scope const shadow puts this one in the temporal dead zone,
+  // throwing the moment the grid renders.
+  const dzInfo = useMemo(() => diseaseInfo(dc.data), [dc.data]);
+  const nameOf = (id) => dzInfo.label.get(id) || id;
   const [spec, setSpec] = useState('base');
   const [nDz, setNDz] = useState(24);
   const [cell, setCell] = useState(null);
@@ -60,7 +64,7 @@ export default function MediationGrid() {
     const top = [...g.diseases].sort((a, b) => total[b] - total[a]).slice(0, nDz);
     const bySys = new Map();
     top.forEach((d) => {
-      const k = sysOf.get(d) || 'Other';
+      const k = dzInfo.cls.get(d) || 'Other';
       if (!bySys.has(k)) bySys.set(k, []);
       bySys.get(k).push(d);
     });
@@ -83,7 +87,7 @@ export default function MediationGrid() {
     ));
     const z = cats.map((c) => dz.map((d) => g.counts.get(`${c}|${d}`) || 0));
     return { dz, cats, z, total, bands, nAll: g.diseases.length };
-  }, [grids, sysOf, nDz, spec]);
+  }, [grids, dzInfo, nDz, spec]);
 
   const detail = useMemo(() => {
     const g = grids[spec];
@@ -131,14 +135,17 @@ export default function MediationGrid() {
             data={[{
               type: 'heatmap',
               z: view.z,
-              x: view.dz,
+              x: view.dz.map(nameOf),
               y: view.cats.map(prettyCat),
               colorscale: [[0, '#F2F6F9'], [0.25, '#8FC7C0'], [0.6, '#2E7EA8'], [1, '#22245B']],
               hovertemplate: '<b>%{y}</b> → <b>%{x}</b><br>%{z} mediator proteins<extra></extra>',
               colorbar: { title: { text: 'mediator<br>proteins', font: { size: 11 } }, thickness: 12 },
             }]}
             height={Math.max(340, 26 * view.cats.length + 220)}
-            onPointClick={(p) => setCell({ cat: view.cats[p.pointIndex[0]], dz: p.x })}
+            onPointClick={(p) => setCell({
+              cat: view.cats[p.pointIndex[0]],
+              dz: view.dz[p.pointIndex[1]],   // the ID, not the rendered label
+            })}
             layout={{
               xaxis: { tickangle: -40, automargin: true },
               yaxis: { automargin: true },
@@ -163,7 +170,7 @@ export default function MediationGrid() {
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
                 <Chip size="small" label={prettyCat(cell.cat)}
                       sx={{ bgcolor: ecatColor(cell.cat), color: 'white', fontWeight: 700 }} />
-                <Typography variant="body2"><b>→ {cell.dz}</b></Typography>
+                <Typography variant="body2"><b>→ {nameOf(cell.dz)}</b></Typography>
                 <Chip size="small" variant="outlined" label={`${detail.n} mediator proteins`} />
               </Box>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
