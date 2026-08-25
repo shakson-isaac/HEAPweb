@@ -196,3 +196,9 @@ node_modules
 # instead, and these files are megabytes of deposit extract that do not belong
 # in the repo.
 /heap/frontend/public/mockup/
+
+# Core dumps. A 1.9 GB one from a killed node process was committed once and
+# blocked the push; GitHub refuses anything over 100 MB.
+core
+core.*
+*.core
