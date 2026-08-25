@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert, Autocomplete, Box, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
@@ -52,7 +52,7 @@ export default function DriverComparison() {
 
   const specs = useMemo(() => specsIn(data), [data]);
   const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);
-  const nameOf = (id) => dz.label.get(id) || id;
+  const nameOf = useCallback((id) => dz.label.get(id) || id, [dz]);
   const dist = useMemo(() => distIndex(data, 'effect_pct', 'driver'), [data]);
 
   // Protein keys come from the shard index, so the picker lists everything the
@@ -110,7 +110,7 @@ export default function DriverComparison() {
       },
       hovertemplate: `<b>%{y}</b><br>${d.label}: HR %{x:.4f}<extra></extra>`,
     }));
-  }, [rows, protein]);
+  }, [rows, protein, nameOf]);
 
   return (
     <SectionCard
