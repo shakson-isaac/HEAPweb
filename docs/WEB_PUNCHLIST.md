@@ -207,6 +207,11 @@ When creating a replacement bucket, copy all of:
 - [x] public read (`allUsers` -> `roles/storage.objectViewer`)
 - [x] object contents
 - [x] **CORS policy** -- `gsutil cors get gs://old > cors.json && gsutil cors set cors.json gs://new`
+- [x] **every prefix, not just the one your tool manages.** `sync_gcs.py` only
+  handles `build/web/v1` -> `web/`, but the bucket also held `supp/` (1.6 GB,
+  the downloadable archive, published by publish_supplementary.py) and
+  `review/` (299 MB). Migrating only `web/` left the Downloads page 404ing.
+  A single `gcloud storage ls gs://OLD/` before the cutover shows all of them.
 - [ ] lifecycle rules, if any are ever added
 - [ ] retention policy, if any is ever added
 
