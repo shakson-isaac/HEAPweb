@@ -113,3 +113,60 @@ payload directory — the data server, not the site.
 only, no participant identifiers, no cell below 10 people. It has caught a real
 one (`sample` vs `sample_spec`) and carries two documented carve-outs (`Eid` is
 an exposure id; 7-digit `pos`/`start`/`end` are genomic coordinates).
+
+---
+
+## Fix list — opened 2026-08-26
+
+Bugs and changes found while reviewing the live preview. Consolidation of the
+Google projects comes first; these are worked afterwards, because deploy churn
+would mean re-verifying each fix anyway.
+
+Status: `[ ]` open · `[x]` done · `[~]` in progress
+
+### Disease links
+
+- [ ] **Per-protein plot renders blank.** Clicking a protein in the driver
+  comparison (and the reporter/intermediate view) shows no chart.
+  *Lead:* a sharded section does not repeat its key column inside the shard --
+  `k/med_drivers/LEP.json.gz` has `spec, disease_id, n_cases, pxs, ...` but no
+  `protein`. `shardRows()` in `lib/mediation.js` reads `d.protein[i]`, which is
+  `undefined`; symmetrically `d.disease_id` is absent from `med_dz_links`
+  shards. Fix: have `shardRows` take the key and fill the missing column.
+
+### Verified working on the preview
+
+- [x] Manifest `.gz` suffix accumulation (`.gz.gz.gz`) -- caused 404s on every
+  section. Cache stored the manifest entry by reference and the suffix step
+  mutated it each run. Fixed idempotently plus a defensive copy.
+
+### Deployment consolidation (do first)
+
+- [ ] Decide whether the Flask backend in `focal-cache-455223-h5` is still
+  called at all. If the site reads everything from GCS, that project retires
+  rather than migrates -- and with it the cross-project credential that caused
+  five successive deploy failures.
+- [ ] Move `gs://heap-web-data` from `heaptrial-a2785` into `heap-4b852`.
+  A bucket's project cannot be changed, so: create the new bucket, publish to
+  it, verify, flip `REACT_APP_WEB_DATA_URL`, redeploy, retire the old one.
+- [ ] Recreate the CI service account inside `heap-4b852` so the credential and
+  its target finally share a project. Today's chain -- credential in
+  `focal-cache`, deploy to `heap-4b852`, data in `heaptrial` -- needed an IAM
+  grant and an API enablement at every boundary, each failing with the same
+  opaque "Failed to get Firebase project".
+- [ ] Once consolidated, drop the now-unnecessary cross-project IAM grants.
+
+### Deployment facts worth keeping
+
+| piece | project | notes |
+|---|---|---|
+| Firebase Hosting | `heap-4b852` | site id `heap-4b852`, `heap-4b852.web.app` |
+| Flask backend (Cloud Run) | `focal-cache-455223-h5` | project number 407921522156 |
+| GCS payload bucket | `heaptrial-a2785` | `gs://heap-web-data` |
+| CI service account | `github-actions-service-account@focal-cache-455223-h5` | what `GCP_CREDENTIALS` holds |
+
+Firebase deploys authenticate with that service account, not a
+`firebase login:ci` token -- those are deprecated and the old one had expired.
+It needs `roles/firebasehosting.admin` on `heap-4b852` AND
+`firebase.googleapis.com` enabled on its OWN project, because a service
+account's API calls bill to the project it lives in.
