@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Chip, Divider,
+  Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Chip,
   IconButton, Link, Pagination, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
@@ -490,57 +490,6 @@ function RegistryEntry({ dataset, suppBase, archiveFiles, xlsxUrl }) {
   );
 }
 
-// -------------------------------------------------------------- legacy ------
-
-function LegacyDownloads() {
-  const backend = process.env.REACT_APP_BACKEND_URL;
-  const { data, loading, error } = useJSON(backend ? `${backend}/api/downloads` : null);
-  const files = Array.isArray(data) ? data : [];
-  return (
-    <Accordion disableGutters sx={{ mt: 1 }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Typography sx={{ fontWeight: 600 }}>Legacy exports — superseded</Typography>
-          {!loading && !error && <Chip size="small" variant="outlined" label={`${files.length} files`} />}
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Alert severity="warning" sx={{ mb: 1.5 }}>
-          These files are the previous release&apos;s exports, served by the Flask backend rather
-          than the public bucket. Everything in them is re-derived in the catalogued archive
-          above, at full precision and with a published schema. They are kept only so that links
-          published before this rebuild keep resolving, and they will be retired with the Flask
-          backend.
-        </Alert>
-        {loading && (
-          <Typography variant="body2" color="text.secondary">Asking the legacy API…</Typography>
-        )}
-        {error && (
-          <Alert severity="warning">
-            The legacy Flask endpoint did not answer ({String(error.message || error)}). Nothing
-            above depends on it — the catalog and every file it lists are static objects on the
-            public bucket.
-          </Alert>
-        )}
-        {!loading && !error && files.length === 0 && (
-          <Alert severity="info">
-            The legacy endpoint answered, and lists no files.
-          </Alert>
-        )}
-        {!loading && !error && files.length > 0 && (
-          <Box>
-            {files.map((f) => (
-              <Box key={f} sx={{ display: 'flex', gap: 1.5, alignItems: 'center', py: 0.5 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'monospace', minWidth: 260 }}>{f}</Typography>
-                <Link href={`${backend}/download/${f}`} download>Download</Link>
-              </Box>
-            ))}
-          </Box>
-        )}
-      </AccordionDetails>
-    </Accordion>
-  );
-}
 
 // ----------------------------------------------------------------- page -----
 
@@ -806,8 +755,6 @@ export default function Downloads() {
                 })}
               </SectionCard>
 
-              <Divider sx={{ my: 3 }} />
-              <LegacyDownloads />
             </Box>
           )}
         </SectionCard>

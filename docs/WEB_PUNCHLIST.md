@@ -142,10 +142,28 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
 
 ### Deployment consolidation (do first)
 
-- [ ] Decide whether the Flask backend in `focal-cache-455223-h5` is still
-  called at all. If the site reads everything from GCS, that project retires
-  rather than migrates -- and with it the cross-project credential that caused
-  five successive deploy failures.
+- [x] **Is the Flask backend in `focal-cache-455223-h5` still called?** No.
+  One component used it -- `LegacyDownloads` on the Downloads page, fetching
+  `/api/downloads`, which returns five loose CSVs. The GCS catalogue already
+  publishes **399** files across nine folders, and the five are superseded
+  rather than duplicated: each was a single-specification snapshot where the
+  deposit now carries every specification.
+
+  Recorded before removal, so a stale link can still be answered:
+
+  | legacy file (Flask) | superseded by (GCS `supp/v1/`) |
+  |---|---|
+  | `MediationResults.csv` | `mediation/exposome/{base,+bmi,+clinical,+blood_draw,exclude_prevalent}.tsv` |
+  | `GEMdownload.csv` | `mediation/base/{exposome,genetic}_mediation.tsv` |
+  | `GxE_R2table.csv` | `variance_decomposition/coarse/*.tsv` (9 specifications) |
+  | `GxE_Cat_R2table.csv` | `variance_decomposition/fine/*.tsv` |
+  | `Models_HEAPassociations.zip` | `associations_E/`, `associations_GxE/` |
+
+- [ ] **Shut down Cloud Run** in `focal-cache-455223-h5`, but only after the
+  frontend has run without it for a while. Leave it up until then -- it costs
+  almost nothing idle and is the instant rollback if a released frontend still
+  points at it.
+
 - [ ] Move `gs://heap-web-data` from `heaptrial-a2785` into `heap-4b852`.
   A bucket's project cannot be changed, so: create the new bucket, publish to
   it, verify, flip `REACT_APP_WEB_DATA_URL`, redeploy, retire the old one.
