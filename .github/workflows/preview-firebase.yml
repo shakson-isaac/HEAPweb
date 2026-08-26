@@ -170,7 +170,11 @@ jobs:
         CHANNEL: ${{ steps.chan.outputs.channel }}
         EXPIRES: ${{ steps.chan.outputs.expires }}
         FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        FIREBASE_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
+        # No FIREBASE_TOKEN. `firebase login:ci` tokens are deprecated and the
+        # one here had gone stale. The CLI uses the service account that
+        # google-github-actions/auth already exported as
+        # GOOGLE_APPLICATION_CREDENTIALS -- it lives in the Firebase project
+        # and holds roles/firebasehosting.admin, so nothing expires.
       run: |
         set -euo pipefail
         cd heap/frontend
@@ -178,7 +182,6 @@ jobs:
         firebase hosting:channel:deploy "$CHANNEL" \
           --expires "${EXPIRES}d" \
           --project "$FIREBASE_PROJECT_ID" \
-          --token "$FIREBASE_TOKEN" \
           --json > channel.json || { cat channel.json || true; exit 1; }
 
         cat channel.json

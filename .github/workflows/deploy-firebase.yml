@@ -68,4 +68,6 @@ jobs:
     - name: Deploy to Firebase Hosting
       run: |
         cd heap/frontend  # Navigate to the frontend directory
-        firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
+        # Uses the service account from google-github-actions/auth above, not a
+        # deprecated `firebase login:ci` token.
+        firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
