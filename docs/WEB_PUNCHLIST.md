@@ -164,7 +164,8 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
   almost nothing idle and is the instant rollback if a released frontend still
   points at it.
 
-- [ ] Move `gs://heap-web-data` from `heaptrial-a2785` into `heap-4b852`.
+- [x] Move `gs://heap-web-data` from `heaptrial-a2785` into `heap-4b852`.
+  DONE 2026-08-26 as `gs://heap-data`; verified rendering on the preview.
   A bucket's project cannot be changed, so: create the new bucket, publish to
   it, verify, flip `REACT_APP_WEB_DATA_URL`, redeploy, retire the old one.
 - [ ] Recreate the CI service account inside `heap-4b852` so the credential and
