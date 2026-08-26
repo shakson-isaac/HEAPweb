@@ -224,7 +224,14 @@ def check_pages(base):
             if not path:
                 broken.append(f"{sid} (no path in manifest)")
                 continue
-            if head(f"{base}/{path}") != 200:
+            # head() returns (status, headers) -- comparing the tuple to 200 is
+            # never true, which made every section look broken.
+            try:
+                status = head(f"{base}/{path}")[0]
+            except Exception as exc:
+                broken.append(f"{sid} -> {path} ({type(exc).__name__})")
+                continue
+            if status != 200:
                 broken.append(f"{sid} -> {path}")
         n = len(by_page[page])
         if missing or broken:
