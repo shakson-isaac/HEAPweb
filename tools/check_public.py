@@ -179,6 +179,63 @@ def check_staleness(base):
         warn(f"{len(only_pub)} published section(s) no longer built locally: "
              f"{', '.join(only_pub)}")
 
+def check_pages(base):
+    """Every registered section resolves -- i.e. no page renders an error card.
+
+    This is the automated half of "does the site work". The frontend fetches a
+    section by id, looks it up in the published manifest and requests the path
+    it finds there; a section that is registered but absent from the manifest,
+    or present with a path that 404s, becomes a "Could not load this section"
+    card on whichever page renders it.
+
+    Checking it from the registry rather than by opening pages means a section
+    nobody has clicked yet is covered too.
+    """
+    import csv as _csv
+    cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web_sections.tsv")
+    if not os.path.exists(cfg):
+        warn("no web_sections.tsv; skipping page check")
+        return
+    man = fetch_json(f"{base}/manifest.json.gz")
+    if not man:
+        fail("manifest unreadable; cannot check pages")
+        return
+    published = {}
+    for pg in man.get("pages", []):
+        for sec in pg.get("sections", []):
+            published[sec["section_id"]] = sec
+
+    by_page = {}
+    with open(cfg) as fh:
+        for row in _csv.DictReader(fh, delimiter="\t"):
+            if (row.get("status") or "on").strip() != "on":
+                continue
+            by_page.setdefault(row["page"], []).append(row["section_id"])
+
+    for page in sorted(by_page):
+        missing, broken = [], []
+        for sid in by_page[page]:
+            sec = published.get(sid)
+            if not sec:
+                missing.append(sid)
+                continue
+            # tier K advertises a key index; tier S a single path
+            path = sec.get("path") or sec.get("keys_path")
+            if not path:
+                broken.append(f"{sid} (no path in manifest)")
+                continue
+            if head(f"{base}/{path}") != 200:
+                broken.append(f"{sid} -> {path}")
+        n = len(by_page[page])
+        if missing or broken:
+            for m in missing:
+                fail(f"page '{page}': section '{m}' registered but not in the manifest")
+            for b in broken:
+                fail(f"page '{page}': {b} does not resolve")
+        else:
+            ok(f"page '{page}': all {n} section(s) resolve")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=DEFAULT_BASE)
@@ -190,6 +247,7 @@ def main():
     check_drift(a.base)
     check_downloads(a.base, a.sample)
     check_staleness(a.base)
+    check_pages(a.base)
     print(f"\n{'-'*60}\n{len(fails)} failure(s), {len(warns)} warning(s)")
     if fails:
         print("FAILED:"); [print(f"  - {m}") for m in fails]

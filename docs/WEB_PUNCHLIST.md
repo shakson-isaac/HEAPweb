@@ -224,3 +224,63 @@ Verify with an Origin header, not a bare GET:
 
 CORS changes take a minute or two to propagate.
 
+
+---
+
+## Verifying the live site
+
+Two halves. The script covers what is mechanically checkable; the rest needs a
+person, because a chart can render perfectly and still be wrong.
+
+### Automated — run this first
+
+```bash
+python3 tools/check_public.py --base https://storage.googleapis.com/heap-data/web/v1
+```
+
+Five checks, non-zero exit on failure:
+
+| check | catches |
+|---|---|
+| `api` | the API docs and the payload disagreeing |
+| `drift` | the published manifest lagging the local build |
+| `downloads` | the supplementary archive missing files |
+| `staleness` | a payload older than the analysis it claims to publish |
+| `pages` | **any registered section that would render an error card** |
+
+`pages` works from `web_sections.tsv` rather than by opening pages, so a section
+nobody has clicked yet is covered too. It is the cheapest way to answer "does
+every route load".
+
+### Data audits — cheap, and they catch silent wrongness
+
+A panel that renders is not a panel that is right. These reproduce published
+figures from the LIVE bucket, so they cover the whole chain: analysis output ->
+builder -> packer -> bucket -> what the browser fetches.
+
+| panel | expected |
+|---|---|
+| Fig 1b exposure-responsive | 608 HEAP / 1,026 GREML |
+| Fig 3c pleiotropy tiers (base) | 325 disease-specific / 303 pleiotropic |
+| Reach curves at R2 >= 0.01 (base) | Covars 1736 / G 936 / E 721 / GxE 413 |
+
+### By hand — what no script sees
+
+- [ ] **Every route renders**, not merely returns 200. An SPA serves the same
+  HTML for every path, so an HTTP check proves nothing about the page.
+- [ ] **Interactions do something.** Pick a protein, pick a disease, move a
+  slider, switch specification. The blank-plot bug returned 200 for every
+  request and drew nothing.
+- [ ] **Specification pickers actually move the plot.** A picker wired to the
+  wrong column changes nothing and looks deliberate.
+- [ ] **Downloads resolve**, at least one file per folder, actually downloaded.
+- [ ] **Browser console is clean.** A CORS block or a JavaScript error appears
+  there and nowhere else -- `curl` does not enforce CORS and cannot see either.
+
+### Before publishing or deploying
+
+- [ ] `python3 tools/audit_payload.py` passes -- and `--full` before anything
+  that matters, since the incremental path trusts previously-cleared bytes.
+- [ ] `CI=true npm run build` succeeds. react-scripts promotes warnings to
+  errors under CI, so a local build with CI unset enforces different rules than
+  the deploy and will let a failure through.
