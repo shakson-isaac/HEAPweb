@@ -152,7 +152,7 @@ jobs:
         # Sharded result payloads, published from O2 by tools/sync_gcs.py.
         # Public bucket, so this is not a secret; the secret only exists so the
         # bucket can be moved without editing the frontend.
-        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-web-data/web/v1' }}" >> .env
+        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" >> .env
         cat .env
 
     # Step 7: Build React app

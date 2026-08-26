@@ -15,7 +15,7 @@ R: heap_export_website()                       push heap/backend/**
         |
         |  tools/sync_gcs.py
         v
-  gs://heap-web-data/web/v1/**  (public, CORS)  <──  browser fetches shards directly
+  gs://heap-data/web/v1/**  (public, CORS)  <──  browser fetches shards directly
 ```
 
 ## Why the packer runs on O2 and not in CI or Cloud Run
@@ -77,7 +77,7 @@ not exported yet, so a stale registry is visible rather than silent.
 
 | bucket | contents | access |
 |--------|----------|--------|
-| `gs://heap-web-data` | `web/v1/**` sharded payloads | public read + CORS |
+| `gs://heap-data` | `web/v1/**` sharded payloads | public read + CORS |
 | `gs://heaptester135` | legacy `data/**` (per-protein HTML, download CSVs) | private, via Flask |
 
 Result data is not committed to git. `.gitignore:12` (`data/`) and `:24`

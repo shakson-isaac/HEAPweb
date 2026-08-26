@@ -138,12 +138,12 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     repo = os.path.dirname(here)
     ap = argparse.ArgumentParser()
-    ap.add_argument("--bucket", default=os.environ.get("HEAP_WEB_BUCKET", "heap-web-data"))
+    ap.add_argument("--bucket", default=os.environ.get("HEAP_WEB_BUCKET", "heap-data"))
     ap.add_argument("--prefix", default="web/v1")
     ap.add_argument("--src", default=os.path.join(repo, "build", "web", "v1"))
     ap.add_argument("--ledger", action="append", default=None,
                     help="repeatable; default = every build/web/manifest*.tsv")
-    ap.add_argument("--project", default=os.environ.get("HEAP_WEB_PROJECT", "heaptrial-a2785"))
+    ap.add_argument("--project", default=os.environ.get("HEAP_WEB_PROJECT", "heap-4b852"))
     ap.add_argument("--cache-control", default="public, max-age=3600",
                     help="TTL for content shards")
     ap.add_argument("--index-cache-control", default="public, max-age=60",

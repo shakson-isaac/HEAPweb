@@ -25,7 +25,7 @@ packing step runs on O2 rather than in CI or Cloud Run.
 
 ```bash
 python3 tools/build_payload.py      # figures/website/*.json  ->  build/web/v1/**
-python3 tools/sync_gcs.py --prune   # build/web/v1/**  ->  gs://heap-web-data/web/v1/**
+python3 tools/sync_gcs.py --prune   # build/web/v1/**  ->  gs://heap-data/web/v1/**
 ```
 
 ## Deployment

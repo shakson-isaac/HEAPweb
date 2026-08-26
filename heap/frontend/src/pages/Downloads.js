@@ -33,7 +33,7 @@ import { WEB_DATA_BASE } from '../lib/heapdata';
 // base like http://localhost:3008 has nothing to strip, and every download link
 // then silently pointed at a local server that cannot have the files -- a 404
 // on every row.
-const PUBLIC_BUCKET = 'https://storage.googleapis.com/heap-web-data';
+const PUBLIC_BUCKET = 'https://storage.googleapis.com/heap-data';
 const BUCKET_ROOT = (
   process.env.REACT_APP_SUPP_DATA_URL
   || (/\/web\/v\d+\/?$/.test(WEB_DATA_BASE)

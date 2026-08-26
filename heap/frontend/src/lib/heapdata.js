@@ -15,7 +15,7 @@
 
 const BASE = (
   process.env.REACT_APP_WEB_DATA_URL ||
-  'https://storage.googleapis.com/heap-web-data/web/v1'
+  'https://storage.googleapis.com/heap-data/web/v1'
 ).replace(/\/$/, '');
 
 // Promise-level cache: concurrent callers share one in-flight request, and a

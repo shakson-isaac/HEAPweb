@@ -2,7 +2,7 @@
 """
 audit_payload.py -- refuse to publish participant-level data.
 
-WHAT GOES IN THE PUBLIC BUCKET. Everything under gs://heap-web-data is
+WHAT GOES IN THE PUBLIC BUCKET. Everything under gs://heap-data is
 world-readable with no authentication, so the rule is the strict one:
 
   1. AGGREGATES ONLY. Every published value is a statistic computed over many

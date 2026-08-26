@@ -2,7 +2,7 @@
 
 **Viewing it:** <http://localhost:3000> (local preview, currently running)
 · new Associations: <http://localhost:3000/results/associations>
-· payload API: `https://storage.googleapis.com/heap-web-data/web/v1/…`
+· payload API: `https://storage.googleapis.com/heap-data/web/v1/…`
 
 **Redirecting me: edit this file.** Reorder the queue, strike a row, or drop a note in
 [Issues you found](#issues-you-found). I read this before starting anything. Design contract is
@@ -130,7 +130,7 @@ Otherwise I proceed, and report what I did with evidence.
 
 | # | thing | why |
 |---|-------|-----|
-| B2 | **UKB posture on public data** | 122 MB of derived summary stats are already public at `gs://heap-web-data`; PES weights are planned next. Confirm both are permitted |
+| B2 | **UKB posture on public data** | 122 MB of derived summary stats are already public at `gs://heap-data`; PES weights are planned next. Confirm both are permitted |
 | B3 | **Which MR arm is canonical for display** — UKB, deCODE, or a toggle | `summarize_mr_triads.R` takes `ARM` |
 | B5 | **`\nExposuresPES` = 164 vs 160 exposure dirs on disk** | a published number vs what exists |
 | B6 | **Migration timing** | preview channel until cutover is the default; say if you'd rather ship incrementally |

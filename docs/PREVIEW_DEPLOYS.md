@@ -66,7 +66,7 @@ The CLI prints the preview URL on success. Notes:
 - Your `.env` must contain `REACT_APP_BACKEND_URL` and `REACT_APP_WEB_DATA_URL` before
   `npm run build`, or the build bakes in the wrong endpoints. CI writes these from secrets;
   locally you write them yourself. `REACT_APP_WEB_DATA_URL` defaults to
-  `https://storage.googleapis.com/heap-web-data/web/v1` — a public bucket, not a secret.
+  `https://storage.googleapis.com/heap-data/web/v1` — a public bucket, not a secret.
 - `--expires` accepts up to `30d`. Without the flag, Firebase defaults to 7 days.
 - Housekeeping: `firebase hosting:channel:list` to see what is open,
   `firebase hosting:channel:delete <channel>` to close one early.
@@ -135,5 +135,5 @@ required secret.
 | `FIREBASE_PROJECT_ID` | which Firebase project to deploy to | yes |
 | `FIREBASE_AUTH_TOKEN` | Firebase CLI auth (`--token`) | yes |
 | `REACT_APP_BACKEND_URL` | baked into the build | yes |
-| `REACT_APP_WEB_DATA_URL` | payload bucket base URL | no — falls back to `https://storage.googleapis.com/heap-web-data/web/v1` |
+| `REACT_APP_WEB_DATA_URL` | payload bucket base URL | no — falls back to `https://storage.googleapis.com/heap-data/web/v1` |
 | `GITHUB_TOKEN` | posting the PR comment | provided automatically by GitHub |

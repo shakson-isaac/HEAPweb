@@ -377,14 +377,21 @@ def main():
 
         pages.setdefault(page, []).append(entry)
         # Everything this section wrote, so a later run can prove it is intact.
-        new_cache[sid] = {"stamp": stamp, "entry": entry,
-                          "outputs": w.entries[w_mark:]}
+        # dict(entry), not entry: the .gz fixup below mutates the objects in
+        # `pages`, and a shared reference would carry that mutation into the
+        # cache and compound it on every subsequent run.
+        new_cache[sid] = {"stamp": stamp, "entry": dict(entry),
+                          "outputs": list(w.entries[w_mark:])}
 
     if w.gz:  # record the .gz suffix the client must request
+        # IDEMPOTENT. Cached entries come back from a previous run with the
+        # suffix already applied -- the cache holds the same dict object this
+        # loop mutates -- so appending unconditionally produced .gz.gz and then
+        # .gz.gz.gz, and every section 404'd. Only add it when it is missing.
         for secs in pages.values():
             for e in secs:
                 for f in ("path", "keys_path"):
-                    if f in e:
+                    if f in e and not e[f].endswith(".gz"):
                         e[f] += ".gz"
 
     manifest = {"version": "v1", "gzipped": w.gz,

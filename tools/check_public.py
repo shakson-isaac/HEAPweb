@@ -24,7 +24,7 @@ Exit code is non-zero if anything fails, so it can gate a deploy.
 """
 import argparse, gzip, io, json, os, re, sys, urllib.error, urllib.request
 
-PUBLIC_BUCKET = "https://storage.googleapis.com/heap-web-data"
+PUBLIC_BUCKET = "https://storage.googleapis.com/heap-data"
 DEFAULT_BASE = f"{PUBLIC_BUCKET}/web/v1"
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API_DOCS = os.path.join(HERE, "heap", "frontend", "src", "pages", "subpages", "ApiDocs.js")
