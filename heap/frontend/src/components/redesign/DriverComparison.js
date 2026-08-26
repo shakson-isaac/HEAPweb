@@ -60,8 +60,8 @@ export default function DriverComparison() {
   const proteins = useMemo(() => (keys?.keys ? Object.keys(keys.keys).sort() : []), [keys]);
   const { data: shard } = useShard('med_drivers', protein);
   const rows = useMemo(
-    () => shardRows(shard).filter((r) => r.spec === spec),
-    [shard, spec],
+    () => shardRows(shard, protein).filter((r) => r.spec === spec),
+    [shard, spec, protein],
   );
 
   // Distribution of the mediated effect under each driver, significant links

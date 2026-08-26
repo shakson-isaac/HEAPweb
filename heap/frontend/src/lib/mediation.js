@@ -130,8 +130,16 @@ export function binMedian(g) {
   return g.x[g.x.length - 1];
 }
 
-/** Rows of one shard (med_drivers by protein, med_dz_links by disease). */
-export function shardRows(d) {
+/**
+ * Rows of one shard, with the key column filled back in.
+ *
+ * A sharded section does NOT repeat its key inside the shard -- the key is the
+ * filename, so `k/med_drivers/LEP.json.gz` carries spec/disease_id/... and no
+ * `protein` column at all. Code that then filters on `r.protein` matches
+ * nothing and the panel renders blank, which is exactly what happened. Pass the
+ * key you fetched with and it is restored on every row.
+ */
+export function shardRows(d, key) {
   if (!d) return [];
   const cols = Object.keys(d);
   if (!cols.length) return [];
@@ -140,8 +148,9 @@ export function shardRows(d) {
   for (let i = 0; i < n; i += 1) {
     const rec = {
       spec: d.spec?.[i],
-      protein: d.protein?.[i],
-      disease: d.disease_id?.[i],
+      // Whichever of these the shard omits is the one it is keyed by.
+      protein: d.protein?.[i] ?? key,
+      disease: d.disease_id?.[i] ?? key,
       nCases: num(d.n_cases?.[i]),
       pm: num(d.prop_mediated?.[i]),
     };

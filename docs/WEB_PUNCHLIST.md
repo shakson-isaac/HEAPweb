@@ -126,13 +126,14 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
 
 ### Disease links
 
-- [ ] **Per-protein plot renders blank.** Clicking a protein in the driver
+- [x] **Per-protein plot renders blank.** FIXED 2026-08-26. Clicking a protein in the driver
   comparison (and the reporter/intermediate view) shows no chart.
   *Lead:* a sharded section does not repeat its key column inside the shard --
   `k/med_drivers/LEP.json.gz` has `spec, disease_id, n_cases, pxs, ...` but no
   `protein`. `shardRows()` in `lib/mediation.js` reads `d.protein[i]`, which is
   `undefined`; symmetrically `d.disease_id` is absent from `med_dz_links`
-  shards. Fix: have `shardRows` take the key and fill the missing column.
+  shards. `shardRows(d, key)` now restores whichever column the shard omits,
+  so the same trap cannot catch the next sharded section either.
 
 ### Verified working on the preview
 

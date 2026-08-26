@@ -48,8 +48,8 @@ export default function MediationLandscape() {
   const pm = useMemo(() => distIndex(data, 'prop_mediated', null), [data]);
   const { data: shard } = useShard('med_dz_links', disease);
   const rows = useMemo(
-    () => shardRows(shard).filter((r) => r.spec === spec && r.pxs.sig),
-    [shard, spec],
+    () => shardRows(shard, disease).filter((r) => r.spec === spec && r.pxs.sig),
+    [shard, spec, disease],
   );
 
   // Everything the header and the histogram need comes from the BINS. The link
