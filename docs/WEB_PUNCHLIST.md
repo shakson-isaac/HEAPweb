@@ -169,12 +169,18 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
   DONE 2026-08-26 as `gs://heap-data`; verified rendering on the preview.
   A bucket's project cannot be changed, so: create the new bucket, publish to
   it, verify, flip `REACT_APP_WEB_DATA_URL`, redeploy, retire the old one.
-- [ ] Recreate the CI service account inside `heap-4b852` so the credential and
-  its target finally share a project. Today's chain -- credential in
-  `focal-cache`, deploy to `heap-4b852`, data in `heaptrial` -- needed an IAM
-  grant and an API enablement at every boundary, each failing with the same
-  opaque "Failed to get Firebase project".
-- [ ] Once consolidated, drop the now-unnecessary cross-project IAM grants.
+- [x] Recreate the CI service account inside `heap-4b852` so the credential and
+  its target finally share a project. DONE 2026-08-26 as
+  `heap-ci@heap-4b852` with `firebasehosting.admin`, `firebase.viewer` and
+  `storage.admin`; `GCP_CREDENTIALS` holds its key and a deploy passed on it.
+  The old chain -- credential in `focal-cache`, deploy to `heap-4b852`, data in
+  `heaptrial` -- needed an IAM grant and an API enablement at every boundary,
+  each failing with the same opaque "Failed to get Firebase project".
+- [x] Once consolidated, drop the now-unnecessary cross-project IAM grants.
+  DONE 2026-08-26: removed `firebasehosting.admin` + `firebase.viewer` from
+  `github-actions-service-account@focal-cache-455223-h5`, and the stray
+  `firebasehosting.admin` from `github-action-949501383@heap-4b852`.
+  `heap-ci@heap-4b852` is now the only holder of that role on the project.
 
 ### Deployment facts worth keeping
 
@@ -182,14 +188,16 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
 |---|---|---|
 | Firebase Hosting | `heap-4b852` | site id `heap-4b852`, `heap-4b852.web.app` |
 | Flask backend (Cloud Run) | `focal-cache-455223-h5` | project number 407921522156 |
-| GCS payload bucket | `heaptrial-a2785` | `gs://heap-web-data` |
-| CI service account | `github-actions-service-account@focal-cache-455223-h5` | what `GCP_CREDENTIALS` holds |
+| GCS payload bucket | `heap-4b852` | `gs://heap-data` (old: `gs://heap-web-data` in `heaptrial-a2785`) |
+| CI service account | `heap-ci@heap-4b852` | what `GCP_CREDENTIALS` holds |
 
 Firebase deploys authenticate with that service account, not a
 `firebase login:ci` token -- those are deprecated and the old one had expired.
 It needs `roles/firebasehosting.admin` on `heap-4b852` AND
 `firebase.googleapis.com` enabled on its OWN project, because a service
-account's API calls bill to the project it lives in.
+account's API calls bill to the project it lives in. Keeping the credential
+inside `heap-4b852` makes both of those the same project, which is the whole
+reason the cross-project version was so fragile.
 
 ### Migrating a GCS bucket — the complete checklist
 
