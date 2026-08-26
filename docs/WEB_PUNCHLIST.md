@@ -188,3 +188,32 @@ Firebase deploys authenticate with that service account, not a
 It needs `roles/firebasehosting.admin` on `heap-4b852` AND
 `firebase.googleapis.com` enabled on its OWN project, because a service
 account's API calls bill to the project it lives in.
+
+### Migrating a GCS bucket — the complete checklist
+
+Copying objects is the easy part. `gs://heap-data` was created with matching
+location, matching public-read IAM and byte-identical contents, and every file
+still returned 200 to `curl` while every fetch failed in the browser. The
+missing piece was the **CORS policy**, which is a bucket property that nothing
+in the object copy carries over.
+
+`curl` does not enforce CORS, so a curl-based verification cannot detect this.
+The tell is in the error text: a **404** means the object is missing; **"Load
+failed"** means the browser refused a response it did receive.
+
+When creating a replacement bucket, copy all of:
+
+- [x] location / storage class
+- [x] public read (`allUsers` -> `roles/storage.objectViewer`)
+- [x] object contents
+- [x] **CORS policy** -- `gsutil cors get gs://old > cors.json && gsutil cors set cors.json gs://new`
+- [ ] lifecycle rules, if any are ever added
+- [ ] retention policy, if any is ever added
+
+Verify with an Origin header, not a bare GET:
+
+    curl -sI -H "Origin: https://example.com" https://storage.googleapis.com/BUCKET/PATH \
+      | grep -i access-control-allow-origin
+
+CORS changes take a minute or two to propagate.
+
