@@ -21,7 +21,9 @@
 // column. This gives each its own route and puts the headline result on the
 // landing page, where the causal redesign learned to put the reading key.
 import React from 'react';
-import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  Link as RouterLink, Route, Routes, useLocation, useNavigate, useSearchParams,
+} from 'react-router-dom';
 import {
   Alert, Box, Button, Card, CardContent, Divider, Typography,
 } from '@mui/material';
@@ -33,6 +35,8 @@ import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
 import TissueExplorer from '../../components/enrichment/TissueExplorer';
 import TableSection from '../../components/TableSection';
 import { EnrichHeatmap, NesBar } from './Enrichment';
+import { prettyTissue } from '../../lib/tissueBodyMap';
+import { prettyExposure } from '../../lib/palette';
 
 const BASE = '/results/enrichment-guide';
 
@@ -106,6 +110,28 @@ function ViewPage({ view, children }) {
   );
 }
 
+// Clicking an organ leaves this page rather than expanding beneath the body.
+// The anatomogram answers WHERE; the proteins that carried the enrichment are a
+// different question and were pushing this page past 2,200px, which buried the
+// links below it.
+function ExposureBodyMapNav() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  return (
+    <ExposureBodyMap
+      onOpenTissue={(tissue, exposure) => {
+        // Both come from the component: it owns the exposure state, so it hands
+        // it out rather than the caller guessing. Carrying both in the URL is
+        // what makes the destination linkable.
+        const p = new URLSearchParams(params);
+        p.set('tissue', tissue);
+        if (exposure) p.set('exposure', exposure);
+        navigate(`${BASE}/proteins?${p.toString()}`);
+      }}
+    />
+  );
+}
+
 function Landing() {
   const { search } = useLocation();
   return (
@@ -133,7 +159,7 @@ function Landing() {
           question you need the vocabulary to ask. The grid is still available,
           under Every enrichment, where it belongs among the other reference
           views. */}
-      <ExposureBodyMap />
+      <ExposureBodyMapNav />
 
       <Divider sx={{ my: 4 }} />
 
@@ -236,10 +262,53 @@ function ViewAll() {
   );
 }
 
+// The proteins that carried one exposure's enrichment in one tissue. Reached by
+// clicking an organ; linkable on its own because both slots are in the URL.
+function ViewProteins() {
+  const [params] = useSearchParams();
+  const exposure = params.get('exposure') || '';
+  const tissue = params.get('tissue') || '';
+  const { search } = useLocation();
+
+  if (!exposure || !tissue) {
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Button component={RouterLink} to={BASE} startIcon={<ArrowBackIcon />}
+                sx={{ textTransform: 'none', ml: -1 }}>
+          Tissues &amp; pathways
+        </Button>
+        <Alert severity="info" sx={{ mt: 2, maxWidth: 900 }}>
+          Pick an exposure on the body map and click an organ to see the proteins
+          that carried its enrichment.
+        </Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Button component={RouterLink} to={`${BASE}${search}`} startIcon={<ArrowBackIcon />}
+              size="small" sx={{ textTransform: 'none', ml: -1 }}>
+        Back to the body
+      </Button>
+      <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>
+        {`${prettyExposure(exposure)} → ${prettyTissue(tissue)}`}
+      </Typography>
+      <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2, maxWidth: 860 }}>
+        The GSEA leading edge: the proteins that carried this enrichment up to its
+        peak, not every associated protein that happens to be expressed here.
+      </Typography>
+
+      <ExposureBodyMap detailFor={{ exposure, tissue }} />
+    </Box>
+  );
+}
+
 export default function EnrichmentGuide() {
   return (
     <Routes>
       <Route index element={<Landing />} />
+      <Route path="proteins" element={<ViewProteins />} />
       <Route path="tissue" element={<ViewTissue />} />
       <Route path="programs" element={<ViewPrograms />} />
       <Route path="all" element={<ViewAll />} />

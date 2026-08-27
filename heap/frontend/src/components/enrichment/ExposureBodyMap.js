@@ -842,14 +842,30 @@ function SideRow({ entry, onClick, active }) {
   );
 }
 
-export default function ExposureBodyMap() {
+export default function ExposureBodyMap({
+  // When supplied, clicking an organ calls this instead of expanding the
+  // leading-edge panel inline. The guided page passes a navigate handler so the
+  // proteins get their own route; the original page passes nothing and keeps
+  // the inline behaviour, so both can be compared without forking 2,200 lines.
+  onOpenTissue,
+  // Seeds the panel on that destination route: {exposure, tissue}.
+  detailFor,
+} = {}) {
   const { data: terms, loading, error } = useSection('bodymap_terms');
 
-  const [exposure, setExposure] = useState(null);
+  const [exposure, setExposure] = useState(detailFor?.exposure || null);
   const [sex, setSex] = useState('male');
   const [pathway, setPathway] = useState(null);
   const [minShared, setMinShared] = useState(1);
-  const [openTissue, setOpenTissue] = useState(null);
+  const [openTissue, setOpenTissue] = useState(detailFor?.tissue || null);
+  // One place every organ click goes through, so the navigate-instead-of-expand
+  // decision is made once rather than at each of the three call sites.
+  // The exposure is passed out with the tissue: the caller needs both to build
+  // a link, and this component owns the exposure state privately.
+  const openTissueAt = React.useCallback((term) => {
+    if (onOpenTissue && term) onOpenTissue(term, exposure);
+    else setOpenTissue(term);
+  }, [onOpenTissue, exposure]);
   // The protein whose GTEx profile is shown under the leading-edge table.
   const [gene, setGene] = useState(null);
   // Which covariate specification the effect sizes are read from.
@@ -908,7 +924,15 @@ export default function ExposureBodyMap() {
   // A pathway and an open tissue belong to one exposure; carrying either across
   // a change of exposure would show a drill-in for a term the new exposure does
   // not have.
+  //
+  // The guard exists because React runs effects on MOUNT too. When detailFor
+  // seeds an open tissue from the URL, this would fire immediately and clear it,
+  // so the /proteins route would render an empty body instead of the drill-in it
+  // was linked to. Skip exactly the first run in that case; every later change
+  // of exposure still clears, which is the behaviour the comment above describes.
+  const seededOpen = useRef(Boolean(detailFor?.tissue));
   useEffect(() => {
+    if (seededOpen.current) { seededOpen.current = false; return; }
     setPathway(null);
     setOpenTissue(null);
   }, [exposure]);
@@ -1431,7 +1455,7 @@ export default function ExposureBodyMap() {
   const pickRegion = (viewKey, region) => {
     const meta = view?.info.get(`${viewKey}|${region}`);
     if (!meta || meta.kind !== 'region') return;   // null shapes and the brain pointer are inert
-    setOpenTissue(meta.region.lead.term);
+    openTissueAt(meta.region.lead.term);
   };
 
   const exposureOptions = useMemo(() => (parsed
@@ -1721,7 +1745,7 @@ export default function ExposureBodyMap() {
                     key={entry.term}
                     entry={entry}
                     active={openTissue === entry.term}
-                    onClick={() => setOpenTissue(entry.term)}
+                    onClick={() => openTissueAt(entry.term)}
                   />
                 ))}
                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
@@ -1817,7 +1841,7 @@ export default function ExposureBodyMap() {
                         key={s.term}
                         size="small"
                         label={`${prettyTissue(s.term)} — NES ${fmtNes(s.nes)}`}
-                        onClick={() => setOpenTissue(s.term)}
+                        onClick={() => openTissueAt(s.term)}
                       />
                     ))}
                   </Box>
