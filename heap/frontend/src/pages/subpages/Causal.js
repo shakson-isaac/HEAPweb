@@ -86,7 +86,7 @@ const EST_KEYS = ['EP', 'PDcis', 'PDtrans', 'ED', 'PEcis', 'PEtrans', 'DP', 'DE'
 const FLAG_KEYS = ['pEP', 'pPD', 'pED', 'pPE', 'pDP', 'pDE'];
 const OPTION_CAP = 300;
 
-function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery }) {
+export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery }) {
   const { data, loading, error } = useSection('mr_triads');
   // deCODE corroboration for the same 18,780 triads, joined on (E, P, D).
   // Protein-involving edges only -- E->D and D->E have no protein for the
@@ -381,7 +381,7 @@ function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery })
   );
 }
 
-function Coloc() {
+export function Coloc() {
   const { data, loading, error } = useSection('mr_coloc');
   // Which locus the regional plot shows. Defaults to the first pair that
   // clears the gate, so the panel opens on a colocalization rather than a null.

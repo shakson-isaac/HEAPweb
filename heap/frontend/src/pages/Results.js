@@ -20,6 +20,9 @@ const Gwas = lazy(() => import('./subpages/Gwas'));
 // Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
 // typing the path, and reads scratch data, so it cannot affect the live site.
 const DesignPreview = lazy(() => import('./subpages/DesignPreview'));
+// A guided rebuild of the causal page, running ALONGSIDE the original so the
+// two can be compared. Same panels, resequenced; see subpages/CausalGuide.js.
+const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
 
 function Loading() {
   return (
@@ -50,6 +53,7 @@ function Results() {
             <Route path="pes" element={<Pes />} />
             <Route path="gwas" element={<Gwas />} />
             <Route path="design-preview" element={<DesignPreview />} />
+            <Route path="causal-guide/*" element={<CausalGuide />} />
           </Routes>
         </Suspense>
       </div>
