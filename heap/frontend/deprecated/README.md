@@ -46,9 +46,9 @@ Two are worth calling out specifically:
 2. Restore whatever it referenced from the commented import block.
 3. `CI=true npm run build` — unused imports are errors, not warnings.
 
-## `Disclosure.js`
+## `Disclosure.js` — came back the same day
 
-The fold itself, moved here 2026-08-26 once the last of its three callers went.
-It is a generic "rest of the page, folded" widget with a count in the label —
-worth reviving verbatim if anything needs progressive disclosure again, rather
-than writing a new one.
+Moved here 2026-08-26 when the last of its three callers went, and restored to
+`src/components/` within the hour. Minimalist pages need somewhere to put
+method and caveats, and this is that somewhere. It was never a bad component;
+it was briefly an unused one.

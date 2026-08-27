@@ -782,13 +782,11 @@ export default function InterventionConcordance() {
     <SectionCard
       title="One scatter: the UK Biobank effect against the trial that moved the same protein"
       subtitle={
-        'x is the exposure→protein effect estimated in UK Biobank; y is the effect a '
-        + 'randomized trial reported on that same protein. They are not the same estimand — '
-        + 'a between-person slope in ~50,000 people against a within-person change under '
-        + 'treatment, on two assay platforms, in three different populations — which is why '
-        + 'agreement between them is informative rather than circular. Everything that used '
-        + 'to be a separate panel is a control below: set the level of specificity you want, '
-        + 'and this one scatter answers it.'
+        // The estimand caveat is stated once, in the page-level warning, and in full
+        // behind the page's disclosure. A subtitle's job is to name the axes.
+        'x is the UK Biobank exposure→protein effect; y is what a randomized trial '
+        + 'reported for the same protein. Different estimands — which is why agreement '
+        + 'between them is informative rather than circular.'
       }
       loading={kLoading}
       error={kError}
@@ -1075,15 +1073,12 @@ export default function InterventionConcordance() {
           >
             <b>{`Colour: ${scheme.label}.`}</b>
             {' '}
-            Error bars are 95% intervals — x from the UK Biobank standard error, y from the
-              trial’s — and carry nothing else. <b>Marker area</b> is the Olink–SomaScan
-              assay correlation from Eldjarn et al.: bigger means the two platforms agree more
-              closely about that protein, so the two axes are more likely to be measuring the
-              same thing. The
+            Error bars are 95% intervals. <b>Marker area</b> is the Olink–SomaScan assay
+              correlation (Eldjarn et al.) — bigger means the platforms agree more closely
+              about that protein. The
               {` ${coverage.tested - coverage.withRel} of ${coverage.tested} `}
-              proteins with no assay pair are drawn at the <b>middle</b> size, never small —
-              they were not measured on both platforms, which is unknown agreement rather than
-              poor agreement, and a vanishing point would say the opposite.
+              with no assay pair are drawn <b>mid-size, not small</b>: unknown agreement,
+              not poor agreement.
             </Typography>
 
           {culprit && (

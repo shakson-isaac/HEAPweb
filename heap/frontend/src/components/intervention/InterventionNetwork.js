@@ -1371,12 +1371,9 @@ export default function InterventionNetwork() {
       })()}
 
       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-        Read left to right. The columns are fixed rather than force-directed on purpose: the reading
-        order <i>exposure → protein → disease</i> is the argument, and a layout that reshuffles itself
-        each render would destroy it. Proteins are ordered by class block first, then by how many
-        exposures they respond to; exposures are ordered by how many of the drawn proteins they reach.
-        Hover a node to light up its edges, click a protein to hold the focus on its neighbourhood.
-        Every count above is stated as <i>shown of existing</i> — nothing is trimmed silently.
+        Read left to right: <i>exposure → protein → disease</i>. Proteins are ordered by
+        class, then by how many exposures they respond to. Counts are stated as
+        <i>shown of existing</i> — nothing is trimmed silently.
       </Typography>
     </SectionCard>
   );
