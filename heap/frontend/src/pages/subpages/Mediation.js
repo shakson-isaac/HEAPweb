@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useUrlState } from '../../lib/useUrlState';
 import Select from 'react-select';
 import { Link as RouterLink } from 'react-router-dom';
 import {
@@ -82,8 +83,9 @@ const idxOf = (d) => Array.from({ length: rows(d) }, (_, i) => i);
  * Per-protein view: the two sharded sections, driven by one selector.
  * ------------------------------------------------------------------ */
 function ProteinLinks() {
-  const [protein, setProtein] = useState('LEP');
-  const [panel, setPanel] = useState('a');
+  // In the URL so a specific protein's mediation view can be linked and cited.
+  const [protein, setProtein] = useUrlState('protein', 'LEP');
+  const [panel, setPanel] = useUrlState('panel', 'a');
 
   const gemKeys = useKeys('gem_landscape');
   const propKeys = useKeys('mediation_proportion');
@@ -767,7 +769,8 @@ const PRIORITIZATION_PANELS = {
 
 function Prioritization() {
   const { data, loading, error } = useSection('mediation_prioritization');
-  const [panel, setPanel] = useState('a');
+  // `prioPanel`, not `panel` -- ProteinLinks already owns `panel` on this page.
+  const [panel, setPanel] = useUrlState('prioPanel', 'a');
 
   const panels = data ? uniq(data.panel).sort() : [];
   const active = panels.length && !panels.includes(panel) ? panels[0] : panel;
