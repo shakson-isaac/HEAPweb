@@ -36,13 +36,9 @@ import { EnrichHeatmap, NesBar } from './Enrichment';
 
 const BASE = '/results/enrichment-guide';
 
+// The body map is NOT in here: it is the landing page itself. These are the
+// ways OUT of it, for detail the anatomogram cannot carry.
 const VIEWS = [
-  {
-    slug: 'exposure',
-    title: 'Start from an exposure',
-    question: 'I do this — what does it show up in?',
-    payoff: 'A body painted by that exposure’s tissue enrichment, and the proteins behind any organ you open.',
-  },
   {
     slug: 'tissue',
     title: 'Start from a protein or an organ',
@@ -118,32 +114,29 @@ function Landing() {
         Tissues &amp; pathways
       </Typography>
       <Typography variant="body1" sx={{ mb: 1, maxWidth: 820 }}>
-        Which tissues and biological programs do the exposure-responsive proteins come
-        from? Gene-set enrichment of the exposure&ndash;protein associations answers
-        that, one exposure at a time.
+        Pick an exposure and see which tissues its proteomic signature comes from,
+        then open an organ to read the proteins that carried the enrichment.
       </Typography>
       <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>
         Positive NES means the set is enriched among proteins associated with that
         exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
       </Typography>
 
-      {/* The headline result, on arrival. The causal page learned that a landing
-          page of cards with no plot on it charges a click before showing
-          anything; this is the compact view that answers "what responds to
-          what" before the reader picks a direction to go in. */}
-      <EnrichHeatmap
-        section="tissue_themes"
-        title="Which organ systems respond to which lifestyle domains"
-        subtitle="Tissues grouped into organ systems, per exposure category. Blank cells were not significant."
-        xCol="tissue"
-        yCol="category"
-        height={420}
-      />
+      {/* The body map IS the front page.
+          A first pass landed on a compact organ-system heatmap with the
+          anatomogram one click away. That inverted the section: this component's
+          own header calls itself "THE ENTRY POINT" and opens on the question a
+          non-specialist actually arrives with -- "I play strenuous sports; what
+          does that show up in?" -- while a category-by-organ grid answers a
+          question you need the vocabulary to ask. The grid is still available,
+          under Every enrichment, where it belongs among the other reference
+          views. */}
+      <ExposureBodyMap />
 
       <Divider sx={{ my: 4 }} />
 
       <Typography variant="overline" sx={{ color: 'text.secondary' }}>
-        Four ways in
+        More detail
       </Typography>
       <Box
         sx={{
@@ -182,9 +175,6 @@ function Landing() {
   );
 }
 
-const ViewExposure = () => (
-  <ViewPage view={viewBySlug('exposure')}><ExposureBodyMap /></ViewPage>
-);
 const ViewTissue = () => (
   <ViewPage view={viewBySlug('tissue')}><TissueExplorer /></ViewPage>
 );
@@ -248,7 +238,6 @@ export default function EnrichmentGuide() {
   return (
     <Routes>
       <Route index element={<Landing />} />
-      <Route path="exposure" element={<ViewExposure />} />
       <Route path="tissue" element={<ViewTissue />} />
       <Route path="programs" element={<ViewPrograms />} />
       <Route path="all" element={<ViewAll />} />
