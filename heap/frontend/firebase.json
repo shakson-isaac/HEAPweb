@@ -1,13 +1,28 @@
 {
   "hosting": {
-    "public": "build",  
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"], 
+    "public": "build",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "**", 
+        "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "//": "Everything is revalidated by default. Firebase's own default is max-age=3600 on HTML, and index.html is what names the content-hashed bundle -- so with that default, a visitor who loaded the site in the last hour keeps running the PREVIOUS build and a deploy is invisible to them. The SPA rewrite means route URLs like /results/enrichment-guide carry no extension, so this has to be the catch-all rather than an *.html rule.",
+        "source": "**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "//": "Content-hashed build output: the filename changes whenever the bytes do, so these can be cached indefinitely. Listed AFTER the catch-all deliberately -- if Firebase resolves conflicts last-match-wins these get the long cache, and if it resolves first-match-wins they merely fall back to revalidating, which costs a 304 and never serves anything stale.",
+        "source": "/static/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
       }
     ]
   }
 }
-
