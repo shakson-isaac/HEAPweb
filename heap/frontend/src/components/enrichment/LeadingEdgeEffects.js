@@ -23,7 +23,7 @@ import { assocSectionFor } from '../../lib/covariateSpecs';
 const ACCENT = '#D55E00';
 const SHORTLIST = 24;   // fetched, then re-ranked by the beta actually returned
 
-export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', onPickGene }) {
+export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', onPickGene, selected }) {
   const { data: le, loading } = useShard('bodymap_leading_edge', exposure);
   const [rows, setRows] = useState(null);
 
@@ -83,6 +83,8 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
       </Typography>
       <Typography variant="body2" sx={{ mb: 1 }}>
         Held-out β with a 95% interval. Filled = replicated in both splits.
+        {' '}
+        <b>Click a protein</b> for where it is expressed.
       </Typography>
       <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
         <Chip size="small" label={`${ok.length} of ${rows.total} leading-edge proteins`} />
@@ -103,12 +105,18 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
             color: '#888', thickness: 1.2, width: 0,
           },
           marker: {
-            size: 11,
+            // The selected protein grows and takes a dark ring, so the row
+            // driving the panel below is identifiable without reading it.
+            size: ok.map((r) => (r.gene === selected ? 17 : 11)).reverse(),
             color: ok.map((r) => (r.repl ? ACCENT : '#ffffff')).reverse(),
-            line: { color: ACCENT, width: 2 },
+            line: {
+              color: ok.map((r) => (r.gene === selected ? '#23282D' : ACCENT)).reverse(),
+              width: ok.map((r) => (r.gene === selected ? 3 : 2)).reverse(),
+            },
           },
-          hovertemplate: '%{y}<br>β %{x:+.3f}<extra></extra>',
+          hovertemplate: '%{y}<br>β %{x:+.3f}<br><i>click for expression</i><extra></extra>',
         }]}
+        onPointClick={(pt) => onPickGene && pt?.y && onPickGene(String(pt.y))}
         layout={{
           height: 60 + ok.length * 26,
           margin: { l: 96, r: 34, t: 8, b: 48 },

@@ -249,7 +249,7 @@ function ViewProteins() {
           body map in a detail mode. The list ranks the leading edge by the one
           number that varies protein to protein; picking a row shows where that
           protein is expressed. */}
-      <LeadingEdgeEffects exposure={exposure} tissue={tissue} onPickGene={setGene} />
+      <LeadingEdgeEffects exposure={exposure} tissue={tissue} onPickGene={setGene} selected={gene} />
 
       {gene && (
         <Box sx={{ mt: 4 }}>
