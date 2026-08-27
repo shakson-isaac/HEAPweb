@@ -1,24 +1,26 @@
-// A guided rebuild of /results/causal, kept ALONGSIDE the original so the two
-// can be compared. Nothing here is new analysis -- it is the same five panels,
-// reached one at a time.
+// A redesign of /results/causal, kept ALONGSIDE the original for comparison.
+// Same panels, same data -- reorganized.
 //
-// What the original gets wrong is not content, it is sequence. It stacks a
-// reading key, an entity browser, a triad explorer, protein-disease effects and
-// a colocalization panel on one page. A comment in that file calls them "three
-// depths of one question", which is exactly right and is never said to the
-// reader. So there is no first step, no next step, and no way to tell whether
-// you are meant to read down or pick one.
+// The original stacks five panels on one page with no stated order. A first
+// attempt at fixing that replaced the stack with a menu of four numbered steps,
+// which was worse in a specific way: the landing page carried 180 words of
+// cards and NOT ONE PLOT. It charged a click before showing anything, which is
+// the same mistake as a figure panel that explains instead of plots.
 //
-// This version states the sequence, gives each panel its own route, and ends
-// every step with the next one. The panels themselves are imported, not
-// forked -- TriadExplorer and Coloc are exported from Causal.js.
+// This version shows the vocabulary and the triad counts immediately --
+// MotifKey is main Fig 4a beside Fig 4b, and it already carries both -- then
+// offers VIEWPOINTS rather than steps. Viewpoints matter: steps imply a
+// mandatory order and imply you are not finished until the last one. Someone
+// who already knows what a motif is should be able to go straight to the
+// triad explorer.
 //
-// Selections live in the URL (?motif=, ?q=), so picking an entity in step 2 and
-// moving to step 3 carries it, and any step can be linked to or cited.
+// Clicking a motif in the key sets ?motif= in the URL, and every viewpoint
+// opens filtered to it. The key is the navigation, exactly as its own header
+// comment always claimed.
 import React from 'react';
 import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
-  Alert, Box, Button, Card, CardContent, Chip, Divider, Typography,
+  Alert, Box, Button, Card, CardContent, Divider, Typography,
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -34,125 +36,97 @@ import { useUrlState } from '../../lib/useUrlState';
 
 const BASE = '/results/causal-guide';
 
-// The sequence, declared once. Every step page, the hub cards and the
-// prev/next footers all read from this, so the order cannot drift between them.
-const STEPS = [
+// Declared once so the landing cards, the footers and the routes cannot drift.
+const VIEWS = [
   {
-    slug: 'motifs',
-    n: 1,
-    title: 'Learn the vocabulary',
-    question: 'What are the six relationships, and how do they combine?',
-    payoff: 'You will be able to read any motif label on the rest of the site.',
-  },
-  {
-    slug: 'browse',
-    n: 2,
-    title: 'Find your entity',
+    slug: 'entities',
+    title: 'Browse by entity',
     question: 'Which motif does my protein, exposure or disease carry?',
-    payoff: 'A shortlist of triads worth opening, narrowed to what you study.',
+    payoff: 'A shortlist of triads, narrowed to what you study.',
   },
   {
     slug: 'triads',
-    n: 3,
-    title: 'Inspect one triad',
+    title: 'Explore one triad',
     question: 'What are its three edges, and why was it classified that way?',
     payoff: 'The evidence behind a single classification, edge by edge.',
   },
   {
-    slug: 'genetics',
-    n: 4,
-    title: 'Check the genetics',
-    question: 'Does the protein-disease signal hold up, and does it colocalize?',
-    payoff: 'Whether a cis signal is one shared variant or two in LD.',
+    slug: 'effects',
+    title: 'Protein → disease effects',
+    question: 'Does the MR estimate agree with the observational one?',
+    payoff: 'Where genetics and epidemiology agree, and where they part.',
+  },
+  {
+    slug: 'coloc',
+    title: 'Colocalization',
+    question: 'One shared causal variant, or two distinct variants in LD?',
+    payoff: 'Whether a cis signal survives the hard tier gate (PP.H4 ≥ 0.8).',
   },
 ];
 
-const stepBySlug = (slug) => STEPS.find((s) => s.slug === slug);
+const viewBySlug = (slug) => VIEWS.find((v) => v.slug === slug);
 
 /* ------------------------------------------------------------------ *
- * Shared step chrome: where you are, and where you go next.
- * The original page has neither, which is the whole complaint.
+ * Viewpoint chrome. Back to the key, plus the other viewpoints -- not a
+ * linear "next", because these are angles on one question, not stages.
  * ------------------------------------------------------------------ */
-function StepHeader({ step }) {
+function ViewPage({ view, children }) {
+  const { search } = useLocation();
+  const others = VIEWS.filter((v) => v.slug !== view.slug);
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box sx={{ mt: 3 }}>
       <Button
         component={RouterLink}
-        to={BASE}
+        to={`${BASE}${search}`}
         size="small"
         startIcon={<ArrowBackIcon />}
         sx={{ textTransform: 'none', ml: -1 }}
       >
-        Causal evidence — overview
+        The reading key
       </Button>
       <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>
-        {`${step.n}. ${step.title}`}
+        {view.title}
       </Typography>
-      <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 800 }}>
-        {step.question}
+      <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2, maxWidth: 820 }}>
+        {view.question}
       </Typography>
-    </Box>
-  );
-}
 
-function StepFooter({ step, search }) {
-  const next = STEPS.find((s) => s.n === step.n + 1);
-  const prev = STEPS.find((s) => s.n === step.n - 1);
-  return (
-    <Box sx={{ mt: 5 }}>
-      <Divider sx={{ mb: 2 }} />
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        {prev && (
-          <Button
-            component={RouterLink}
-            to={`${BASE}/${prev.slug}${search}`}
-            startIcon={<ArrowBackIcon />}
-            sx={{ textTransform: 'none' }}
-          >
-            {`${prev.n}. ${prev.title}`}
-          </Button>
-        )}
-        <Box sx={{ flex: 1 }} />
-        {next ? (
-          <Button
-            component={RouterLink}
-            to={`${BASE}/${next.slug}${search}`}
-            variant="contained"
-            endIcon={<ArrowForwardIcon />}
-            sx={{ textTransform: 'none' }}
-          >
-            {`Next — ${next.n}. ${next.title}`}
-          </Button>
-        ) : (
-          <Button
-            component={RouterLink}
-            to={BASE}
-            variant="outlined"
-            sx={{ textTransform: 'none' }}
-          >
-            Back to the overview
-          </Button>
-        )}
+      {children}
+
+      <Box sx={{ mt: 5 }}>
+        <Divider sx={{ mb: 2 }} />
+        <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+          Other viewpoints
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
+          {others.map((v) => (
+            <Button
+              key={v.slug}
+              component={RouterLink}
+              to={`${BASE}/${v.slug}${search}`}
+              variant="outlined"
+              endIcon={<ArrowForwardIcon />}
+              sx={{ textTransform: 'none' }}
+            >
+              {v.title}
+            </Button>
+          ))}
+        </Box>
       </Box>
     </Box>
   );
 }
 
-function Step({ step, children }) {
-  const { search } = useLocation();
-  return (
-    <Box sx={{ mt: 3 }}>
-      <StepHeader step={step} />
-      {children}
-      <StepFooter step={step} search={search} />
-    </Box>
-  );
-}
-
 /* ------------------------------------------------------------------ *
- * The overview. One job: say what this section answers, and in what order.
+ * The landing page: the vocabulary and the triads, on screen, first.
  * ------------------------------------------------------------------ */
-function Overview() {
+function Landing() {
+  const { data: edgeKey } = useSection('mr_edge_key');
+  const { data: motifKey } = useSection('mr_motif_key');
+  const [motif, setMotif] = useUrlState('motif', 'all');
+  const { search } = useLocation();
+  const active = motif !== 'all';
+
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
@@ -160,60 +134,78 @@ function Overview() {
       </Typography>
       <Typography variant="body1" sx={{ mb: 2, maxWidth: 820 }}>
         A protein that tracks a lifestyle exposure may cause a disease, may merely
-        record it, or may do neither. This section adjudicates that question with
-        Mendelian randomization, one triad at a time.
+        record it, or may do neither. Mendelian randomization adjudicates that, one
+        triad at a time. Below are the six directed relationships and the motifs
+        they combine into, with the number of triads carrying each.
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 3, maxWidth: 900 }}>
-        <b>Four steps, in order.</b> Each answers one question and hands you to the
-        next. Selections carry across steps, so a protein picked in step 2 is still
-        selected in step 3.
-      </Alert>
+      <ArmNotice />
 
+      {/* The key is the navigation. Clicking a motif writes ?motif= and every
+          viewpoint below opens filtered to it. */}
+      <MotifKey
+        edges={edgeKey}
+        motifs={motifKey}
+        selected={active ? motif : null}
+        onSelect={(m) => setMotif(m || 'all')}
+      />
+
+      {active && (
+        <Alert
+          severity="info"
+          sx={{ mt: 2, maxWidth: 900 }}
+          action={(
+            <Button size="small" onClick={() => setMotif('all')} sx={{ textTransform: 'none' }}>
+              Clear
+            </Button>
+          )}
+        >
+          Filtered to <b>{motif}</b>. Every viewpoint below opens on it.
+        </Alert>
+      )}
+
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+        Four ways to look at it
+      </Typography>
       <Box
         sx={{
           display: 'grid',
           gap: 2,
+          mt: 1,
           gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
           maxWidth: 1000,
         }}
       >
-        {STEPS.map((s) => (
-          <Card key={s.slug} variant="outlined">
+        {VIEWS.map((v) => (
+          <Card key={v.slug} variant="outlined">
             <CardContent>
-              <Chip
-                label={`Step ${s.n}`}
-                size="small"
-                sx={{ mb: 1, fontWeight: 700 }}
-              />
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {s.title}
+                {v.title}
               </Typography>
               <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
-                {s.question}
+                {v.question}
               </Typography>
               <Typography variant="body2" sx={{ mt: 1.5 }}>
-                <b>You get:</b>
-                {' '}
-                {s.payoff}
+                {v.payoff}
               </Typography>
               <Button
                 component={RouterLink}
-                to={`${BASE}/${s.slug}`}
+                to={`${BASE}/${v.slug}${search}`}
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
                 sx={{ mt: 2, textTransform: 'none' }}
               >
-                Open
+                {active ? `Open — ${motif}` : 'Open'}
               </Button>
             </CardContent>
           </Card>
         ))}
       </Box>
 
-      {/* The original opens with 175 words of design and provenance before the
-          reader has seen anything. It is all true and none of it is the first
-          thing anyone needs, so it moves here. */}
+      {/* 175 words of design and provenance. All true, none of it the first
+          thing anyone needs. */}
       <Disclosure title="how these estimates were made" count={1}>
         <Typography variant="body2" sx={{ maxWidth: 900 }}>
           Every edge is a <b>two-sample Mendelian randomization</b> estimate: the
@@ -241,41 +233,23 @@ function Overview() {
       </Disclosure>
 
       <Alert severity="success" sx={{ mt: 3, maxWidth: 900 }}>
-        This is a redesign of{' '}
-        <RouterLink to="/results/causal">the original causal page</RouterLink>, kept
-        side by side for comparison. Same data, same panels — resequenced.
+        A redesign of <RouterLink to="/results/causal">the original causal page</RouterLink>,
+        kept side by side. Same data, same panels — reorganized.
       </Alert>
     </Box>
   );
 }
 
 /* ------------------------------------------------------------------ *
- * The four steps. Each holds one panel and nothing else.
+ * The four viewpoints. One panel each.
  * ------------------------------------------------------------------ */
-function StepMotifs() {
-  const { data: edgeKey } = useSection('mr_edge_key');
+function ViewEntities() {
   const { data: motifKey } = useSection('mr_motif_key');
   const [motif, setMotif] = useUrlState('motif', 'all');
-  return (
-    <Step step={stepBySlug('motifs')}>
-      <ArmNotice />
-      <MotifKey
-        edges={edgeKey}
-        motifs={motifKey}
-        selected={motif === 'all' ? null : motif}
-        onSelect={(m) => setMotif(m || 'all')}
-      />
-    </Step>
-  );
-}
-
-function StepBrowse() {
-  const { data: motifKey } = useSection('mr_motif_key');
-  const [motif, setMotif] = useUrlState('motif', 'all');
-  const [query, setQuery] = useUrlState('q', '');
+  const [, setQuery] = useUrlState('q', '');
   const [entity, setEntity] = React.useState(null);
   return (
-    <Step step={stepBySlug('browse')}>
+    <ViewPage view={viewBySlug('entities')}>
       <EntityMotifBrowser
         motifs={motifKey}
         selectedMotif={motif === 'all' ? null : motif}
@@ -283,55 +257,49 @@ function StepBrowse() {
         picked={entity}
         onPick={(e) => {
           setEntity(e);
-          // Push the pick into the URL so step 3 opens on it. This is the
-          // carry-over the overview promises.
+          // Carried into the triad explorer, so a pick here opens there.
           setQuery(e ? e.id : '');
         }}
       />
-      {query && (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          <b>{query}</b>
-          {' '}
-          will be selected when you open the triad explorer.
-        </Alert>
-      )}
-    </Step>
+    </ViewPage>
   );
 }
 
-function StepTriads() {
+function ViewTriads() {
   const [motif, setMotif] = useUrlState('motif', 'all');
   const [query, setQuery] = useUrlState('q', '');
   return (
-    <Step step={stepBySlug('triads')}>
-      <TriadExplorer
-        motif={motif}
-        onMotif={setMotif}
-        query={query}
-        onQuery={setQuery}
-      />
-    </Step>
+    <ViewPage view={viewBySlug('triads')}>
+      <TriadExplorer motif={motif} onMotif={setMotif} query={query} onQuery={setQuery} />
+    </ViewPage>
   );
 }
 
-function StepGenetics() {
+function ViewEffects() {
   return (
-    <Step step={stepBySlug('genetics')}>
+    <ViewPage view={viewBySlug('effects')}>
       <PDEffects />
+    </ViewPage>
+  );
+}
+
+function ViewColoc() {
+  return (
+    <ViewPage view={viewBySlug('coloc')}>
       <Coloc />
-    </Step>
+    </ViewPage>
   );
 }
 
 export default function CausalGuide() {
   return (
     <Routes>
-      <Route index element={<Overview />} />
-      <Route path="motifs" element={<StepMotifs />} />
-      <Route path="browse" element={<StepBrowse />} />
-      <Route path="triads" element={<StepTriads />} />
-      <Route path="genetics" element={<StepGenetics />} />
-      <Route path="*" element={<Overview />} />
+      <Route index element={<Landing />} />
+      <Route path="entities" element={<ViewEntities />} />
+      <Route path="triads" element={<ViewTriads />} />
+      <Route path="effects" element={<ViewEffects />} />
+      <Route path="coloc" element={<ViewColoc />} />
+      <Route path="*" element={<Landing />} />
     </Routes>
   );
 }
