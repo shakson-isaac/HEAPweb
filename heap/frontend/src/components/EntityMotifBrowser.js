@@ -237,11 +237,11 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
                     border: '2px solid',
                     borderColor: isSel ? motifColor(m) : 'divider',
                     bgcolor: isSel ? 'action.selected' : 'transparent',
-                    minWidth: 112,
+                    minWidth: 132,
                     '&:hover': { borderColor: motifColor(m) },
                   }}
                 >
-                  <MotifGlyph motif={m} sig={motifSigs[m]} size={92}
+                  <MotifGlyph motif={m} sig={motifSigs[m]} size={112}
                               title={`Motif ${m} — ${motifNames[m] || ''}`} />
                   <Box sx={{ fontSize: 13, fontWeight: 700, color: motifColor(m), mt: 0.5 }}>{m}</Box>
                   <Box sx={{ fontSize: 12 }}>{motifNames[m] || m}</Box>

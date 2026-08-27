@@ -90,17 +90,37 @@ export default function MotifGlyph({ motif, sig, size = 74, title }) {
         const cx = mx - (dy / len) * e.curve;
         const cy = my + (dx / len) * e.curve;
         const present = s === '+';
+        // The x on an absent edge is not decoration. At this size a dashed
+        // line reads as "faint arrow" and motifs A and B -- three solid arcs
+        // each, differing only in WHICH reverse edges are forbidden -- become
+        // indistinguishable. The same x the reading key's signature matrix
+        // uses, so the two agree symbol for symbol.
+        const mid = { x: X((p0.x + 2 * cx + p1.x) / 4), y: Y((p0.y + 2 * cy + p1.y) / 4) };
+        const r = Math.max(3, S * 0.34);
         return (
-          <path
-            key={e.key}
-            d={`M ${X(p0.x)} ${Y(p0.y)} Q ${X(cx)} ${Y(cy)} ${X(p1.x)} ${Y(p1.y)}`}
-            fill="none"
-            stroke={present ? col : '#b0b0b0'}
-            strokeWidth={present ? 1.9 : 1.1}
-            strokeDasharray={present ? undefined : '2.5 2.5'}
-            opacity={present ? 1 : 0.75}
-            markerEnd={present ? `url(#${aid})` : undefined}
-          />
+          <g key={e.key}>
+            <path
+              d={`M ${X(p0.x)} ${Y(p0.y)} Q ${X(cx)} ${Y(cy)} ${X(p1.x)} ${Y(p1.y)}`}
+              fill="none"
+              stroke={present ? col : '#9e9e9e'}
+              strokeWidth={present ? 2.1 : 1.2}
+              strokeDasharray={present ? undefined : '2.5 2.5'}
+              opacity={present ? 1 : 0.8}
+              markerEnd={present ? `url(#${aid})` : undefined}
+            />
+            {!present && (
+              <>
+                <circle cx={mid.x} cy={mid.y} r={r} fill="#fff" opacity="0.95" />
+                <path
+                  d={`M ${mid.x - r * 0.6} ${mid.y - r * 0.6} L ${mid.x + r * 0.6} ${mid.y + r * 0.6}
+                      M ${mid.x + r * 0.6} ${mid.y - r * 0.6} L ${mid.x - r * 0.6} ${mid.y + r * 0.6}`}
+                  stroke="#777"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              </>
+            )}
+          </g>
         );
       })}
 
