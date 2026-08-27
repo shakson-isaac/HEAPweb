@@ -3,8 +3,9 @@ import {
   Autocomplete, Box, Chip, Paper, TextField, ToggleButton, ToggleButtonGroup,
   Typography,
 } from '@mui/material';
+import ColumnarTable from './ColumnarTable';
 import { useSection } from '../lib/useSection';
-import { motifColor, ecatColor, prettyExposure } from '../lib/palette';
+import { motifColor, ecatColor, prettyExposure, prettyDisease } from '../lib/palette';
 
 // ---------------------------------------------------------------------------
 // The middle layer of the causal page: between the reading key (what the
@@ -20,6 +21,20 @@ import { motifColor, ecatColor, prettyExposure } from '../lib/palette';
 // the R-built supplementary triad table). The ALL row is precomputed rather
 // than summed in the browser, because a triad can be counted once per entity
 // and summing the motif rows would be correct only by coincidence.
+//
+// TWO WAYS IN, because people arrive with different questions.
+//
+//   "by entity"  -- I study LEP; what does it do?  Pick it, see the split over
+//                   A-E, then click a bar to get the ACTUAL TRIADS rather than
+//                   just a count. Clicking used to set a filter and show
+//                   nothing, which left the reader to go and find the payoff
+//                   somewhere else.
+//
+//   "by motif"   -- I care about causal intermediates; which proteins are
+//                   they?  Pick a motif and get the list straight away. This
+//                   matters most for the rare ones: only 3 proteins carry
+//                   motif A and 4 carry D, and there was previously no way to
+//                   see which.
 // ---------------------------------------------------------------------------
 
 const TYPES = [
@@ -42,7 +57,11 @@ const MOTIF_ORDER = ['A', 'B', 'C', 'D', 'E'];
 export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMotif,
                                              onPick, picked }) {
   const { data, loading, error } = useSection('mr_entity_motifs');
+  // The full triad list, so a motif click can show the rows behind the count.
+  // Already fetched by the triad explorer, so this is a cache hit in practice.
+  const { data: triads } = useSection('mr_triads');
   const [type, setType] = useState('protein');
+  const [mode, setMode] = useState('entity');
 
   // rows -> { type: { id: { label, ecat, byMotif } } }
   const index = useMemo(() => {
@@ -78,6 +97,38 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
 
   const current = picked?.type === type && index ? index[type].get(picked.id) : null;
 
+  // The triads behind the selected bar: this entity, this motif. The payoff a
+  // bar click used to promise and not deliver.
+  const lookup = useMemo(() => {
+    if (!triads?.motif || !current || !selectedMotif) return null;
+    const col = { exposure: 'Exposure', protein: 'Protein', disease: 'Disease' }[type];
+    const out = { Exposure: [], Protein: [], Disease: [] };
+    for (let i = 0; i < triads.motif.length; i += 1) {
+      if (triads.motif[i] !== selectedMotif) continue;
+      if (triads[col]?.[i] !== current.id && triads[col]?.[i] !== current.label) continue;
+      out.Exposure.push(prettyExposure(triads.Exposure[i]));
+      out.Protein.push(triads.Protein[i]);
+      out.Disease.push(prettyDisease(triads.Disease[i], triads.Disease_UKB?.[i]));
+    }
+    return out.Protein.length ? out : { Exposure: [], Protein: [], Disease: [] };
+  }, [triads, current, selectedMotif, type]);
+
+  // Everything of the chosen type that carries a motif, biggest first. For the
+  // rare motifs this is the whole answer: 3 proteins carry A, 4 carry D.
+  const carriers = useMemo(() => {
+    if (!index || !selectedMotif) return null;
+    const rows = [...index[type].values()]
+      .map((e) => ({ e, n: e.byMotif[selectedMotif]?.n_triads || 0 }))
+      .filter((r) => r.n > 0)
+      .sort((a, b) => b.n - a.n);
+    const label = { exposure: 'Exposure', protein: 'Protein', disease: 'Disease' }[type];
+    return {
+      [label]: rows.map((r) => (type === 'exposure' ? prettyExposure(r.e.label) : r.e.label)),
+      Triads: rows.map((r) => r.n),
+      Category: rows.map((r) => (r.e.ecat || '').replace(/_/g, ' ')),
+    };
+  }, [index, selectedMotif, type]);
+
   const motifNames = useMemo(() => {
     const m = {};
     if (motifs?.motif) motifs.motif.forEach((k, i) => { m[k] = motifs.name[i]; });
@@ -98,8 +149,23 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
         How do its triads split across the five patterns? Pick a pattern to carry
-        the filter down into the explorer.
+        the filter down into the explorer, or click a bar for the triads behind it.
       </Typography>
+
+      <ToggleButtonGroup
+        size="small"
+        exclusive
+        value={mode}
+        onChange={(_, v) => v && setMode(v)}
+        sx={{ mb: 1.5 }}
+      >
+        <ToggleButton value="entity" sx={{ textTransform: 'none', px: 1.5 }}>
+          Start from an entity
+        </ToggleButton>
+        <ToggleButton value="motif" sx={{ textTransform: 'none', px: 1.5 }}>
+          Start from a motif
+        </ToggleButton>
+      </ToggleButtonGroup>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
         <ToggleButtonGroup size="small" exclusive value={type}
@@ -137,14 +203,53 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
         />
       </Box>
 
-      {!current && (
+      {mode === 'motif' && (
+        <Box>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+            {MOTIF_ORDER.map((m) => {
+              const nCarry = [...index[type].values()]
+                .filter((e) => (e.byMotif[m]?.n_triads || 0) > 0).length;
+              const isSel = selectedMotif === m;
+              return (
+                <Chip
+                  key={m}
+                  label={`${m} · ${motifNames[m] || m} · ${nCarry}`}
+                  onClick={() => onSelectMotif?.(isSel ? null : m)}
+                  variant={isSel ? 'filled' : 'outlined'}
+                  sx={{
+                    fontWeight: isSel ? 700 : 400,
+                    borderColor: motifColor(m),
+                    bgcolor: isSel ? motifColor(m) : 'transparent',
+                    color: isSel ? '#fff' : 'text.primary',
+                  }}
+                />
+              );
+            })}
+          </Box>
+          {selectedMotif && carriers ? (
+            <>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <b>{carriers.Triads.length.toLocaleString()}</b>
+                {` ${type}${carriers.Triads.length === 1 ? '' : 's'} carry motif ${selectedMotif}`}
+                {motifNames[selectedMotif] ? ` — ${motifNames[selectedMotif]}` : ''}
+              </Typography>
+              <ColumnarTable data={carriers} initialRowsPerPage={10} />
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Pick a pattern above. The number on each chip is how many {type}s carry it.
+            </Typography>
+          )}
+        </Box>
+      )}
+      {mode === 'entity' && !current && (
         <Typography variant="body2" color="text.secondary">
           Nothing selected. The list is ordered by how many triads each{' '}
           {type} appears in.
         </Typography>
       )}
 
-      {current && (
+      {mode === 'entity' && current && (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1 }}>
             <Typography variant="body1" sx={{ fontWeight: 700 }}>
@@ -208,6 +313,17 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
             Bars are scaled within this {type}, not across the whole dataset, so
             the shape shows how <em>this</em> one splits rather than how big it is.
           </Typography>
+
+          {selectedMotif && lookup && lookup.Protein.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <b>{lookup.Protein.length.toLocaleString()}</b>
+                {` triad${lookup.Protein.length === 1 ? '' : 's'} · motif ${selectedMotif}`}
+                {motifNames[selectedMotif] ? ` — ${motifNames[selectedMotif]}` : ''}
+              </Typography>
+              <ColumnarTable data={lookup} initialRowsPerPage={10} />
+            </Box>
+          )}
         </Box>
       )}
     </Paper>
