@@ -19,8 +19,6 @@ const RESULT_PAGES = [
   { path: 'pes', label: 'Exposure Scores (PES)' },
   { path: 'gwas', label: 'Exposure GWAS' },
   { path: 'architecture', label: 'Genetic & Exposomic Architecture', group: true },
-  // Side-by-side redesign, kept until one of the two is chosen.
-  { path: 'causal-guide', label: 'Causal Evidence — guided (new)' },
 ];
 
 // Menu items are real anchors, not click handlers.

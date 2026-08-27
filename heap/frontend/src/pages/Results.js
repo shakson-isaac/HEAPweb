@@ -14,14 +14,13 @@ const Interactions = lazy(() => import('./subpages/Interactions'));
 const Mediation = lazy(() => import('./subpages/Mediation'));
 const Intervention = lazy(() => import('./subpages/Intervention'));
 const Enrichment = lazy(() => import('./subpages/Enrichment'));
-const Causal = lazy(() => import('./subpages/Causal'));
 const Pes = lazy(() => import('./subpages/Pes'));
 const Gwas = lazy(() => import('./subpages/Gwas'));
 // Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
 // typing the path, and reads scratch data, so it cannot affect the live site.
 const DesignPreview = lazy(() => import('./subpages/DesignPreview'));
-// A guided rebuild of the causal page, running ALONGSIDE the original so the
-// two can be compared. Same panels, resequenced; see subpages/CausalGuide.js.
+// The causal page. The stacked version it replaced is archived outside src/
+// at heap/frontend/deprecated/Causal.oldpage.js.
 const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
 
 function Loading() {
@@ -49,10 +48,11 @@ function Results() {
             <Route path="mediation" element={<Mediation />} />
             <Route path="intervention" element={<Intervention />} />
             <Route path="enrichment" element={<Enrichment />} />
-            <Route path="causal" element={<Causal />} />
+            <Route path="causal/*" element={<CausalGuide />} />
             <Route path="pes" element={<Pes />} />
             <Route path="gwas" element={<Gwas />} />
             <Route path="design-preview" element={<DesignPreview />} />
+            {/* Links handed out while the two versions ran side by side. */}
             <Route path="causal-guide/*" element={<CausalGuide />} />
           </Routes>
         </Suspense>

@@ -1,5 +1,5 @@
-// A redesign of /results/causal, kept ALONGSIDE the original for comparison.
-// Same panels, same data -- reorganized.
+// The causal page. Routed at /results/causal since 2026-08-27, replacing the
+// stacked version now archived at deprecated/Causal.oldpage.js.
 //
 // The original stacks five panels on one page with no stated order. A first
 // attempt at fixing that replaced the stack with a menu of four numbered steps,
@@ -35,7 +35,7 @@ import { useSection } from '../../lib/useSection';
 import { useUrlState } from '../../lib/useUrlState';
 import { prettyExposure, prettyDisease } from '../../lib/palette';
 
-const BASE = '/results/causal-guide';
+const BASE = '/results/causal';
 
 // Declared once so the landing cards, the footers and the routes cannot drift.
 const VIEWS = [
@@ -233,10 +233,6 @@ function Landing() {
         </Typography>
       </Disclosure>
 
-      <Alert severity="success" sx={{ mt: 3, maxWidth: 900 }}>
-        A redesign of <RouterLink to="/results/causal">the original causal page</RouterLink>,
-        kept side by side. Same data, same panels — reorganized.
-      </Alert>
     </Box>
   );
 }

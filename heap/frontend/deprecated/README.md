@@ -52,3 +52,28 @@ Moved here 2026-08-26 when the last of its three callers went, and restored to
 `src/components/` within the hour. Minimalist pages need somewhere to put
 method and caveats, and this is that somewhere. It was never a bad component;
 it was briefly an unused one.
+
+## The original causal page — archived 2026-08-27
+
+`Causal.oldpage.js` is `/results/causal` as it last shipped: a 175-word
+preamble, then five panels stacked with no stated order — reading key, entity
+browser, triad explorer, protein–disease effects, colocalization. Its own
+comment described them as "three depths of one question", which was right and
+was never said to the reader.
+
+`/results/causal` now renders the guided version (`src/pages/subpages/
+CausalGuide.js`): the reading key on arrival, then four viewpoints, each one
+panel. `/results/causal-guide` still resolves to the same page, so links handed
+out while the two ran side by side keep working.
+
+`EntityMotifBrowser.js` is archived beside it. It asked "pick one exposure,
+protein or disease — how do its triads split?", which is what filling one slot
+of the triad builder does. Its only caller was the old page.
+
+**The panels are NOT here.** `TriadExplorer`, `Coloc`, `PDEffects`, `MotifKey`,
+`ArmNotice`, `TriadDAG`, `ColocRegional`, `PlatformConcordance` and
+`MotifTrace` all remain in `src/` and are rendered by the current page.
+`Causal.js` survives as the module exporting the first two.
+
+Reviving the old page means restoring its default export to `Causal.js`, adding
+back the `EntityMotifBrowser` import, and pointing a route at it.
