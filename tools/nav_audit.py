@@ -77,13 +77,20 @@ LINKS_JS = r"""
 
 
 
+_MENU_CACHE = None
+
+
 def menu_destinations(page, base, cur):
     """Open every popup trigger and record where its items actually navigate.
 
-    These have no href, so the only honest way to know the destination is to
-    click the item and read the resulting URL, then come back. Slower than
-    reading anchors, and the reason this tool takes a few minutes.
+    These have no href, so the only honest way to learn a destination is to
+    click the item and read the resulting URL. That is slow -- each item costs
+    a navigation and a trip back -- so it is done ONCE and reused: the header
+    is global, identical on every page. Doing it per page timed out the crawl.
     """
+    global _MENU_CACHE
+    if _MENU_CACHE is not None:
+        return list(_MENU_CACHE)
     out = []
     try:
         triggers = page.evaluate(TRIGGERS_JS)
@@ -114,7 +121,8 @@ def menu_destinations(page, base, cur):
                 page.wait_for_timeout(1200)
             except Exception:
                 continue
-    return out
+    _MENU_CACHE = out
+    return list(out)
 
 
 def norm(href, cur):
