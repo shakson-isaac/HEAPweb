@@ -14,16 +14,32 @@ Things that are not any one page's problem.
 
 ### Findability
 
-- [ ] **14 of 24 routes are orphaned** — reachable by clicking from nowhere.
-      The entire documentation section (quickstart, methods, dictionary, faqs,
-      cite, credits, evidence-tiers, specifications, api, changelog, about)
-      plus `/results/architecture`, `/results/interactions`, `/results/gwas`.
-      One nav change fixes all 14.
-- [ ] The persistent header carries exactly **one** link (Downloads). The front
-      door's other 8 links are body cards, which vanish once you leave home.
-- [ ] `/downloads` is a **dead end** — nothing to click onward.
-- [ ] Nothing is linkable. `useUrlState` now exists and Mediation uses it;
-      19 other pickers still hold state where it cannot be shared or cited.
+- [x] ~~14 of 24 routes are orphaned~~ **WRONG — corrected 2026-08-26.** The
+      header has working `Documentation ▼` and `Results ▼` menus. Clicked
+      through and confirmed: `/documentation/cite`, `/documentation/methods`
+      and `/results/gwas` all land correctly, two clicks from the front door.
+      Nothing is stranded.
+
+      The error: those menus are MUI `MenuItem`s with
+      `onClick={() => navigate(...)}`, so no `<a href>` is ever rendered.
+      `nav_audit.py` crawled anchors only, saw nothing, and called 14 pages
+      unreachable. The tool now opens each trigger and clicks its items to
+      record the real destination.
+
+- [ ] **The nav items are not links.** This is the finding that survives, and
+      it is real but much smaller. Because they are click handlers on bare
+      `<div>`s, those nav items:
+      - cannot be cmd/middle-clicked into a new tab, or right-click-copied
+      - are not announced as links by screen readers — they carry no `role`,
+        no `aria-haspopup`, and are not keyboard focusable
+      - are invisible to search-engine crawlers
+      Fix: render them as `<Link to=…>` inside the `MenuItem`, which keeps the
+      menu and restores the anchor.
+
+- [ ] `/downloads` is a dead end — nothing to click onward.
+- [ ] Nothing is linkable. `useUrlState` exists but its only caller was
+      archived with the folded panels; every picker now holds state that
+      cannot be shared or cited.
 
 ### The 21 "earlier panels" — RESOLVED, removed 2026-08-26
 

@@ -2,7 +2,8 @@
 
 Opened 2026-08-26. A design argument, not a task list; the tasks it generates go
 to `SITE_CHECKLIST.md`. Written after the first browser-driven audits, which
-found 14 of 24 routes unreachable by clicking and 12,139 rendered words.
+found 12,139 rendered words. (A first pass also reported 14 unreachable
+routes; that was a tooling error — see §4.)
 
 ---
 
@@ -66,7 +67,8 @@ version does.
 
 **Downloads, API and documentation live in the persistent header.** In UniProt
 and the GWAS Catalog these are never more than one click away, from anywhere.
-On HEAP they are currently unreachable by clicking at all.
+HEAP already does this — the gap is that its nav items are click handlers
+rather than anchors, so they behave like buttons, not links.
 
 ---
 
@@ -110,13 +112,22 @@ The set the design should be judged against. Current status measured
 | 2 | which proteins report **one exposure** | ~ partly, per page |
 | 3 | causal evidence for **protein → disease** | ~ on `/results/causal`, not reachable from a protein |
 | 4 | the **table**, to reanalyse themselves | ✓ `/downloads` (but it is a dead end) |
-| 5 | **how it was computed** | ✗ `/documentation/methods` orphaned |
-| 6 | **how to cite** | ✗ `/documentation/cite` orphaned |
-| 7 | what **Tier 1** means | ✗ `/documentation/evidence-tiers` orphaned |
+| 5 | **how it was computed** | ✓ `Documentation ▼ → Detailed methods`, 2 clicks |
+| 6 | **how to cite** | ✓ `Documentation ▼ → How to cite`, 2 clicks |
+| 7 | what **Tier 1** means | ✓ `Documentation ▼ → Evidence tiers`, 2 clicks |
 | 8 | to **send a colleague this exact view** | ✗ only Mediation has URL state |
 | 9 | to see a result **under a different specification** | ~ per-page selectors, not in the URL, not consistent |
 
-Five of nine fail outright. Four of those five are one navigation change.
+Two of nine fail outright (8 and 9, both about linkability), and three are
+partial. An earlier version of this table said five failed; that was based on
+the orphan miscount corrected below.
+
+**Correction, 2026-08-26.** `nav_audit.py` originally crawled `<a href>` only.
+The header's menus are MUI `MenuItem`s with `onClick={() => navigate(...)}` and
+render no anchor, so 14 reachable pages were reported as orphans. They are
+reachable. What is true is that they are not *links*: no new-tab, no copy-link,
+not announced by screen readers, not crawlable. Rendering `<Link>` inside each
+`MenuItem` keeps the menu and fixes all four.
 
 ---
 
@@ -182,8 +193,9 @@ which is also the argument for retiring Cloud Run rather than building on it.
 
 Ordered so each step is useful on its own and the risky work comes last.
 
-1. **Header navigation.** Fixes 14 orphans and 3 use cases. No data work, no
-   prose decisions. Do this first.
+1. **Make the nav items real links.** `<Link to=…>` inside each `MenuItem`.
+   Restores new-tab, copy-link, screen-reader semantics and crawlability. Small,
+   and no data or prose decisions.
 2. **URL state everywhere.** 19 remaining pickers onto `useUrlState`. Makes
    every view linkable — the prerequisite for anything being citable.
 3. **Reconcile the protein key namespace.** `Protein` / `protID` / `protein` /

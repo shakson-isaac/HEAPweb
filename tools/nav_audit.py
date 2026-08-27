@@ -2,6 +2,12 @@
 """Walk the site the way a visitor does -- by clicking -- and measure what is
 reachable, from where, and in how many clicks.
 
+CRAWLS TWO KINDS OF AFFORDANCE. Real <a href> anchors, and click-driven menu
+items -- MUI `MenuItem onClick={() => navigate(...)}` renders no anchor at all,
+so an anchor-only crawl reports those destinations as unreachable when they are
+two clicks away. The first version of this tool did exactly that and produced a
+false "14 of 24 routes are orphaned" headline. Anything that navigates counts.
+
 Answers questions a source grep cannot:
   * Which pages can a first-time visitor actually REACH by clicking from the
     homepage? A route that exists in the router but is linked from nowhere is
@@ -34,6 +40,27 @@ DEFINED = [
     "/documentation/faqs",
 ]
 
+# Menu triggers: anything that opens a popup. Opening each one and reading its
+# items is the only way to see destinations that exist solely as click handlers.
+TRIGGERS_JS = r"""
+() => {
+  // The header's dropdown triggers are bare <div>s with an onClick handler --
+  // no <a>, no role, no aria-haspopup, nothing a crawler can key on. The only
+  // signal left in the DOM is that they are styled clickable. That absence is
+  // itself an accessibility finding, reported separately.
+  const hdr = document.querySelector('header') || document.body;
+  const seen = new Set();
+  return Array.from(hdr.querySelectorAll('div, span, button'))
+    .filter(e => getComputedStyle(e).cursor === 'pointer')
+    .filter(e => !e.closest('a'))
+    .map(e => (e.innerText || '').trim().split('\n')[0].replace(/[\u25bc\u25be\s]+$/, ''))
+    .filter(t => {
+       if (!t || t.length > 32 || seen.has(t)) return false;
+       seen.add(t); return true;
+    });
+}
+"""
+
 LINKS_JS = r"""
 () => Array.from(document.querySelectorAll('a[href]'))
   .map(a => ({
@@ -47,6 +74,47 @@ LINKS_JS = r"""
   .filter(l => l.href && !l.href.startsWith('http') && !l.href.startsWith('mailto:')
                && !l.href.startsWith('#'))
 """
+
+
+
+def menu_destinations(page, base, cur):
+    """Open every popup trigger and record where its items actually navigate.
+
+    These have no href, so the only honest way to know the destination is to
+    click the item and read the resulting URL, then come back. Slower than
+    reading anchors, and the reason this tool takes a few minutes.
+    """
+    out = []
+    try:
+        triggers = page.evaluate(TRIGGERS_JS)
+    except Exception:
+        return out
+    for label in triggers:
+        try:
+            page.click(f"text={label}", timeout=4000)
+            page.wait_for_timeout(500)
+            items = page.eval_on_selector_all(
+                "[role=menuitem]", "els => els.map(e => e.innerText.trim())")
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(200)
+        except Exception:
+            continue
+        for it in items:
+            if not it:
+                continue
+            try:
+                page.click(f"text={label}", timeout=3000)
+                page.wait_for_timeout(400)
+                page.click(f"[role=menuitem]:has-text({it!r})", timeout=3000)
+                page.wait_for_timeout(900)
+                dest = page.url.replace(base.rstrip("/"), "").split("?")[0] or "/"
+                out.append({"href": dest, "text": it, "where": "menu"})
+                page.goto(base.rstrip("/") + cur, wait_until="networkidle",
+                          timeout=45000)
+                page.wait_for_timeout(1200)
+            except Exception:
+                continue
+    return out
 
 
 def norm(href, cur):
@@ -76,6 +144,7 @@ def crawl(base, settle=3500, max_pages=40):
                           timeout=60000)
                 page.wait_for_timeout(settle)
                 links = page.evaluate(LINKS_JS)
+                links += menu_destinations(page, base, cur)
             except Exception as e:
                 outgoing[cur] = []
                 continue
