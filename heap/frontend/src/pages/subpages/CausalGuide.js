@@ -41,9 +41,9 @@ const BASE = '/results/causal-guide';
 const VIEWS = [
   {
     slug: 'entities',
-    title: 'Browse by entity',
-    question: 'Which motif does my protein, exposure or disease carry?',
-    payoff: 'A shortlist of triads, narrowed to what you study.',
+    title: 'Build a triad',
+    question: 'Which triads involve the exposure, protein or disease I care about?',
+    payoff: 'The matching triads and how they split across the five patterns.',
   },
   {
     slug: 'triads',

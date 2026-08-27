@@ -122,7 +122,15 @@ export default function TriadBuilder({ triadsPath }) {
       onChange={(_, v) => setValue(v || '')}
       getOptionLabel={pretty}
       renderInput={(props) => (
-        <TextField {...props} label={label} placeholder={`any (${opts.length})`} />
+        <TextField
+          {...props}
+          label={label}
+          placeholder="any"
+          // The count goes in helper text, not the placeholder: MUI shows a
+          // placeholder only on focus, and this number IS the affordance --
+          // watching 79 drop to 23 is how you learn the lists are narrowing.
+          helperText={`${opts.length} available`}
+        />
       )}
     />
   );
