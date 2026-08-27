@@ -31,6 +31,13 @@ data work) · `ask` (a real decision, not a default)
 | 6 | PES / tracks | apply what reads learned | done — same two-plot structure |
 | 7 | Interventions | data richer than the page shows | done — S15 deposit registered, 174 → 185 terms with SEs |
 
+## Site iteration checklist
+
+The per-page working list lives in **`docs/SITE_CHECKLIST.md`** — every route
+with its measured word count, prose blocks, controls and plots, the audit's
+flags, and a blank line per page for your own observations. Regenerate it after
+a batch with `tools/page_audit.py` and `tools/nav_audit.py`.
+
 ## Optimization & polish audit — 2026-08-26
 
 Measured, not estimated. Numbers are gzipped transfer size, which is what the
