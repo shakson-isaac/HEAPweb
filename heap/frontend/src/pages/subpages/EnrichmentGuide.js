@@ -294,10 +294,6 @@ function ViewProteins() {
       <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>
         {`${prettyExposure(exposure)} → ${prettyTissue(tissue)}`}
       </Typography>
-      <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2, maxWidth: 860 }}>
-        The GSEA leading edge: the proteins that carried this enrichment up to its
-        peak, not every associated protein that happens to be expressed here.
-      </Typography>
 
       <ExposureBodyMap detailFor={{ exposure, tissue }} />
     </Box>
