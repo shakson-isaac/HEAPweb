@@ -22,6 +22,7 @@
 // around it. It comes back when the updated SVG abstract exists.
 
 import React, { useEffect, useState } from 'react';
+import { prefetchCharts } from '../lib/prefetch';
 import { Link } from 'react-router-dom';
 import { Alert } from '@mui/material';
 import { WEB_DATA_BASE } from '../lib/heapdata';
@@ -249,6 +250,10 @@ const USE_CASES = [
 ];
 
 const Home = () => {
+  // Pull the charting chunk down while this page is idle, so the first click
+  // into a results page renders immediately instead of waiting on Plotly.
+  useEffect(prefetchCharts, []);
+
   const [meta, setMeta] = useState(null);
   const [macros, setMacros] = useState(null);
   const [loading, setLoading] = useState(true);

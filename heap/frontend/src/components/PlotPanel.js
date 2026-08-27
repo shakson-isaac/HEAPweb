@@ -1,5 +1,5 @@
 import React from 'react';
-import Plot from 'react-plotly.js';
+import Plot from '../lib/plotly';
 
 // One Plotly wrapper so every chart on the site shares a layout, font and
 // mode bar. White background and no gridlines, matching the manuscript figures.
