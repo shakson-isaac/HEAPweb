@@ -86,7 +86,14 @@ const EST_KEYS = ['EP', 'PDcis', 'PDtrans', 'ED', 'PEcis', 'PEtrans', 'DP', 'DE'
 const FLAG_KEYS = ['pEP', 'pPD', 'pED', 'pPE', 'pDP', 'pDE'];
 const OPTION_CAP = 300;
 
-export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQuery }) {
+export function TriadExplorer({
+  motif: motifProp, onMotif, query: queryProp, onQuery,
+  // Exact triad slots from the builder: { exposure, protein, disease }, any
+  // of them empty. Exact rather than free text, because the query box splits
+  // on whitespace and asks only that every word appear somewhere in the row,
+  // so 'smoking FURIN' typed as text also matches past_tobacco_smoking.
+  slots,
+}) {
   const { data, loading, error } = useSection('mr_triads');
   // deCODE corroboration for the same 18,780 triads, joined on (E, P, D).
   // Protein-involving edges only -- E->D and D->E have no protein for the
@@ -128,6 +135,17 @@ export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQ
     return out;
   }, [data]);
 
+  // True when row i satisfies every slot that was supplied.
+  const slotOk = useMemo(() => {
+    const { exposure, protein, disease } = slots || {};
+    if (!data || (!exposure && !protein && !disease)) return () => true;
+    return (i) => (
+      (!exposure || data.Exposure[i] === exposure)
+      && (!protein || data.Protein[i] === protein)
+      && (!disease || data.Disease[i] === disease)
+    );
+  }, [data, slots]);
+
   // The default selection is the first triad that satisfies the CURRENT filter,
   // not the first in the table.
   //
@@ -147,16 +165,17 @@ export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQ
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     for (const m of meta) {
       if (motif !== 'all' && !m.letters.includes(motif)) continue;
+      if (!slotOk(m.i)) continue;
       if (terms.length && !terms.every((t) => m.hay.includes(t))) continue;
       return m.i;
     }
     return published;
-  }, [data, meta, motif, query]);
+  }, [data, meta, motif, query, slotOk]);
 
   // A new filter invalidates whatever was picked under the old one, so hand the
   // selection back to the filter-aware default above. Without this, a triad
   // picked by hand would survive a search that excludes it.
-  useEffect(() => { setPicked(null); }, [query, motif]);
+  useEffect(() => { setPicked(null); }, [query, motif, slotOk]);
 
   const sel = picked === null ? fallback : picked;
 
@@ -226,12 +245,13 @@ export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQ
     let count = 0;
     for (const m of meta) {
       if (motif !== 'all' && !m.letters.includes(motif)) continue;
+      if (!slotOk(m.i)) continue;
       if (terms.length && !terms.every((t) => m.hay.includes(t))) continue;
       count += 1;
       if (out.length < OPTION_CAP) out.push({ value: m.i, label: m.label });
     }
     return { options: out, nMatch: count };
-  }, [meta, motif, query]);
+  }, [meta, motif, query, slotOk]);
 
   const triad = useMemo(() => {
     if (!data || !meta) return null;

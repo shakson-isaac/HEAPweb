@@ -17,7 +17,7 @@
 // Clicking a motif in the key sets ?motif= in the URL, and every viewpoint
 // opens filtered to it. The key is the navigation, exactly as its own header
 // comment always claimed.
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
   Alert, Box, Button, Card, CardContent, Divider, Typography,
@@ -28,11 +28,13 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArmNotice from '../../components/ArmNotice';
 import MotifKey from '../../components/MotifKey';
 import EntityMotifBrowser from '../../components/EntityMotifBrowser';
+import TriadBuilder from '../../components/TriadBuilder';
 import PDEffects from '../../components/PDEffects';
 import Disclosure from '../../components/Disclosure';
 import { TriadExplorer, Coloc } from './Causal';
 import { useSection } from '../../lib/useSection';
 import { useUrlState } from '../../lib/useUrlState';
+import { prettyExposure, prettyDisease } from '../../lib/palette';
 
 const BASE = '/results/causal-guide';
 
@@ -250,6 +252,12 @@ function ViewEntities() {
   const [entity, setEntity] = React.useState(null);
   return (
     <ViewPage view={viewBySlug('entities')}>
+      {/* Compose the triad first. Filling one slot reproduces the old
+          single-entity behaviour, so this generalizes what it replaces. */}
+      <TriadBuilder triadsPath={`${BASE}/triads`} />
+
+      {/* Motif-first: which entities carry a chosen pattern. A different
+          question from the builder's, so it keeps its own control. */}
       <EntityMotifBrowser
         motifs={motifKey}
         selectedMotif={motif === 'all' ? null : motif}
@@ -257,7 +265,6 @@ function ViewEntities() {
         picked={entity}
         onPick={(e) => {
           setEntity(e);
-          // Carried into the triad explorer, so a pick here opens there.
           setQuery(e ? e.id : '');
         }}
       />
@@ -268,9 +275,28 @@ function ViewEntities() {
 function ViewTriads() {
   const [motif, setMotif] = useUrlState('motif', 'all');
   const [query, setQuery] = useUrlState('q', '');
+  const [e] = useUrlState('e', '');
+  const [p] = useUrlState('p', '');
+  const [d] = useUrlState('d', '');
+  const slots = useMemo(() => ({ exposure: e, protein: p, disease: d }), [e, p, d]);
   return (
     <ViewPage view={viewBySlug('triads')}>
-      <TriadExplorer motif={motif} onMotif={setMotif} query={query} onQuery={setQuery} />
+      {(e || p || d) && (
+        <Alert severity="info" sx={{ mb: 2, maxWidth: 1000 }}>
+          <b>Filtered to the triad you built.</b>
+          {[e && `exposure ${prettyExposure(e)}`, p && `protein ${p}`,
+            d && `disease ${prettyDisease(d, null)}`].filter(Boolean).join(' · ')}
+          {'. '}
+          <RouterLink to={`${BASE}/triads`}>Show every triad</RouterLink>
+        </Alert>
+      )}
+      <TriadExplorer
+        motif={motif}
+        onMotif={setMotif}
+        query={query}
+        onQuery={setQuery}
+        slots={slots}
+      />
     </ViewPage>
   );
 }
