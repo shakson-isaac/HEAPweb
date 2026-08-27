@@ -27,7 +27,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import ArmNotice from '../../components/ArmNotice';
 import MotifKey from '../../components/MotifKey';
-import EntityMotifBrowser from '../../components/EntityMotifBrowser';
 import TriadBuilder from '../../components/TriadBuilder';
 import PDEffects from '../../components/PDEffects';
 import Disclosure from '../../components/Disclosure';
@@ -246,28 +245,17 @@ function Landing() {
  * The four viewpoints. One panel each.
  * ------------------------------------------------------------------ */
 function ViewEntities() {
-  const { data: motifKey } = useSection('mr_motif_key');
-  const [motif, setMotif] = useUrlState('motif', 'all');
-  const [, setQuery] = useUrlState('q', '');
-  const [entity, setEntity] = React.useState(null);
+  // The builder alone. The single-entity browser that used to sit here asked
+  // "pick one exposure, protein or disease -- how do its triads split?", which
+  // is what filling one builder slot does, with the same motif split and the
+  // same click-through. Two controls for one question is the stacking this
+  // redesign exists to remove.
+  //
+  // EntityMotifBrowser is NOT deleted: the original /results/causal still
+  // renders it, and the two pages are meant to be compared.
   return (
     <ViewPage view={viewBySlug('entities')}>
-      {/* Compose the triad first. Filling one slot reproduces the old
-          single-entity behaviour, so this generalizes what it replaces. */}
       <TriadBuilder triadsPath={`${BASE}/triads`} />
-
-      {/* Motif-first: which entities carry a chosen pattern. A different
-          question from the builder's, so it keeps its own control. */}
-      <EntityMotifBrowser
-        motifs={motifKey}
-        selectedMotif={motif === 'all' ? null : motif}
-        onSelectMotif={(m) => setMotif(m || 'all')}
-        picked={entity}
-        onPick={(e) => {
-          setEntity(e);
-          setQuery(e ? e.id : '');
-        }}
-      />
     </ViewPage>
   );
 }
