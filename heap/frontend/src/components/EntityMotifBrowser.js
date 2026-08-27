@@ -4,6 +4,7 @@ import {
   Typography,
 } from '@mui/material';
 import ColumnarTable from './ColumnarTable';
+import MotifGlyph from './MotifGlyph';
 import { useSection } from '../lib/useSection';
 import { motifColor, ecatColor, prettyExposure, prettyDisease } from '../lib/palette';
 
@@ -140,6 +141,18 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
     return m;
   }, [motifs]);
 
+  // The six signature characters per motif, for the glyph. Same source the
+  // reading key uses, so the picture here and the picture there agree.
+  const motifSigs = useMemo(() => {
+    const m = {};
+    if (!motifs?.motif) return m;
+    const keys = ['sig_1_EP', 'sig_2_PD', 'sig_3_ED', 'sig_4_PE', 'sig_5_DP', 'sig_6_DE'];
+    motifs.motif.forEach((k, i) => {
+      m[k] = Object.fromEntries(keys.map((c) => [c, motifs[c]?.[i]]));
+    });
+    return m;
+  }, [motifs]);
+
   if (loading) return <Typography variant="body2">Loading…</Typography>;
   if (error) return <Typography variant="body2" color="error">{String(error)}</Typography>;
   if (!index) return null;
@@ -216,18 +229,26 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
                 .filter((e) => (e.byMotif[m]?.n_triads || 0) > 0).length;
               const isSel = selectedMotif === m;
               return (
-                <Chip
+                <Box
                   key={m}
-                  label={`${m} · ${motifNames[m] || m} · ${nCarry}`}
                   onClick={() => onSelectMotif?.(isSel ? null : m)}
-                  variant={isSel ? 'filled' : 'outlined'}
                   sx={{
-                    fontWeight: isSel ? 700 : 400,
-                    borderColor: motifColor(m),
-                    bgcolor: isSel ? motifColor(m) : 'transparent',
-                    color: isSel ? '#fff' : 'text.primary',
+                    cursor: 'pointer', p: 1, borderRadius: 1, textAlign: 'center',
+                    border: '2px solid',
+                    borderColor: isSel ? motifColor(m) : 'divider',
+                    bgcolor: isSel ? 'action.selected' : 'transparent',
+                    minWidth: 112,
+                    '&:hover': { borderColor: motifColor(m) },
                   }}
-                />
+                >
+                  <MotifGlyph motif={m} sig={motifSigs[m]} size={92}
+                              title={`Motif ${m} — ${motifNames[m] || ''}`} />
+                  <Box sx={{ fontSize: 13, fontWeight: 700, color: motifColor(m), mt: 0.5 }}>{m}</Box>
+                  <Box sx={{ fontSize: 12 }}>{motifNames[m] || m}</Box>
+                  <Box sx={{ fontSize: 11, color: 'text.secondary' }}>
+                    {`${nCarry} ${type}${nCarry === 1 ? '' : 's'}`}
+                  </Box>
+                </Box>
               );
             })}
           </Box>
@@ -321,11 +342,18 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
 
           {selectedMotif && lookup && lookup.Protein.length > 0 && (
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                <b>{lookup.Protein.length.toLocaleString()}</b>
-                {` triad${lookup.Protein.length === 1 ? '' : 's'} · motif ${selectedMotif}`}
-                {motifNames[selectedMotif] ? ` — ${motifNames[selectedMotif]}` : ''}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <MotifGlyph motif={selectedMotif} sig={motifSigs[selectedMotif]} size={86}
+                            title={`Motif ${selectedMotif}`} />
+                <Box>
+                  <Box sx={{ fontWeight: 700 }}>
+                    {`${lookup.Protein.length.toLocaleString()} triad${lookup.Protein.length === 1 ? '' : 's'}`}
+                  </Box>
+                  <Box sx={{ fontSize: 13, color: 'text.secondary' }}>
+                    {`Motif ${selectedMotif}${motifNames[selectedMotif] ? ' — ' + motifNames[selectedMotif] : ''}`}
+                  </Box>
+                </Box>
+              </Box>
               <ColumnarTable data={lookup} initialRowsPerPage={10} />
             </Box>
           )}
