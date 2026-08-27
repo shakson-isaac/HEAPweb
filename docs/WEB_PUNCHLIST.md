@@ -31,6 +31,14 @@ data work) · `ask` (a real decision, not a default)
 | 6 | PES / tracks | apply what reads learned | done — same two-plot structure |
 | 7 | Interventions | data richer than the page shows | done — S15 deposit registered, 174 → 185 terms with SEs |
 
+## Site design
+
+**`docs/SITE_DESIGN.md`** — the argument for how the site should be organized:
+why a module-shaped IA fails the visitors it has, what comparable biological
+resources converge on, HEAP's three entities and what the sharded payload
+already supports, nine practical use cases (five currently fail), and a
+sequenced plan. Read it before any navigation or IA change.
+
 ## Site iteration checklist
 
 The per-page working list lives in **`docs/SITE_CHECKLIST.md`** — every route

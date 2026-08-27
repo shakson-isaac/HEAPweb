@@ -25,22 +25,28 @@ Things that are not any one page's problem.
 - [ ] Nothing is linkable. `useUrlState` now exists and Mediation uses it;
       19 other pickers still hold state where it cannot be shared or cited.
 
-### The 21 "earlier panels"
+### The 21 "earlier panels" — RESOLVED, removed 2026-08-26
 
-Three pages fold old panels behind a "Show the earlier panels" disclosure:
-`/results/main` (9), `/results/summary` (5), `/results/mediation` (7).
+Deleted from the site; the code is archived at `heap/frontend/deprecated/`
+(outside `src/`, never compiled) with a README on how to revive one.
 
-**Checked, and the answer was the opposite of what I expected: all 21 are the
-only view of their payload section.** The in-code note saying "several exports
-have no other view" was accurate and understated. Deleting them outright drops
-22 sections from the site.
+- [x] `/results/main` — 9 panels removed
+- [x] `/results/summary` — 5 panels removed
+- [x] `/results/mediation` — 7 panels removed
+- [x] `Disclosure.js` is now unused by anything
 
-Not verified: whether the same numbers are downloadable under a different name
-in the `supp/` tree. Downloads is manifest-driven from a separate namespace, so
-"not on the Downloads page" is not the same as "not available".
+**What this cost, stated plainly.** Each of the 21 was the only view of its
+payload section, so 22 sections are still built and published but nothing on
+the site draws them.
 
-- [ ] Decide: delete (lose 22 sections), keep folded (status quo), or move to a
-      dedicated figure appendix so the main pages are clean and nothing is lost.
+- [ ] Decide whether those 22 sections keep being built, or are dropped from
+      the payload too. Building and publishing data no page renders is waste,
+      but they may belong on the Downloads page instead.
+- [ ] **`ProteinLinks` went with them** — the per-protein mediation view, and
+      the only component wired to `useUrlState`. `/results/mediation` now has
+      no per-protein view, and `?protein=` deep links no longer resolve.
+      `SITE_DESIGN.md` §5 argues this should come back as `/protein/<symbol>`
+      rather than as a panel.
 
 ### Copy
 
