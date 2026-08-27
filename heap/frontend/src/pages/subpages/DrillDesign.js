@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import PlotPanel from '../../components/PlotPanel';
 import { useShard } from '../../lib/useSection';
+import { getShard } from '../../lib/heapdata';
 import { prettyTissue } from '../../lib/tissueBodyMap';
 
 // One worked example throughout, so the variants are comparable.
@@ -32,7 +33,6 @@ const OPENED = 'artery_aorta';
 
 const BLUE = '#0072B2';
 const ACCENT = '#D55E00';
-const GREY = '#9AA3AB';
 
 function Section({ n, title, problem, children }) {
   return (
@@ -130,46 +130,6 @@ function GtexDesigns() {
         </ToggleButtonGroup>
       </Variant>
 
-      <Variant
-        tag="B"
-        name="One strip, every tissue, the opened one marked"
-        rationale="All 54 kept, but as a distribution on a single axis instead of 54 stacked rows. It costs
-          one line instead of a page, and it shows the shape the ranked list hides: a long flat tail with a
-          few tissues far out to the right."
-      >
-        <PlotPanel
-          data={[
-            {
-              type: 'scatter', mode: 'markers',
-              x: rows.filter((r) => !r.here).map((r) => r.tpm),
-              y: rows.filter((r) => !r.here).map(() => 0),
-              marker: { size: 11, color: GREY, opacity: 0.75 },
-              text: rows.filter((r) => !r.here).map((r) => r.label),
-              hovertemplate: '%{text}<br>%{x:.2f} TPM<extra></extra>',
-              name: 'other tissues',
-            },
-            {
-              type: 'scatter', mode: 'markers+text',
-              x: [here.tpm], y: [0],
-              marker: { size: 18, color: ACCENT, line: { color: '#fff', width: 2 } },
-              text: [prettyTissue(OPENED)], textposition: 'top center',
-              textfont: { size: 13 },
-              hovertemplate: `${prettyTissue(OPENED)}<br>%{x:.2f} TPM<extra></extra>`,
-              name: 'the tissue you opened',
-            },
-          ]}
-          layout={{
-            height: 190, showlegend: false,
-            margin: { l: 30, r: 40, t: 40, b: 52 },
-            xaxis: { type: 'log', title: 'GTEx median TPM (log scale)' },
-            yaxis: { visible: false, range: [-1, 1.6] },
-          }}
-        />
-        <Typography variant="caption" color="text.secondary">
-          {`Tissue specificity τ = ${Number(data.tau[0]).toFixed(2)} — already in the payload, never shown today.
-            1 means the protein is confined to one tissue, 0 means it is everywhere.`}
-        </Typography>
-      </Variant>
     </>
   );
 }
@@ -177,44 +137,93 @@ function GtexDesigns() {
 /* ------------------------------------------------------------------ *
  * Panels 2 and 3 — the prose problem, shown rather than described
  * ------------------------------------------------------------------ */
-const EFFECT_PROSE = `Held-out β with a 95% Wald interval (β ± 1.96 × SE), from the test split — the same
-estimate the rest of the site plots, never the discovery-split β. Ranking by |β| needs the βs, and the
-association sections are sharded by protein, so the ten are found in two passes rather than by fetching the
-whole leading edge: the leading edge is stored in GSEA ranked-list order, so the first 24 of it are fetched
-and then re-ranked by the β actually returned. That proxy has a median |ρ| of about 0.85 against |β|, not 1,
-so a protein just outside the shortlist can outrank one inside it. Adjusting for BMI or the clinical
-covariates attenuates many adiposity-linked effects; attenuation under adjustment cannot on its own separate
-mediation from confounding, so read the specification buttons as a sensitivity check rather than a mechanism.`;
+const EXPOSURE = 'types_of_physical_activity_in_last_4_weeks_f6164_0_0.multi_Strenuous_sports';
+const EXPOSURE_TERM = 'multi_Strenuous_sports';
+const SHOW = 12;   // preview cap: one shard fetch per protein
 
-function ProseDesigns() {
+// Panels 2 and 3 are the SAME 30 proteins.
+//
+// The leading-edge table lists them with two derived counts, because -- as the
+// live component says itself -- every leading-edge row of a term repeats that
+// term's NES and q, so there is no per-protein statistic to rank by. The effect
+// panel directly below has exactly that missing statistic, for a subset of the
+// same list.
+//
+// So the page currently spends two panels, two explanations and 238 words
+// showing one list twice, and the half with the ranking number is the half that
+// does not name the specificity. This merges them.
+function MergedPanel() {
+  const { data: le } = useShard('bodymap_leading_edge', EXPOSURE);
+  const [rows, setRows] = useState(null);
+
+  const genes = useMemo(() => {
+    if (!le?.gene) return null;
+    const out = [];
+    for (let i = 0; i < le.gene.length; i += 1) {
+      if (le.term[i] === OPENED && le.spec[i] === 'base') out.push(le.gene[i]);
+    }
+    return out;
+  }, [le]);
+
+  React.useEffect(() => {
+    let alive = true;
+    if (!genes) return undefined;
+    (async () => {
+      const got = await Promise.all(genes.slice(0, SHOW).map(async (g) => {
+        try {
+          const d = await getShard('assoc_base', g);
+          const k = d.Term.findIndex((t) => t === EXPOSURE_TERM);
+          if (k < 0) return { gene: g, missing: true };
+          return {
+            gene: g,
+            beta: Number(d.beta_test[k]),
+            se: Number(d.SE_test[k]),
+            repl: String(d.replicated[k]).toUpperCase() === 'TRUE',
+          };
+        } catch { return { gene: g, missing: true }; }
+      }));
+      if (alive) setRows(got.sort((a, b) => Math.abs(b.beta || 0) - Math.abs(a.beta || 0)));
+    })();
+    return () => { alive = false; };
+  }, [genes]);
+
+  if (!rows) return <Typography variant="body2">Loading…</Typography>;
+  const ok = rows.filter((r) => !r.missing);
+
   return (
     <>
-      <Variant
-        tag="A"
-        name="One line above the plot, the rest behind a fold"
-        rationale="Everything in that paragraph is true and most of it answers a question nobody has yet. The
-          reader needs to know what the dot and the whisker are; the two-pass shortlist, the ρ≈0.85 proxy and
-          the BMI caveat are answers to questions raised by the plot, so they belong under it."
-      >
-        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'background.default' }}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            Held-out β with a 95% interval. Filled = replicated in both splits.
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            13 words instead of 145. The rest moves to “How these were chosen”, one click down.
-          </Typography>
-        </Paper>
-      </Variant>
-
-      <Variant
-        tag="—"
-        name="What is there now, for comparison"
-        rationale="145 words between the reader and the forest plot."
-      >
-        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#fff8f5' }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{EFFECT_PROSE}</Typography>
-        </Paper>
-      </Variant>
+      <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.5 }}>
+        Held-out β with a 95% interval. Filled = replicated in both splits.
+      </Typography>
+      <PlotPanel
+        data={[{
+          type: 'scatter', mode: 'markers', orientation: 'h',
+          x: ok.map((r) => r.beta).reverse(),
+          y: ok.map((r) => r.gene).reverse(),
+          error_x: {
+            type: 'data', array: ok.map((r) => 1.96 * r.se).reverse(),
+            color: '#888', thickness: 1.2, width: 0,
+          },
+          marker: {
+            size: 11,
+            color: ok.map((r) => (r.repl ? ACCENT : '#fff')).reverse(),
+            line: { color: ACCENT, width: 2 },
+          },
+          hovertemplate: '%{y}<br>β %{x:+.3f}<extra></extra>',
+        }]}
+        layout={{
+          height: 60 + ok.length * 28,
+          margin: { l: 92, r: 34, t: 8, b: 46 },
+          xaxis: { title: 'held-out β per SD of exposure', zeroline: true, zerolinecolor: '#bbb' },
+          yaxis: { automargin: true },
+        }}
+      />
+      <Typography variant="caption" color="text.secondary">
+        {`Showing ${ok.length} of ${genes.length} leading-edge proteins (preview cap). `}
+        {rows.length - ok.length > 0
+          ? `${rows.length - ok.length} have no association row — missing, not zero.`
+          : ''}
+      </Typography>
     </>
   );
 }
@@ -246,24 +255,22 @@ export default function DrillDesign() {
       <Divider sx={{ mt: 4 }} />
 
       <Section
-        n={2}
-        title="Effect sizes for the top proteins"
-        problem="A 145-word methods paragraph sits between the reader and the forest plot."
+        n="2 + 3"
+        title="The leading edge and the effect sizes — one list, shown twice"
+        problem={`These are the SAME 30 proteins. The table ranks them by two derived counts because the
+          leading edge has no per-protein statistic — every row repeats the term's NES and q. The panel below
+          it has the missing statistic, for a subset. Together they spend two panels, two explanations and
+          238 words on one list.`}
       >
-        <ProseDesigns />
-      </Section>
-
-      <Divider sx={{ mt: 4 }} />
-
-      <Section
-        n={3}
-        title="The leading-edge table"
-        problem="A 93-word definition above a table whose two numeric columns are mostly 1 and 0. Next round —
-          say which direction to take panels 1 and 2 first and this follows the same treatment."
-      >
-        <Typography variant="body2" color="text.secondary">
-          Not drafted yet, deliberately. The table's fix depends on what is decided above.
-        </Typography>
+        <Variant
+          tag="A"
+          name="Merge them: one ranked list, sorted by effect size"
+          rationale="The proteins that carried the enrichment, ranked by how strongly this exposure actually
+            moves them, with the interval and replication on the same row. One panel, one explanation, and a
+            sort that means something. The 145-word methods note moves to a fold beneath it."
+        >
+          <MergedPanel />
+        </Variant>
       </Section>
     </Box>
   );
