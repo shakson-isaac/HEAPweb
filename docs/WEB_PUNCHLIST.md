@@ -31,6 +31,40 @@ data work) · `ask` (a real decision, not a default)
 | 6 | PES / tracks | apply what reads learned | done — same two-plot structure |
 | 7 | Interventions | data richer than the page shows | done — S15 deposit registered, 174 → 185 terms with SEs |
 
+## Optimization & polish audit — 2026-08-26
+
+Measured, not estimated. Numbers are gzipped transfer size, which is what the
+browser actually downloads.
+
+### Done
+
+| # | area | change | outcome |
+|---|---|---|---|
+| 8 | bundle | Plotly built from core, six traces registered | done — 1292 → **482 KB gz**, 63% smaller |
+| 9 | bundle | prefetch the charting chunk on homepage idle | done — the results click no longer waits on Plotly |
+
+The full Plotly distribution carried mapbox, d3-geo and the WebGL 3D stack,
+none of which this site draws. No stock partial bundle fits: `basic` lacks
+box/heatmap/scattergl, `cartesian` lacks scattergl (9 components use it),
+`gl2d` lacks bar/box/heatmap/pie. Hence a custom build in `src/lib/plotly.js`.
+
+**Adding a chart type means registering it there.** An unregistered trace
+renders as an empty plot and logs nothing — a silent failure. The audit that
+produced the list of six is a grep for every plotly trace name across `src/`.
+
+### Open — found by audit, not yet fixed
+
+| # | area | observation | status |
+|---|---|---|---|
+| 10 | site-wide | **No deep-linking anywhere.** `useSearchParams` appears in zero files; 67 `useState` calls hold every selection. Selecting a protein and refreshing loses it, and no view can be linked to or cited — for a paper companion, a reviewer cannot point at anything. | todo |
+| 11 | site-wide | 20 separate entity pickers, no shared "current protein". This is why click-a-protein-anywhere → see-it-everywhere is not possible today. Same root cause as #10. | todo |
+| 12 | plots | Six scatters have no linked lookup table, against the standing preference: `ColocRegional` and all five `redesign/` components (`PleiotropySpectrum`, `ExposomicGradient`, `DriverComparison`, `VarianceReach`, `MediationLandscape`). The five are live on MainResults and Mediation, not preview-only — the preference postdates them. | todo |
+| 13 | copy | 59 British spellings in **rendered** text across 23 files; worst are `EnrichTripartite` (9) and `ExposureBodyMap` (8). House standard is American. Count excludes comments and constants like `GREY = '#9E9E9E'` — a naive grep says 117 and is wrong. | todo |
+| 14 | nav | The header offers exactly two links, Home and Downloads. Ten results pages and eight documentation pages are reachable only from inside `/results/*`. | todo |
+
+**Suggested order.** #10 is the foundation for #11 and for any homepage search,
+so it shrinks both. #12 and #13 are independent and can go any time.
+
 ## Standing preferences
 
 Applied by default; no need to restate.
