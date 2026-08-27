@@ -263,7 +263,7 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
             </>
           ) : (
             <Typography variant="body2" color="text.secondary">
-              Pick a pattern above. The number on each chip is how many {type}s carry it.
+              Pick a pattern above. Solid arrows are required; × marks an edge that must be absent.
             </Typography>
           )}
         </Box>
