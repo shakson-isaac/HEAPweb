@@ -15,6 +15,8 @@ const RESULT_PAGES = [
   { path: 'mediation', label: 'Disease Links' },
   { path: 'intervention', label: 'Intervention' },
   { path: 'enrichment', label: 'Tissues & Pathways' },
+  // Side-by-side reorganization, kept until one of the two is chosen.
+  { path: 'enrichment-guide', label: 'Tissues & Pathways — guided (new)' },
   { path: 'causal', label: 'Causal Evidence (MR)' },
   { path: 'pes', label: 'Exposure Scores (PES)' },
   { path: 'gwas', label: 'Exposure GWAS' },

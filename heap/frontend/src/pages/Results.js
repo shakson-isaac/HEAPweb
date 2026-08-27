@@ -22,6 +22,9 @@ const DesignPreview = lazy(() => import('./subpages/DesignPreview'));
 // The causal page. The stacked version it replaced is archived outside src/
 // at heap/frontend/deprecated/Causal.oldpage.js.
 const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
+// Reorganized Tissues & Pathways, running alongside the original for
+// comparison; see subpages/EnrichmentGuide.js.
+const EnrichmentGuide = lazy(() => import('./subpages/EnrichmentGuide'));
 
 function Loading() {
   return (
@@ -54,6 +57,7 @@ function Results() {
             <Route path="design-preview" element={<DesignPreview />} />
             {/* Links handed out while the two versions ran side by side. */}
             <Route path="causal-guide/*" element={<CausalGuide />} />
+            <Route path="enrichment-guide/*" element={<EnrichmentGuide />} />
           </Routes>
         </Suspense>
       </div>
