@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Chip, Typography } from '@mui/material';
+import {
+  Alert, Box, Chip, FormControlLabel, Switch, Typography,
+} from '@mui/material';
 import PlotPanel from '../PlotPanel';
 import Disclosure from '../Disclosure';
 import { useShard } from '../../lib/useSection';
@@ -21,9 +23,11 @@ import { assocSectionFor } from '../../lib/covariateSpecs';
 // MISSING IS NOT ZERO. A leading-edge protein with no association row for this
 // exposure is reported as untested, never plotted at zero.
 const ACCENT = '#D55E00';
+const PATHWAY = '#117733';
 const SHORTLIST = 24;   // fetched, then re-ranked by the beta actually returned
 
 export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', onPickGene, selected }) {
+  const [byPathway, setByPathway] = useState(false);
   const { data: le, loading } = useShard('bodymap_leading_edge', exposure);
   const [rows, setRows] = useState(null);
 
@@ -35,6 +39,26 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
     }
     return out;
   }, [le, tissue, spec]);
+
+  // Did the protein carry a PATHWAY enrichment too, or only this tissue's?
+  //
+  // The same shard already holds the exposure's enriched pathways and their
+  // leading edges -- 364 pathway rows beside 786 tissue rows for this exposure
+  // -- so the answer costs no extra request and was simply never asked. For
+  // strenuous sports in artery aorta it is a real split: 7 of the 30 also carry
+  // ECM proteoglycans and 23 carry no enriched pathway at all.
+  const pathwayOf = useMemo(() => {
+    if (!le?.gene) return null;
+    const m = new Map();
+    for (let i = 0; i < le.gene.length; i += 1) {
+      if (le.kind[i] !== 'pathway' || le.spec[i] !== spec) continue;
+      const g = le.gene[i];
+      if (!m.has(g)) m.set(g, []);
+      const list = m.get(g);
+      if (!list.includes(le.term_label[i])) list.push(le.term_label[i]);
+    }
+    return m;
+  }, [le, spec]);
 
   useEffect(() => {
     let alive = true;
@@ -76,23 +100,48 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
   }
 
   const ok = rows.ok;
+  const inPathway = ok.filter((r) => pathwayOf?.get(r.gene)?.length);
+  const pathwayNames = [...new Set(inPathway.flatMap((r) => pathwayOf.get(r.gene)))];
+
   return (
     <Box>
       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
         The proteins that carried this enrichment, ranked by effect size
       </Typography>
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Held-out β with a 95% interval. Filled = replicated in both splits.
+        Held-out β with a 95% interval.
+        {byPathway
+          ? ' Filled = also carried an enriched pathway.'
+          : ' Filled = replicated in both splits.'}
         {' '}
         <b>Click a protein</b> for where it is expressed.
       </Typography>
-      <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap', alignItems: 'center' }}>
         <Chip size="small" label={`${ok.length} of ${rows.total} leading-edge proteins`} />
         {rows.missing.length > 0 && (
           <Chip size="small" variant="outlined" color="warning"
                 label={`${rows.missing.length} with no association row — missing, not zero`} />
         )}
+        {pathwayNames.length > 0 && (
+          <FormControlLabel
+            sx={{ ml: 0.5 }}
+            control={<Switch size="small" checked={byPathway}
+                             onChange={(e) => setByPathway(e.target.checked)} />}
+            label={<Typography variant="body2">Mark pathway membership</Typography>}
+          />
+        )}
       </Box>
+
+      {byPathway && (
+        <Alert severity="info" sx={{ mb: 1 }}>
+          <b>{`${inPathway.length} of these ${ok.length}`}</b>
+          {` also carried an enriched pathway for this exposure; ${ok.length - inPathway.length} carried
+            this tissue only. `}
+          {pathwayNames.length
+            ? `Pathways involved: ${pathwayNames.join(', ')}.`
+            : ''}
+        </Alert>
+      )}
       <PlotPanel
         data={[{
           type: 'scatter',
@@ -108,13 +157,26 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
             // The selected protein grows and takes a dark ring, so the row
             // driving the panel below is identifiable without reading it.
             size: ok.map((r) => (r.gene === selected ? 17 : 11)).reverse(),
-            color: ok.map((r) => (r.repl ? ACCENT : '#ffffff')).reverse(),
+            // With the toggle on, fill encodes pathway membership instead of
+            // replication -- one fill can only carry one meaning, and the
+            // legend line above says which it is.
+            color: ok.map((r) => {
+              if (byPathway) return pathwayOf?.get(r.gene)?.length ? PATHWAY : '#ffffff';
+              return r.repl ? ACCENT : '#ffffff';
+            }).reverse(),
             line: {
-              color: ok.map((r) => (r.gene === selected ? '#23282D' : ACCENT)).reverse(),
+              color: ok.map((r) => {
+                if (r.gene === selected) return '#23282D';
+                return byPathway && pathwayOf?.get(r.gene)?.length ? PATHWAY : ACCENT;
+              }).reverse(),
               width: ok.map((r) => (r.gene === selected ? 3 : 2)).reverse(),
             },
           },
-          hovertemplate: '%{y}<br>β %{x:+.3f}<br><i>click for expression</i><extra></extra>',
+          text: ok.map((r) => {
+            const ps = pathwayOf?.get(r.gene) || [];
+            return ps.length ? ps.join(', ') : 'this tissue only';
+          }).reverse(),
+          hovertemplate: '%{y}<br>β %{x:+.3f}<br>%{text}<br><i>click for expression</i><extra></extra>',
         }]}
         onPointClick={(pt) => onPickGene && pt?.y && onPickGene(String(pt.y))}
         layout={{
