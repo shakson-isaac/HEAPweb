@@ -101,7 +101,13 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
 
   const ok = rows.ok;
   const inPathway = ok.filter((r) => pathwayOf?.get(r.gene)?.length);
-  const pathwayNames = [...new Set(inPathway.flatMap((r) => pathwayOf.get(r.gene)))];
+  // Counted over ALL the leading-edge proteins, not just the plotted ones.
+  // The plot shows only those with an association row, and for artery aorta
+  // that filter drops 6 of the 7 pathway-carrying proteins -- so reporting the
+  // overlap over the visible subset alone says "1 of 9" about a set that is
+  // really 7 of 30, and understates the very thing the toggle exists to show.
+  const allInPathway = (genes || []).filter((g) => pathwayOf?.get(g)?.length);
+  const pathwayNames = [...new Set(allInPathway.flatMap((g) => pathwayOf.get(g)))];
 
   return (
     <Box>
@@ -134,12 +140,13 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
 
       {byPathway && (
         <Alert severity="info" sx={{ mb: 1 }}>
-          <b>{`${inPathway.length} of these ${ok.length}`}</b>
-          {` also carried an enriched pathway for this exposure; ${ok.length - inPathway.length} carried
-            this tissue only. `}
-          {pathwayNames.length
-            ? `Pathways involved: ${pathwayNames.join(', ')}.`
-            : ''}
+          <b>{`${allInPathway.length} of the ${rows.total} leading-edge proteins`}</b>
+          {` also carried an enriched pathway for this exposure`}
+          {allInPathway.length !== inPathway.length
+            ? ` — but only ${inPathway.length} of the ${ok.length} plotted here, because the rest have no
+               association row for this exposure. `
+            : `; ${rows.total - allInPathway.length} carried this tissue only. `}
+          {pathwayNames.length ? `Pathways involved: ${pathwayNames.join(', ')}.` : ''}
         </Alert>
       )}
       <PlotPanel
