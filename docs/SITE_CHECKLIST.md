@@ -35,6 +35,17 @@ Deleted from the site; the code is archived at `heap/frontend/deprecated/`
 - [x] `/results/mediation` — 7 panels removed
 - [x] `Disclosure.js` is now unused by anything
 
+**Measured result: only 7% less rendered prose** (1,153 -> 1,070 words across
+the three pages). The panels were already behind a fold, and a visitor never
+saw them unless they clicked "Show" -- so what actually disappeared was the
+button label and its note. This was a CODE win (1,972 lines of page code -> 115)
+and not a UI-clutter win. Do not cite it as one.
+
+The clutter is on the pages nothing has been done to, where none of it is
+folded: `/results/pes` (1,683 words), `/results/enrichment` (1,272),
+`/results/intervention` (1,075 around a single plot) and `/results/causal`
+(989) hold 5,019 words between them.
+
 **What this cost, stated plainly.** Each of the 21 was the only view of its
 payload section, so 22 sections are still built and published but nothing on
 the site draws them.
