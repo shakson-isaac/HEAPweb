@@ -19,6 +19,8 @@ const Gwas = lazy(() => import('./subpages/Gwas'));
 // Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
 // typing the path, and reads scratch data, so it cannot affect the live site.
 const DesignPreview = lazy(() => import('./subpages/DesignPreview'));
+// Scratch surface for the drill-in panel redesign; unlinked.
+const DrillDesign = lazy(() => import('./subpages/DrillDesign'));
 // The causal page. The stacked version it replaced is archived outside src/
 // at heap/frontend/deprecated/Causal.oldpage.js.
 const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
@@ -55,6 +57,7 @@ function Results() {
             <Route path="pes" element={<Pes />} />
             <Route path="gwas" element={<Gwas />} />
             <Route path="design-preview" element={<DesignPreview />} />
+            <Route path="drill-design" element={<DrillDesign />} />
             {/* Links handed out while the two versions ran side by side. */}
             <Route path="causal-guide/*" element={<CausalGuide />} />
             <Route path="enrichment-guide/*" element={<EnrichmentGuide />} />
