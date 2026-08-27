@@ -6,10 +6,11 @@ import {
 
 // Sort / search / paginate a columnar section entirely in the browser.
 //
-// The server-side TableComponent exists because MediationResults is a 62 MB
-// table that cannot be shipped whole. Payload sections are already small --
-// the biggest is 39 KB -- so there is no reason to round-trip to Flask and
-// Cloud SQL for a sort. This does the same job with no backend at all.
+// This replaced a server-side TableComponent, which existed because
+// MediationResults is a 62 MB table that cannot be shipped whole. Payload
+// sections are already small -- the biggest is 39 KB -- so there was no reason
+// to round-trip to Flask and Cloud SQL for a sort. This does the same job with
+// no backend at all, which is also why the Cloud Run service can be retired.
 
 function fmt(v) {
   if (v === null || v === undefined) return '';
