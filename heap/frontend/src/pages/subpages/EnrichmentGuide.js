@@ -113,10 +113,12 @@ function Landing() {
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
         Tissues &amp; pathways
       </Typography>
-      <Typography variant="body1" sx={{ mb: 1, maxWidth: 820 }}>
-        Pick an exposure and see which tissues its proteomic signature comes from,
-        then open an organ to read the proteins that carried the enrichment.
-      </Typography>
+      {/* No lede. ExposureBodyMap opens with its own heading -- "What does this
+          exposure touch, and which proteins carry it?" -- and its own
+          description of picking an exposure and clicking an organ. A page-level
+          paragraph saying the same thing put the same sentence on screen twice,
+          thirty pixels apart. The NES convention stays because the component
+          prints NES values on the body and never defines the sign. */}
       <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>
         Positive NES means the set is enriched among proteins associated with that
         exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
