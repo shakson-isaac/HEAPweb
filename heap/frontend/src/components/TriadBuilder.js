@@ -137,9 +137,9 @@ export default function TriadBuilder({ triadsPath }) {
 
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Build a triad
-      </Typography>
+      {/* No heading here: the viewpoint above already says "Build a triad",
+          and saying it twice on one screen is the duplication this redesign
+          keeps removing. The component is used inside a titled page. */}
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
         Fill any combination of the three. Each list only offers values that
         actually occur with what you have already chosen.
