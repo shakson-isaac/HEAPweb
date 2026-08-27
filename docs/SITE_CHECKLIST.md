@@ -36,6 +36,20 @@ Things that are not any one page's problem.
       Fix: render them as `<Link to=…>` inside the `MenuItem`, which keeps the
       menu and restores the anchor.
 
+- [x] **Nav items are real links now.** Every `MenuItem` renders
+      `component={Link}`; triggers have `role=button`, `tabIndex`,
+      `aria-haspopup` and Enter/Space; the logo is a `Link`. Re-crawl confirms
+      **22 links from the front door** and **zero real orphans** — the two the
+      tool still lists are legacy aliases that resolve (`/results/interactions`
+      → architecture, `/documentation/specifications` → models).
+
+- [ ] **No 404 handling anywhere.** Measured 2026-08-26:
+      `/documentation/<garbage>` renders the documentation shell (201 words)
+      and looks like a real page; `/results/<garbage>` and `/totally/made/up`
+      render a blank shell of 7-8 words. A mistyped or stale link fails
+      silently. This matters more now that URLs are meant to be shared: someone
+      pasting a link with a typo sees an empty page, not an explanation.
+
 - [ ] `/downloads` is a dead end — nothing to click onward.
 - [ ] Nothing is linkable. `useUrlState` exists but its only caller was
       archived with the folded panels; every picker now holds state that
