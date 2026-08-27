@@ -6,6 +6,13 @@
 // Nothing says the three are alternatives rather than a sequence, and nothing
 // says the eight below are an appendix rather than the point.
 //
+// The eight grids are not carried over at all. They were briefly a viewpoint
+// here and the author's read was that the tab was unhelpful and its contents
+// not very useful -- so this version has three entry points and no reference
+// appendix. The original page still renders all eight; if this version is
+// promoted, those sections lose their only viewer and belong on Downloads or
+// out of the payload.
+//
 // The irony is that the three components already know what they are for. Their
 // own headers say it:
 //
@@ -33,8 +40,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ExposureBodyMap from '../../components/enrichment/ExposureBodyMap';
 import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
 import TissueExplorer from '../../components/enrichment/TissueExplorer';
-import TableSection from '../../components/TableSection';
-import { EnrichHeatmap, NesBar } from './Enrichment';
 import { prettyTissue } from '../../lib/tissueBodyMap';
 import { prettyExposure } from '../../lib/palette';
 
@@ -54,12 +59,6 @@ const VIEWS = [
     title: 'Programs and tissues',
     question: 'Which biological programs carry an exposure into which tissues?',
     payoff: 'Main Figure 2d, for all 114 exposures rather than the ten in print.',
-  },
-  {
-    slug: 'all',
-    title: 'Every enrichment',
-    question: 'Show me the whole grid, not one thread through it.',
-    payoff: 'Eight full views: tissue and pathway heatmaps, themes by category, NES bars, and the genetic-versus-exposomic table.',
   },
 ];
 
@@ -210,58 +209,6 @@ const ViewPrograms = () => (
   <ViewPage view={viewBySlug('programs')}><EnrichTripartite /></ViewPage>
 );
 
-// The eight grids the original stacked below its three interactive views. They
-// are a reference surface, not a reading order, so they stay together on one
-// route rather than becoming eight more.
-function ViewAll() {
-  return (
-    <ViewPage view={viewBySlug('all')}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 900 }}>
-        Every exposure against every tissue and pathway, the same enrichments grouped
-        by exposure category and by variance component, and the genetic-versus-exposomic
-        comparison. For scanning the whole space rather than following one thread.
-      </Typography>
-      <EnrichHeatmap
-        section="tissue_enrichment" title="Tissue enrichment"
-        subtitle="Exposures against GTEx tissue signatures. Blank cells were not significant."
-        xCol="tissue" yCol="exposure" height={760}
-      />
-      <EnrichHeatmap
-        section="pathway_enrichment" title="Pathway enrichment"
-        subtitle="Exposures against Reactome pathways."
-        xCol="pathway" yCol="exposure" height={700}
-      />
-      <EnrichHeatmap
-        section="tissue_themes" title="Tissue themes by exposure category"
-        subtitle="Tissues grouped into organ systems, shown per exposure category."
-        xCol="tissue" yCol="category" height={420}
-      />
-      <EnrichHeatmap
-        section="pathway_themes" title="Pathway themes by exposure category"
-        subtitle="Pathways grouped into themes, shown per exposure category."
-        xCol="pathway" yCol="category" height={420}
-      />
-      <NesBar
-        section="exposure_tissue" title="Exposure&ndash;tissue enrichment"
-        subtitle="Tissue signal aggregated across each exposure category."
-        labelCol="tissue" groupCol="category"
-      />
-      <NesBar
-        section="inflammation_convergence" title="Inflammatory convergence"
-        subtitle="Where distinct exposure categories converge on shared inflammatory pathways."
-        labelCol="pathway" groupCol="category"
-      />
-      <NesBar
-        section="component_pathways" title="Pathways by variance component"
-        subtitle="Which biology sits behind the exposomic component of protein variance."
-        labelCol="Description" groupCol="ONTOLOGY"
-      />
-      <TableSection section="geno_expo_pathways"
-                    title="Genetic versus exposomic pathways" rowsPerPage={25} />
-    </ViewPage>
-  );
-}
-
 // The proteins that carried one exposure's enrichment in one tissue. Reached by
 // clicking an organ; linkable on its own because both slots are in the URL.
 function ViewProteins() {
@@ -291,10 +238,12 @@ function ViewProteins() {
               size="small" sx={{ textTransform: 'none', ml: -1 }}>
         Back to the body
       </Button>
-      <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, mb: 2 }}>
         {`${prettyExposure(exposure)} → ${prettyTissue(tissue)}`}
       </Typography>
 
+      {/* No lede: the card below opens by defining the leading edge, and naming
+          core_enrichment, better than a paragraph above it could. */}
       <ExposureBodyMap detailFor={{ exposure, tissue }} />
     </Box>
   );
@@ -307,7 +256,6 @@ export default function EnrichmentGuide() {
       <Route path="proteins" element={<ViewProteins />} />
       <Route path="tissue" element={<ViewTissue />} />
       <Route path="programs" element={<ViewPrograms />} />
-      <Route path="all" element={<ViewAll />} />
       <Route path="*" element={<Landing />} />
     </Routes>
   );

@@ -16,7 +16,7 @@ const DIVERGING = [
   [0.75, '#f4a582'], [1, '#b2182b'],
 ];
 
-export function EnrichHeatmap({ section, title, subtitle, xCol, yCol, height }) {
+function EnrichHeatmap({ section, title, subtitle, xCol, yCol, height }) {
   const { data, loading, error } = useSection(section);
   const traces = useMemo(() => {
     if (!data) return [];
@@ -49,7 +49,7 @@ export function EnrichHeatmap({ section, title, subtitle, xCol, yCol, height }) 
   );
 }
 
-export function NesBar({ section, title, subtitle, labelCol, groupCol }) {
+function NesBar({ section, title, subtitle, labelCol, groupCol }) {
   const { data, loading, error } = useSection(section);
   const traces = useMemo(() => {
     if (!data) return [];
