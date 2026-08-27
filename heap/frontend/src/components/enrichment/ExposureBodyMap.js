@@ -1554,20 +1554,26 @@ export default function ExposureBodyMap({
 
   return (
     <SectionCard
-      title="What does this exposure touch, and which proteins carry it?"
-      subtitle={
+      title={detailFor ? 'The leading edge' : 'What does this exposure touch, and which proteins carry it?'}
+      subtitle={detailFor ? null : (
         'Pick an exposure and the body shows the tissues whose expression signature its plasma '
         + 'proteins concentrate in (GSEA, FDR q < 0.05). Click an organ for the exact proteins '
         + 'that drove that enrichment — the GSEA leading edge, not every associated protein that '
         + 'happens to be expressed there. Choosing one of the exposure’s enriched pathways narrows '
         + 'the figure to the tissues that share leading-edge proteins with it.'
-      }
+      )}
       loading={loading}
       error={error}
       empty={!loading && !error && !parsed}
     >
       {view && (
         <>
+          {/* The destination route asked for the PROTEINS. Rendering the pickers
+              and the anatomy again there duplicated the page the reader just
+              came from -- 11 anatomy figures and 1,559 words on what was meant
+              to be a drill-in. detailFor suppresses all of it and leaves the
+              leading-edge panel alone. */}
+          {!detailFor && (<>
           {/* --- controls ------------------------------------------------- */}
           {/* One picker for the whole section. It re-runs the body map from that
               specification's GSEA and reads the effect sizes from the matching
@@ -1808,6 +1814,7 @@ export default function ExposureBodyMap({
               </Paper>
             </Box>
           </Box>
+          </>)}
 
           {/* --- drill-in --------------------------------------------------- */}
           <Box sx={{ mt: 2 }}>
