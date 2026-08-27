@@ -38,6 +38,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import ExposureBodyMap from '../../components/enrichment/ExposureBodyMap';
+import LeadingEdgeEffects from '../../components/enrichment/LeadingEdgeEffects';
+import GtexProfile from '../../components/enrichment/GtexProfile';
 import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
 import TissueExplorer from '../../components/enrichment/TissueExplorer';
 import { prettyTissue } from '../../lib/tissueBodyMap';
@@ -212,6 +214,7 @@ const ViewPrograms = () => (
 // The proteins that carried one exposure's enrichment in one tissue. Reached by
 // clicking an organ; linkable on its own because both slots are in the URL.
 function ViewProteins() {
+  const [gene, setGene] = React.useState(null);
   const [params] = useSearchParams();
   const exposure = params.get('exposure') || '';
   const tissue = params.get('tissue') || '';
@@ -242,9 +245,18 @@ function ViewProteins() {
         {`${prettyExposure(exposure)} → ${prettyTissue(tissue)}`}
       </Typography>
 
-      {/* No lede: the card below opens by defining the leading edge, and naming
-          core_enrichment, better than a paragraph above it could. */}
-      <ExposureBodyMap detailFor={{ exposure, tissue }} />
+      {/* Built from two purpose-made panels rather than by re-rendering the
+          body map in a detail mode. The list ranks the leading edge by the one
+          number that varies protein to protein; picking a row shows where that
+          protein is expressed. */}
+      <LeadingEdgeEffects exposure={exposure} tissue={tissue} onPickGene={setGene} />
+
+      {gene && (
+        <Box sx={{ mt: 4 }}>
+          <Divider sx={{ mb: 2 }} />
+          <GtexProfile gene={gene} tissue={tissue} />
+        </Box>
+      )}
     </Box>
   );
 }
