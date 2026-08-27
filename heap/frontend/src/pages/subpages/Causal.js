@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Select from 'react-select';
 import {
   Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
@@ -128,12 +128,36 @@ export function TriadExplorer({ motif: motifProp, onMotif, query: queryProp, onQ
     return out;
   }, [data]);
 
-  // Default: the first Tier-1 mediator triad in the published table, which is
-  // also the strongest of the six by the weakest of its three required edges.
-  const fallback = useMemo(
-    () => (data ? Math.max(0, data.motif.findIndex((m) => String(m).charAt(0) === 'A')) : 0),
-    [data]
-  );
+  // The default selection is the first triad that satisfies the CURRENT filter,
+  // not the first in the table.
+  //
+  // This used to be fixed at the first Tier-1 mediator triad, which meant a
+  // filter changed the dropdown's OPTIONS while the panel below went on showing
+  // an unrelated triad. Arriving here from the entity browser with ?q=LEP
+  // narrowed the list to LEP and then displayed something else, so the carry-over
+  // looked broken even though the query had arrived intact.
+  //
+  // With nothing matching, fall back to the published default: the first Tier-1
+  // mediator, which is also the strongest of them by its weakest required edge.
+  const fallback = useMemo(() => {
+    const published = data
+      ? Math.max(0, data.motif.findIndex((m) => String(m).charAt(0) === 'A'))
+      : 0;
+    if (!data || !meta) return published;
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    for (const m of meta) {
+      if (motif !== 'all' && !m.letters.includes(motif)) continue;
+      if (terms.length && !terms.every((t) => m.hay.includes(t))) continue;
+      return m.i;
+    }
+    return published;
+  }, [data, meta, motif, query]);
+
+  // A new filter invalidates whatever was picked under the old one, so hand the
+  // selection back to the filter-aware default above. Without this, a triad
+  // picked by hand would survive a search that excludes it.
+  useEffect(() => { setPicked(null); }, [query, motif]);
+
   const sel = picked === null ? fallback : picked;
 
   const decIndex = useMemo(() => {
