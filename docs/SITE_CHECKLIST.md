@@ -82,6 +82,32 @@ the site draws them.
 
 ---
 
+## Prose method — what the intervention page taught
+
+`/results/intervention` went **1,075 -> 773 rendered words (-28%)** with nothing
+substantive dropped. The cuts were not stylistic; the same two faults produced
+almost all of the volume, and both recur on the other pages.
+
+**Fault 1 — the same point stated three times.** The estimand caveat (a
+between-person UK Biobank slope is not a within-person trial change) appeared
+in the page preamble, again in the scatter's subtitle, and again in a caption.
+Say it once, in the place a reader cannot miss.
+
+**Fault 2 — method in front of the plot instead of behind it.** How r is
+weighted, which proteins the trial assayed, why markers are sized as they are:
+all of it sat above the figure. It belongs in a `Disclosure` at the foot.
+
+**What must NOT be compressed.** "This picker shows attenuation, not mediation"
+stays at full length and in place. It is the correction withdrawn from the
+manuscript in five places and it stops a reader drawing a causal conclusion the
+data cannot support. Rendered NUMBERS are never touched.
+
+Website copy may now be edited directly (user instruction, 2026-08-26);
+manuscript prose and figure captions still are not.
+
+Remaining, same shape, unfixed: `/results/pes` (1,683 words, 225 controls),
+`/results/enrichment` (1,272), `/results/causal` (989, one 154-word block).
+
 ## Per route
 
 ### `/results/intervention`

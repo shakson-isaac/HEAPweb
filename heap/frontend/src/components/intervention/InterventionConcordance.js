@@ -957,16 +957,15 @@ export default function InterventionConcordance() {
                   {published.q != null && `   ·   q (BH) ${fp(published.q)}`}
                 </Typography>
                 <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                  That is the number the paper reports: a Pearson r weighted by each protein’s
-                  Olink–SomaScan assay correlation, with n_eff the effective sample size the
-                  weighting leaves. It is computed over every protein
-                  {` ${trial.label} `}
-                  reported under
-                  {` ${specLabel(spec.id)}`}
-                  , before any filter on this page. Proteins with non-positive reliability carry
-                  zero weight and drop out, which is why the protein count can sit below the
-                  {` ${published.npairs == null ? '—' : published.npairs} `}
-                  pairs available.
+                  The paper's number: Pearson r weighted by assay reliability, over every
+                      protein
+                      {` ${trial.label} `}
+                      reported under
+                      {` ${specLabel(spec.id)}`}
+                      , before any filter here. Proteins with non-positive reliability drop
+                      out, so the count can sit below the
+                      {` ${published.npairs == null ? '—' : published.npairs} `}
+                      pairs available.
                 </Typography>
                 <Box sx={{ mt: 0.75, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip
@@ -1021,16 +1020,14 @@ export default function InterventionConcordance() {
           {panelKnown ? (
             <Alert severity="info" sx={{ mb: 2 }}>
               <b>{trial.label}</b>
-              {` assayed ${coverage.assayed} of the ${coverage.tested} proteins HEAP tested `}
-              for this exposure and reported
-              {` ${coverage.reported}`}
-              . Another
+              {` assayed ${coverage.assayed} of ${coverage.tested} and reported `}
+              {`${coverage.reported}`}
+              . Of the rest,
               {` ${coverage.measuredNull} `}
-              were <b>measured and did not move</b>, and
+              were <b>measured and did not move</b> and
               {` ${coverage.offPanel} `}
-              were <b>never on the assay panel</b>. Only the reported ones can be drawn, but
-              the difference between the other two is real and comes from the trial’s own gene
-              list — it is not inferred from absence.
+              were <b>never on the panel</b> — a real distinction, taken from the
+              trial's own gene list, not inferred from absence.
             </Alert>
           ) : (
             <Alert severity="warning" sx={{ mb: 2 }}>

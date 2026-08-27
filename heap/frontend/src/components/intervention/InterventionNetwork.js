@@ -595,11 +595,9 @@ export default function InterventionNetwork() {
     <SectionCard
       title="The shared language, for any disease"
       subtitle={
-        'Main Figure 5d is fixed to four cardiometabolic endpoints. This is the same picture, '
-        + 'rebuilt for any of the 44 diseases in the payload: lifestyle exposures and trials on the '
-        + 'left move a shared set of plasma proteins in the middle, and those proteins split into a '
-        + 'minority that is genetically causal for the disease on the right and a majority that '
-        + 'merely reports it.'
+        'Lifestyle exposures and trials move a shared set of plasma proteins, which split '
+            + 'into a minority genetically causal for the disease and a majority that merely '
+            + 'reports it. Any of the 44 diseases in the payload — Figure 5d shows four.'
       }
     >
       {/* --- controls ------------------------------------------------------ */}
