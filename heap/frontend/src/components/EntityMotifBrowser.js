@@ -122,11 +122,16 @@ export default function EntityMotifBrowser({ motifs, selectedMotif, onSelectMoti
       .filter((r) => r.n > 0)
       .sort((a, b) => b.n - a.n);
     const label = { exposure: 'Exposure', protein: 'Protein', disease: 'Disease' }[type];
-    return {
+    const out = {
       [label]: rows.map((r) => (type === 'exposure' ? prettyExposure(r.e.label) : r.e.label)),
       Triads: rows.map((r) => r.n),
-      Category: rows.map((r) => (r.e.ecat || '').replace(/_/g, ' ')),
     };
+    // ecat is an exposure attribute. Including it for proteins or diseases
+    // renders an entirely blank column, which is worse than no column.
+    if (type === 'exposure') {
+      out.Category = rows.map((r) => (r.e.ecat || '').replace(/_/g, ' '));
+    }
+    return out;
   }, [index, selectedMotif, type]);
 
   const motifNames = useMemo(() => {
