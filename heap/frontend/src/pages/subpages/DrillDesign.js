@@ -138,7 +138,11 @@ function GtexDesigns() {
  * Panels 2 and 3 — the prose problem, shown rather than described
  * ------------------------------------------------------------------ */
 const EXPOSURE = 'types_of_physical_activity_in_last_4_weeks_f6164_0_0.multi_Strenuous_sports';
-const EXPOSURE_TERM = 'multi_Strenuous_sports';
+// Term carries the FULL exposure id, suffix included -- not the bare
+// 'multi_Strenuous_sports' tail. Matching on the tail found nothing and the
+// plot rendered 60px tall with no rows, which reads as a styling problem
+// rather than a failed join.
+const EXPOSURE_TERM = EXPOSURE;
 const SHOW = 12;   // preview cap: one shard fetch per protein
 
 // Panels 2 and 3 are the SAME 30 proteins.
