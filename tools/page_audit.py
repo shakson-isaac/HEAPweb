@@ -11,7 +11,11 @@ Reports, per route:
   blocks       distinct prose blocks (paragraphs, alerts, help text)
   longest      the single longest prose block, in words
   controls     interactive elements (selects, buttons, tabs, inputs)
-  plots        rendered Plotly canvases
+  plots        rendered Plotly canvases. NOTE: hand-drawn SVG panels do not
+               register here, so a words-per-plot ratio penalises pages built
+               on custom SVG (intervention's network, enrichment's body map,
+               the triad DAG). Rank those on raw word count; check `svgs`
+               before quoting a ratio.
   errors       console errors and failed requests
 
 Usage:

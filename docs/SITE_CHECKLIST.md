@@ -82,6 +82,18 @@ the site draws them.
 
 ---
 
+## Caveat on `words per plot`
+
+`page_audit.py` counts `.js-plotly-plot`, so a hand-drawn SVG panel does not
+register as a visual. `/results/intervention` was reported as "1,075 words
+around a SINGLE plot"; it has two major visuals — a Plotly scatter and an SVG
+network — so the real figure was ~540 words each. The ranking was unaffected
+(still worst by 2.7x) but the phrasing overstated it.
+
+Pages with custom SVG components — intervention, enrichment's body map, the
+triad DAG — are penalised by this metric. Use raw word count to rank them, and
+check the `svgs` column before quoting a ratio.
+
 ## Prose method — what the intervention page taught
 
 `/results/intervention` went **1,075 -> 773 rendered words (-28%)** with nothing
