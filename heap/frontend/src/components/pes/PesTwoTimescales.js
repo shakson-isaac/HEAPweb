@@ -58,6 +58,9 @@ export default function PesTwoTimescales() {
     .filter(Boolean);
   const sel = picked ? byId.get(picked.id) : null;
   const bothPositive = rows.filter((r) => r.long > 0 && r.short > 0).length;
+  const all = rows.flatMap((r) => [r.long, r.short]);
+  const diagLo = Math.min(...all) - 0.02;
+  const diagHi = Math.max(...all) + 0.02;
 
   return (
     <Box>
@@ -117,9 +120,13 @@ export default function PesTwoTimescales() {
           margin: { l: 68, r: 26, t: 12, b: 56 },
           xaxis: { title: 'Δ-correlation, baseline → imaging (~10 years)', zeroline: true, zerolinecolor: '#ccc' },
           yaxis: { title: 'Δ-correlation, imaging → repeat imaging (~2 years)', zeroline: true, zerolinecolor: '#ccc' },
+          // Spans the data, not a guessed range. Hardcoding x1 = 0.35 left the
+          // reference line stopping less than halfway to Current smoking at
+          // (0.77, 0.63) -- the diagonal IS the claim, so it has to reach the
+          // point the claim is most about.
           shapes: [{
             type: 'line', xref: 'x', yref: 'y',
-            x0: -0.05, y0: -0.05, x1: 0.35, y1: 0.35,
+            x0: diagLo, y0: diagLo, x1: diagHi, y1: diagHi,
             line: { color: '#999', width: 1, dash: 'dash' },
           }],
         }}
