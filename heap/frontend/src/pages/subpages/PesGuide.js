@@ -26,6 +26,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import PesReads from '../../components/pes/PesReads';
 import PesTracks from '../../components/pes/PesTracks';
+import PesTwoTimescales from '../../components/pes/PesTwoTimescales';
 import PesReadVsTrack from '../../components/pes/PesReadVsTrack';
 import PesDisease from '../../components/pes/PesDisease';
 
@@ -36,7 +37,7 @@ const VIEWS = [
     slug: 'tracks',
     title: 'Does it track change?',
     question: 'When someone’s exposure changes, does their score move with it?',
-    payoff: 'Within-person change across repeat visits, with bootstrap intervals.',
+    payoff: 'Within-person change over ~10 years and over ~2, with the exemplars the paper uses.',
   },
   {
     slug: 'compare',
@@ -140,8 +141,17 @@ function Landing() {
   );
 }
 
+// Two timescales first, then the full tracking panel. The scatter is the
+// intuitive form -- one point per exposure, the diagonal as the claim -- and it
+// is the one in the paper, so it leads.
 const ViewTracks = () => (
-  <ViewPage view={viewBySlug('tracks')}><PesTracks /></ViewPage>
+  <ViewPage view={viewBySlug('tracks')}>
+    <PesTwoTimescales />
+    <Box sx={{ mt: 4 }}>
+      <Divider sx={{ mb: 2 }} />
+      <PesTracks />
+    </Box>
+  </ViewPage>
 );
 const ViewCompare = () => (
   <ViewPage view={viewBySlug('compare')}><PesReadVsTrack /></ViewPage>
