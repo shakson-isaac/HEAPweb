@@ -19,6 +19,7 @@ const RESULT_PAGES = [
   { path: 'enrichment-guide', label: 'Tissues & Pathways — guided (new)' },
   { path: 'causal', label: 'Causal Evidence (MR)' },
   { path: 'pes', label: 'Exposure Scores (PES)' },
+  { path: 'pes-guide', label: 'Exposure Scores — guided (new)' },
   { path: 'gwas', label: 'Exposure GWAS' },
   { path: 'architecture', label: 'Genetic & Exposomic Architecture', group: true },
 ];

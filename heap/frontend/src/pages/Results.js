@@ -27,6 +27,8 @@ const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
 // Reorganized Tissues & Pathways, running alongside the original for
 // comparison; see subpages/EnrichmentGuide.js.
 const EnrichmentGuide = lazy(() => import('./subpages/EnrichmentGuide'));
+// Reorganized Exposure Scores, alongside the original for comparison.
+const PesGuide = lazy(() => import('./subpages/PesGuide'));
 
 function Loading() {
   return (
@@ -61,6 +63,7 @@ function Results() {
             {/* Links handed out while the two versions ran side by side. */}
             <Route path="causal-guide/*" element={<CausalGuide />} />
             <Route path="enrichment-guide/*" element={<EnrichmentGuide />} />
+            <Route path="pes-guide/*" element={<PesGuide />} />
           </Routes>
         </Suspense>
       </div>
