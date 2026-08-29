@@ -140,7 +140,7 @@ export default function PesWithinPerson() {
   const isTransition = mode === 'transition';
   const asLevels = isTransition || view === 'levels';
   // A transition always has four possible states; an ordinal band set runs
-  // -3..+3. Anything absent was suppressed by the ten-person floor upstream,
+  // -3..+3. Anything absent was suppressed by the five-person floor upstream,
   // which is a fact about the data and belongs on the page.
   const expected = isTransition ? 4 : (mode === 'sd' ? 5 : 7);
   const missing = Math.max(0, expected - rows.length);
@@ -333,7 +333,7 @@ export default function PesWithinPerson() {
           ? 'A binary exposure has no dose, so what it has is a switch, read as a level on each visit. '
           : ''}
         {/* Do not promise four states, or any fixed count: a state holding
-            fewer than ten people is dropped upstream, and the gap it leaves on
+            fewer than five people is dropped upstream, and the gap it leaves on
             the axis has to be accounted for or it reads as a rendering fault.
             Current smoking over ten years draws three of four -- No to Yes is
             eight people. */}
@@ -349,7 +349,7 @@ export default function PesWithinPerson() {
 
       {rows.length < 3 && (
         <Alert severity="info" sx={{ mt: 2, maxWidth: 880 }}>
-          Only {rows.length} band{rows.length === 1 ? '' : 's'} cleared the ten-person floor for this
+          Only {rows.length} band{rows.length === 1 ? '' : 's'} cleared the five-person floor for this
           exposure over this span. Try a longer span, where more people have changed.
         </Alert>
       )}
