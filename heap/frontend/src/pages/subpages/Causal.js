@@ -27,9 +27,6 @@ const STATUS_COLOR = {
   Inconclusive: '#999999',
 };
 
-// The packer recovers whole-column types, so a TSV "TRUE" arrives as a real
-// JSON boolean. Accept either form rather than assuming one.
-const isTrue = (v) => v === true || String(v).toUpperCase() === 'TRUE';
 
 // "smoking_status_f20116_0_0_Never" -> "Smoking status (Never)". Keeping the
 // factor level matters here: three of the six Tier-1 mediator triads are keyed
@@ -268,8 +265,31 @@ export function TriadExplorer({
         padj: data[`padj_${k}`] ? data[`padj_${k}`][i] : null,
       };
     }
-    const flags = {};
-    for (const k of FLAG_KEYS) flags[k] = isTrue(data[k][i]);
+    // Edge presence, derived -- NOT read from the triad table.
+    //
+    // mr_triad_motifs.tsv used to carry pEP..pDE presence booleans. The
+    // arm-scope change (HEAP 82fae32) dropped them and added `arms` instead, so
+    // `data.pEP` is undefined and the old unguarded read threw
+    // "Cannot read properties of undefined" on every render of this panel.
+    //
+    // The tier table has a final tier per edge per panel, so presence is
+    // recoverable: an edge is present when it reaches Tier1 or Tier1plus. It is
+    // checked ONLY in the arms that supported this triad, never pooled across
+    // both -- pooling is the rejected rule that lets a deCODE edge veto a UKB
+    // triad. P->D and P->E each have a cis and a trans form; either counts.
+    const armsOf = String(data.arms?.[i] || 'UKB').split('+').map((x) => x.trim());
+    const tierPresent = (sufs) => sufs.some((suf) => armsOf.some((panel) => {
+      const v = triadTiers?.[`tier_${suf}_${panel}`];
+      return v === 'Tier1' || v === 'Tier1plus';
+    }));
+    const flags = {
+      pEP: tierPresent(['EP']),
+      pPD: tierPresent(['PDcis', 'PDtrans']),
+      pED: tierPresent(['ED']),
+      pPE: tierPresent(['PEcis', 'PEtrans']),
+      pDP: tierPresent(['DP']),
+      pDE: tierPresent(['DE']),
+    };
     return {
       exposure: data.Exposure[i],
       exposureLabel: prettyExposure(data.Exposure[i]),
@@ -282,7 +302,7 @@ export function TriadExplorer({
       flags,
       est,
     };
-  }, [data, meta, sel]);
+  }, [data, meta, sel, triadTiers]);
 
   const nPresent = triad ? FLAG_KEYS.filter((k) => triad.flags[k]).length : 0;
   const motifKeys = triad ? triad.motif.split(';').map((s) => s.trim().charAt(0)) : [];
