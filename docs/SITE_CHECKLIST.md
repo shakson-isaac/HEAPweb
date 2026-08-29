@@ -26,7 +26,7 @@ Things that are not any one page's problem.
       unreachable. The tool now opens each trigger and clicks its items to
       record the real destination.
 
-- [ ] **The nav items are not links.** This is the finding that survives, and
+- [x] **The nav items are not links.** FIXED 2026-08-27 — This is the finding that survives, and
       it is real but much smaller. Because they are click handlers on bare
       `<div>`s, those nav items:
       - cannot be cmd/middle-clicked into a new tab, or right-click-copied
@@ -43,14 +43,14 @@ Things that are not any one page's problem.
       tool still lists are legacy aliases that resolve (`/results/interactions`
       → architecture, `/documentation/specifications` → models).
 
-- [ ] **No 404 handling anywhere.** Measured 2026-08-26:
+- [x] **No 404 handling anywhere.** FIXED 2026-08-29 — Measured 2026-08-26:
       `/documentation/<garbage>` renders the documentation shell (201 words)
       and looks like a real page; `/results/<garbage>` and `/totally/made/up`
       render a blank shell of 7-8 words. A mistyped or stale link fails
       silently. This matters more now that URLs are meant to be shared: someone
       pasting a link with a typo sees an empty page, not an explanation.
 
-- [ ] `/downloads` is a dead end — nothing to click onward.
+- [x] `/downloads` is a dead end — FIXED 2026-08-29, — nothing to click onward.
 - [ ] Nothing is linkable. `useUrlState` exists but its only caller was
       archived with the folded panels; every picker now holds state that
       cannot be shared or cited.
@@ -91,7 +91,8 @@ the site draws them.
 
 ### Copy
 
-- [ ] 59 British spellings in rendered text across 23 files; worst are
+- [x] 59 British spellings — FIXED 2026-08-29, 39 substitutions, zero remain.
+      Original count of in rendered text across 23 files; worst are
       `EnrichTripartite` (9) and `ExposureBodyMap` (8). House standard is
       American. A naive grep says 117 — it counts comments and MUI's `grey` API.
 
