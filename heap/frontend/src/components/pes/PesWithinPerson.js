@@ -53,6 +53,11 @@ export default function PesWithinPerson() {
   const head = useSection('pes_track_headline');
   const [exposure, setExposure] = useUrlState('exposure', DEFAULT_EXPOSURE);
   const [span, setSpan] = useUrlState('interval', '10y');
+  // Binary exposures are always a level -- a switch has no dose to plot
+  // against. For the others the delta is the clearer default, but the levels
+  // answer a question the delta cannot: whether the people who moved most
+  // started somewhere different in the first place.
+  const [view, setView] = useUrlState('view', 'change');
 
   // Every exposure that has at least one drawable band, with its label.
   const options = useMemo(() => {
@@ -133,11 +138,20 @@ export default function PesWithinPerson() {
   const mode = rows[0]?.mode || 'ordinal';
   const color = ecatColor(sel.category) || '#1B7837';
   const isTransition = mode === 'transition';
+  const asLevels = isTransition || view === 'levels';
   // A transition always has four possible states; an ordinal band set runs
   // -3..+3. Anything absent was suppressed by the ten-person floor upstream,
   // which is a fact about the data and belongs on the page.
   const expected = isTransition ? 4 : (mode === 'sd' ? 5 : 7);
   const missing = Math.max(0, expected - rows.length);
+  // Say WHICH state is absent, not just how many. "One state was suppressed"
+  // leaves the reader guessing why a line they expected is not there; naming
+  // it answers the question. The count itself stays unpublished -- it is a
+  // small cell in its own right.
+  const ALL_STATES = ['No → No', 'No → Yes', 'Yes → No', 'Yes → Yes'];
+  const absent = isTransition
+    ? ALL_STATES.filter((x) => !rows.some((r) => r.band === x))
+    : [];
 
   return (
     <Box>
@@ -145,9 +159,12 @@ export default function PesWithinPerson() {
         When this exposure changes, does the score follow?
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, maxWidth: 880 }}>
-        {isTransition
-          ? 'Each line is a group of people who made the same switch, drawn at its mean score on '
-            + 'each visit. A line that falls means the score came down as the exposure stopped.'
+        {asLevels
+          ? (isTransition
+            ? 'Each line is a group of people who made the same switch, drawn at its mean score on '
+              + 'each visit. A line that falls means the score came down as the exposure stopped.'
+            : 'Each line is a group of people whose exposure moved by the same amount, drawn at its '
+              + 'mean score on each visit. Where the lines start shows whether the groups began alike.')
           : 'Each point is a group of people whose exposure moved by the same amount, and its height '
             + 'is their mean change in score. A rising line means the score followed the exposure.'}
       </Typography>
@@ -173,6 +190,19 @@ export default function PesWithinPerson() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+        {!isTransition && (
+          <ToggleButtonGroup
+            size="small" exclusive value={view}
+            onChange={(_, v) => v && setView(v)}
+          >
+            <ToggleButton value="change" title="Mean change in score, by how far the exposure moved">
+              Change
+            </ToggleButton>
+            <ToggleButton value="levels" title="Mean score at each visit, one line per group">
+              Before / after
+            </ToggleButton>
+          </ToggleButtonGroup>
+        )}
       </Box>
 
       {stat && (
@@ -184,7 +214,7 @@ export default function PesWithinPerson() {
       )}
 
       <PlotPanel
-        data={isTransition ? rows.map((r) => {
+        data={asLevels ? rows.map((r) => {
           // A delta answers "did it move". For a switch the reader also needs
           // "from where to where": in main Fig 6c the quitters start at smoker
           // level and come down to nearly non-smoker, and a single delta hides
@@ -192,10 +222,32 @@ export default function PesWithinPerson() {
           //
           // Grey for the two groups whose state did not change, colour for the
           // two that switched -- the same division Fig 6c makes.
-          const switched = r.band === 'No → Yes' || r.band === 'Yes → No';
-          const c = switched ? color : '#9aa0a6';
+          // Seven lines in one colour is spaghetti. The bands are ORDERED,
+          // so colour has to carry that order: blue for the groups that cut
+          // back, red for the groups that went up, grey at no change. Then
+          // the reading is immediate -- blue lines should fall and red rise,
+          // and a crossing is visible instead of buried.
+          const noMove = isTransition
+            ? (r.band === 'No → No' || r.band === 'Yes → Yes')
+            : (r.band === '0' || r.band === '-0.5 to +0.5');
+          let c;
+          if (isTransition) {
+            c = noMove ? '#9aa0a6' : color;
+          } else if (noMove) {
+            c = '#9aa0a6';
+          } else {
+            const centre = mode === 'sd' ? 3 : 4;
+            const span2 = Math.max(...rows.map((x) => Math.abs(x.order - centre)), 1);
+            const t = (r.order - centre) / span2;          // -1 .. +1
+            const mix = (from, to, u) => from.map((v, k) => Math.round(v + (to[k] - v) * u));
+            const rgb = t < 0 ? mix([120, 160, 200], [8, 81, 156], -t)
+              : mix([230, 160, 150], [165, 15, 21], t);
+            c = `rgb(${rgb.join(',')})`;
+          }
+          const switched = !noMove;
           return {
-            type: 'scatter', mode: 'lines+markers+text',
+            type: 'scatter',
+            mode: isTransition ? 'lines+markers+text' : 'lines+markers',
             x: ['First visit', 'Second visit'],
             y: [r.before, r.after],
             error_y: {
@@ -207,15 +259,18 @@ export default function PesWithinPerson() {
             // Without this the label on the second visit is clipped at the
             // axis edge and reads "Yes -> Y", however wide the margin is.
             cliponaxis: false,
-            text: ['', `  ${r.band} (${r.n.toLocaleString()})`],
-            textposition: 'middle right',
-            textfont: { size: 11, color: c },
-            showlegend: false,
+            ...(isTransition ? {
+              text: ['', `  ${r.band} (${r.n.toLocaleString()})`],
+              textposition: 'middle right',
+              textfont: { size: 11, color: c },
+            } : {}),
+            name: `${r.band}  (${r.n.toLocaleString()})`,
+            showlegend: !isTransition,
             hovertemplate: `${r.band}, ${r.n.toLocaleString()} people`
               + '<br>%{x}: %{y:.2f}<extra></extra>',
           };
         }) : [
-          ...(isTransition ? [] : [{
+          ...(asLevels ? [] : [{
             type: 'scatter', mode: 'lines', hoverinfo: 'skip', showlegend: false,
             x: rows.map((r) => r.order), y: rows.map((r) => r.mean),
             line: { color, width: 2 },
@@ -242,11 +297,14 @@ export default function PesWithinPerson() {
           },
         ]}
         layout={{
-          height: 420, showlegend: false,
+          height: 420,
+          showlegend: asLevels && !isTransition,
+          legend: { x: 1.02, y: 1, xanchor: 'left', font: { size: 11 },
+                    title: { text: 'Change in exposure', font: { size: 11 } } },
           // The slope view writes its group labels to the right of the second
           // visit, outside the plotting area, so it needs the room.
-          margin: { l: 70, r: isTransition ? 200 : 26, t: 12, b: 64 },
-          xaxis: isTransition
+          margin: { l: 70, r: asLevels ? (isTransition ? 200 : 210) : 26, t: 12, b: 64 },
+          xaxis: asLevels
             ? { title: '', tickfont: { size: 12 } }
             : {
               title: AXIS[mode],
@@ -255,7 +313,7 @@ export default function PesWithinPerson() {
               ticktext: rows.map((r) => r.band),
             },
           yaxis: {
-            title: isTransition
+            title: asLevels
               ? 'Exposure score (SD)'
               : 'Mean change in exposure score (SD)',
             zeroline: false,
@@ -279,11 +337,13 @@ export default function PesWithinPerson() {
             the axis has to be accounted for or it reads as a rendering fault.
             Current smoking over ten years draws three of four -- No to Yes is
             eight people. */}
-        {missing > 0
-          ? `${missing} ${isTransition ? 'state' : 'band'}${missing === 1 ? '' : 's'} `
-            + `held fewer than ten people and ${missing === 1 ? 'is' : 'are'} not drawn`
-            + `${isTransition ? '' : ', leaving a gap on the axis'}. `
-          : `Every ${isTransition ? 'state' : 'band'} shown clears the ten-person floor. `}
+        {absent.length > 0
+          ? `${absent.join(' and ')} held fewer than five people and `
+            + `${absent.length === 1 ? 'is' : 'are'} not drawn. `
+          : missing > 0
+            ? `${missing} band${missing === 1 ? '' : 's'} held fewer than five people and `
+              + `${missing === 1 ? 'is' : 'are'} not drawn, leaving a gap on the axis. `
+            : `Every ${isTransition ? 'state' : 'band'} shown clears the five-person floor. `}
         n is people, not visits: each span pairs two visits per person.
       </Typography>
 

@@ -95,6 +95,23 @@ def counts_people(section, col):
 # fails. Lowering MIN_CELL instead would have accepted every future small cell
 # in silence, which is the opposite of what this file is for.
 #
+# A REVIEWED PER-SECTION FLOOR. Same principle as ACCEPTED below -- a decision
+# recorded where it stays visible -- but for a section reviewed as a whole
+# rather than one cell at a time. A section listed here still HAS a floor; it
+# is simply a different one, so a cell below it fails exactly as before.
+#
+# pes_track_* (2026-08-29): within-person tracking, reviewed at 5. Every row is
+# a group mean with an SE over people who made the same move, carrying no
+# attribute beyond the move itself. The manuscript's own Fig 6c publishes the
+# 8-person "took up smoking" cell, which is the cell this recovers. Cells of
+# one and two people stay suppressed, which is the point of keeping a floor
+# rather than removing one: at that size a mean is individuals averaged and
+# its interval is unreadable anyway.
+SECTION_FLOOR = {
+    'pes_track_bands': 5,
+    'pes_track_headline': 5,
+}
+
 # Each entry is (section, column, value, date, reason).
 ACCEPTED = {
     ('pes_within_person_smoking', 'n', 8): (
@@ -230,7 +247,8 @@ def audit(src, incremental=True):
                         xi = float(x)
                     except (TypeError, ValueError):
                         continue
-                    if 0 < xi < MIN_CELL:
+                    floor = SECTION_FLOOR.get(section, MIN_CELL)
+                    if 0 < xi < floor:
                         key = (section, col, int(xi))
                         if key in ACCEPTED:
                             when, why = ACCEPTED[key]
@@ -239,7 +257,7 @@ def audit(src, incremental=True):
                             continue
                         ctx = {k: d[k][i] for k in list(d)[:3]
                                if isinstance(d[k], list) and i < len(d[k])}
-                        viol.append(f"{rel}: {col}={int(xi)} (< {MIN_CELL}) at {ctx}")
+                        viol.append(f"{rel}: {col}={int(xi)} (< {floor}) at {ctx}")
 
     print(f"parsed {scanned:,} JSON objects\n")
     for w in warn:
@@ -263,8 +281,10 @@ def audit(src, incremental=True):
                 json.dump(audited, fh)
         except OSError:
             pass
+    floors = ", ".join("%s at %d" % (k, v) for k, v in sorted(SECTION_FLOOR.items()))
     print("PASS -- aggregates only, no participant identifiers, no cell "
-          f"below {MIN_CELL} people")
+          f"below {MIN_CELL} people"
+          + (" (reviewed exceptions: %s)" % floors if SECTION_FLOOR else ""))
     return 0
 
 

@@ -19,7 +19,9 @@ suppressPackageStartupMessages({library(data.table)})
 
 OD   <- "/n/groups/patel/IGLOO/UKB/HEAP/output/module6_pes_longitudinal/base"
 OUT  <- "/n/groups/patel/shakson_ukb/HEAPweb/build/derived"
-MIN  <- 10          # same floor audit_payload.py enforces
+MIN  <- 5           # reviewed floor for these two sections; audit_payload.py
+                    # carries the matching entry in SECTION_FLOOR. Everything
+                    # else on the site stays at 10.
 ORD  <- 12          # <= this many distinct values counts as ordinal
 
 PAIRS <- list(c(0, 2, "10y"), c(2, 3, "2y"), c(0, 3, "12y"))
