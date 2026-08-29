@@ -3,6 +3,7 @@ import {
   Alert, Autocomplete, Box, Chip, TextField, Typography,
 } from '@mui/material';
 import PlotPanel from '../PlotPanel';
+import ColumnarTable from '../ColumnarTable';
 import { useSection } from '../../lib/useSection';
 import { ecatColor, prettyExposure } from '../../lib/palette';
 
@@ -141,10 +142,26 @@ export default function PesTwoTimescales() {
         </Alert>
       )}
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 2 }}>
         The two-year window is the stronger test: both of its timepoints are held-out follow-ups, so
         nothing in it was seen during training at either end.
       </Typography>
+
+      {/* The standing rule is that every scatter gets a linked lookup table.
+          128 points is too many to find one by hovering, and the interesting
+          reading -- which exposures sit furthest from the diagonal -- is a sort,
+          not a hover. */}
+      <ColumnarTable
+        data={{
+          Exposure: rows.map((r) => r.label),
+          Category: rows.map((r) => String(r.category).replace(/_/g, ' ')),
+          'Δr 10-year': rows.map((r) => Number(r.long.toFixed(3))),
+          'Δr 2-year': rows.map((r) => Number(r.short.toFixed(3))),
+          'short − long': rows.map((r) => Number((r.short - r.long).toFixed(3))),
+          People: rows.map((r) => r.nPairs),
+        }}
+        initialRowsPerPage={10}
+      />
     </Box>
   );
 }
