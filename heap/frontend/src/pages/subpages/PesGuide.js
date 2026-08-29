@@ -27,6 +27,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PesReads from '../../components/pes/PesReads';
 import PesTracks from '../../components/pes/PesTracks';
 import PesTwoTimescales from '../../components/pes/PesTwoTimescales';
+import PesWithinPerson from '../../components/pes/PesWithinPerson';
 import PesReadVsTrack from '../../components/pes/PesReadVsTrack';
 import PesDisease from '../../components/pes/PesDisease';
 
@@ -146,7 +147,15 @@ function Landing() {
 // is the one in the paper, so it leads.
 const ViewTracks = () => (
   <ViewPage view={viewBySlug('tracks')}>
-    <PesTwoTimescales />
+    {/* One exposure at a time first: the question is "does it track change?",
+        and a reader can only see what tracking LOOKS like one exposure at a
+        time. The 132-exposure overview answers "which ones", which is the
+        second question, so it follows. */}
+    <PesWithinPerson />
+    <Box sx={{ mt: 4 }}>
+      <Divider sx={{ mb: 2 }} />
+      <PesTwoTimescales />
+    </Box>
     <Box sx={{ mt: 4 }}>
       <Divider sx={{ mb: 2 }} />
       <PesTracks />

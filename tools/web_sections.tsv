@@ -94,6 +94,8 @@ causal	mr_coloc_locus_meta	mr_coloc_locus_meta.tsv	S		LD anchor provenance for e
 pes	pes_reads_ci	pes_read_specs.tsv	S		How well the proteome reads each exposure, all five covariate specifications, with 95% CIs	scatter	on	deposit_tsv	
 pes	pes_tracking_ci	pes_tracking_specs.tsv	S		Within-person tracking, all five covariate specifications, with 95% CIs	scatter	on	deposit_tsv	
 pes	pes_disease	pes_disease.tsv	K	exposure_id	PES disease prediction: every exposure-disease pair across covariate specifications	scatter	on	derived_tsv	
+pes	pes_track_bands	pes_track_bands.tsv	S		Within-person tracking: mean change in score by how much the exposure changed, per exposure and visit interval	scatter	on	derived_tsv	
+pes	pes_track_headline	pes_track_headline.tsv	S		Within-person tracking: correlation of change in exposure with change in score, per exposure and visit interval	scatter	on	derived_tsv	
 intervention	intervention_concordance	S15_intervention_concordance.tsv	K	exposure_id	Exposure-protein effects beside the trial effects that moved the same proteins	scatter	on	deposit_tsv	
 intervention	intervention_concordance_full	intervention_concordance_full.tsv	K	exposure_id	HEAP effects beside the trials, under five covariate specifications	scatter	on	derived_tsv	in-data
 intervention	intervention_spec_correlations	intervention_spec_correlations.tsv	S		Per-exposure concordance with each trial, recomputed under every specification	bar	on	derived_tsv	

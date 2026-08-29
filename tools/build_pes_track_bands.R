@@ -93,7 +93,13 @@ for (f in files) {
       mode <- "sd"
     }
 
-    g <- m[, .(n = .N, mean_dscore = mean(dS), se = sd(dS) / sqrt(.N)),
+    # Levels at BOTH visits, not only the difference. A delta answers "did it
+    # move"; for a binary exposure the reader also needs "from where to where",
+    # which is what main Fig 6c shows for smoking -- quitters start high and
+    # come down, and that is invisible in a single delta.
+    g <- m[, .(n = .N, mean_dscore = mean(dS), se = sd(dS) / sqrt(.N),
+               mean_before = mean(s0), se_before = sd(s0) / sqrt(.N),
+               mean_after  = mean(s1), se_after  = sd(s1) / sqrt(.N)),
            by = .(band, band_order)][order(band_order)]
     g <- g[n >= MIN]                       # disclosure floor
     if (!nrow(g)) next
@@ -111,13 +117,15 @@ if (!is.null(meta)) {
 }
 B[is.na(exposure_label), exposure_label := exposure_id]
 H[is.na(exposure_label), exposure_label := exposure_id]
-num <- c("mean_dscore","se","lo","hi"); B[, (num) := lapply(.SD, round, 4), .SDcols = num]
+num <- c("mean_dscore","se","lo","hi","mean_before","se_before",
+         "mean_after","se_after"); B[, (num) := lapply(.SD, round, 4), .SDcols = num]
 num <- c("r","lo","hi");                H[, (num) := lapply(.SD, round, 4), .SDcols = num]
 
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 setcolorder(B, c("exposure_id","exposure_label","category","exposure_type",
                  "timescale","band_mode","band_order","band","n",
-                 "mean_dscore","se","lo","hi"))
+                 "mean_dscore","se","lo","hi",
+                 "mean_before","se_before","mean_after","se_after"))
 fwrite(B, file.path(OUT, "pes_track_bands.tsv"), sep = "\t")
 fwrite(H, file.path(OUT, "pes_track_headline.tsv"), sep = "\t")
 
