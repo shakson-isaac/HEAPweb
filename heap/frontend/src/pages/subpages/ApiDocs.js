@@ -5,7 +5,7 @@ import {
   AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable, SourceNote,
 } from '../Documentation';
 
-const BASE = 'https://storage.googleapis.com/heap-web-data/web/v1';
+const BASE = 'https://storage.googleapis.com/heap-data/web/v1';
 
 // Every row below was requested over HTTPS and returned 200 on 2026-08-18.
 // The status column is a record of that check, not a live probe.
@@ -116,8 +116,8 @@ export default function ApiDocs() {
         <Code label="s/mr_motif_counts.json.gz, abbreviated">
 {`{
   "motif":          ["A Mediator (E->P->D)", "B Biomarker", ...],
-  "tier1_triads":   [6, 1353, ...],
-  "tier1_proteins": [3, 325, ...],
+  "tier1_triads":   [6, 1368, ...],
+  "tier1_proteins": [3, 326, ...],
   "nominal_triads": [84, 2232, ...]
 }`}
         </Code>
@@ -129,7 +129,7 @@ export default function ApiDocs() {
 
       <Section title="R">
         <Code label="One section as a data frame">
-{`base <- "https://storage.googleapis.com/heap-web-data/web/v1"
+{`base <- "https://storage.googleapis.com/heap-data/web/v1"
 
 motifs <- as.data.frame(
   jsonlite::fromJSON(file.path(base, "s/mr_motif_counts.json.gz"))
@@ -137,10 +137,10 @@ motifs <- as.data.frame(
 motifs
 #>                        motif tier1_triads tier1_proteins nominal_triads nominal_proteins
 #> 1       A Mediator (E->P->D)            6              3             84               25
-#> 2                B Biomarker         1353            325           2232              404
-#> 3          C Exposure-marker         4499            450           4829              444
+#> 2                B Biomarker         1368            326           2232              404
+#> 3          C Exposure-marker         4591            460           4829              444
 #> 4           D Reverse (P->E)           30              4            722               41
-#> 5 E Disease-liability (D->P)        12892            469          17999              550`}
+#> 5 E Disease-liability (D->P)        14273            490          17999              550`}
         </Code>
         <Code label="One protein, everything, in one request">
 {`asgr1 <- jsonlite::fromJSON(file.path(base, "e/protein/ASGR1.json.gz"))
@@ -178,7 +178,7 @@ lep <- as.data.frame(
         <Code label="Standard library only">
 {`import json, urllib.request
 
-BASE = "https://storage.googleapis.com/heap-web-data/web/v1"
+BASE = "https://storage.googleapis.com/heap-data/web/v1"
 
 def heap(path):
     with urllib.request.urlopen(f"{BASE}/{path}") as r:
@@ -216,7 +216,7 @@ assoc = pd.DataFrame(heap("e/protein/ASGR1.json.gz")["expo_protein_assoc"])`}
 {`curl -s ${BASE}/meta/headline.json.gz | python3 -m json.tool | head
 
 # list what exists, straight from the bucket
-curl -s "https://storage.googleapis.com/storage/v1/b/heap-web-data/o?prefix=web/v1/&delimiter=/"`}
+curl -s "https://storage.googleapis.com/storage/v1/b/heap-data/o?prefix=web/v1/&delimiter=/"`}
         </Code>
       </Section>
 

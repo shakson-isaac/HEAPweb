@@ -130,13 +130,13 @@ export default function QuickStart() {
           directly:
           <Code label="R">
 {`jsonlite::fromJSON(
-  "https://storage.googleapis.com/heap-web-data/web/v1/e/protein/ASGR1.json.gz"
+  "https://storage.googleapis.com/heap-data/web/v1/e/protein/ASGR1.json.gz"
 )`}
           </Code>
           <Code label="Python">
 {`import json, urllib.request
 with urllib.request.urlopen(
-    "https://storage.googleapis.com/heap-web-data/web/v1/s/mr_motif_counts.json.gz"
+    "https://storage.googleapis.com/heap-data/web/v1/s/mr_motif_counts.json.gz"
 ) as r:
     motifs = json.load(r)`}
           </Code>

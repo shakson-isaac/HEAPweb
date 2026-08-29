@@ -137,7 +137,7 @@ export default function AboutHeap() {
         </P>
         <Code label="R">
 {`jsonlite::fromJSON(
-  "https://storage.googleapis.com/heap-web-data/web/v1/e/protein/ASGR1.json.gz"
+  "https://storage.googleapis.com/heap-data/web/v1/e/protein/ASGR1.json.gz"
 )`}
         </Code>
         <P>

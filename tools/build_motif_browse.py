@@ -20,6 +20,7 @@ from collections import defaultdict
 
 HEAP_OUT = os.environ.get("HEAP_OUTPUT", "/n/groups/patel/IGLOO/UKB/HEAP/output")
 WIDE = os.path.join(HEAP_OUT, "mr_edges", "summary", "supp", "mr_triads_wide.tsv")
+COUNTS = "/n/groups/patel/shakson_ukb/HEAP/docs/manuscript_stats/module5/mr_motif_counts.tsv"
 OUTD = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     "build", "derived")
 
@@ -65,15 +66,39 @@ def main():
         die("mr_triads_wide.tsv is empty")
 
     # --- motif key -----------------------------------------------------------
-    # Counts come from the table, never from the hardcoded rule, so the matrix
-    # cannot silently disagree with the triads it is meant to describe.
-    by_motif_triads = defaultdict(int)
-    by_motif_prot = defaultdict(set)
+    # Counts come from mr_motif_counts.tsv, the summariser's own per-motif
+    # tally, NOT from counting rows of the triad table.
+    #
+    # Those two disagree, and the difference is real. Since HEAP 82fae32 a motif
+    # is evaluated WITHIN each pQTL platform and unioned across them, so a triad
+    # can satisfy one motif in UK Biobank and a different one in deCODE. The
+    # triad table carries one row per triad with a single collapsed `motif`, so
+    # tallying it counts such a triad once; the summariser counts its membership
+    # in both. For the current data that is 204 triads:
+    #
+    #     rows in the triad table        20,064
+    #     sum of tier1_triads            20,268
+    #
+    # Counting rows therefore understates B by 8, C by 41 and E by 155. This is
+    # the same fault upstream fixed for main Fig 4b in 9c25c15 -- "Panel b now
+    # reads mr_motif_counts.tsv" -- and fig_mr_motif_overview.R now takes
+    # tier1_triads / tier1_proteins from that file. The site must agree with the
+    # figure, so it reads the same column of the same file.
+    counts = {}
+    with open(COUNTS) as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            counts[(r["motif"] or "").strip()[:1]] = (
+                int(r["tier1_triads"]), int(r["tier1_proteins"]))
+    if not counts:
+        die("mr_motif_counts.tsv is empty")
+
+    by_motif_triads = {k: v[0] for k, v in counts.items()}
+    by_motif_prot_n = {k: v[1] for k, v in counts.items()}
+
+    # The row tally is still computed, only to report the gap rather than hide it.
+    tallied = defaultdict(int)
     for r in rows:
-        m = (r["motif"] or "").strip()
-        letter = m[:1]
-        by_motif_triads[letter] += 1
-        by_motif_prot[letter].add(r["Protein"])
+        tallied[(r["motif"] or "").strip()[:1]] += 1
 
     with open(os.path.join(OUTD, "mr_motif_key.tsv"), "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
@@ -82,7 +107,7 @@ def main():
         for letter, name, label, *sig in MOTIFS:
             w.writerow([letter, name, label, *sig,
                         by_motif_triads.get(letter, 0),
-                        len(by_motif_prot.get(letter, ()))])
+                        by_motif_prot_n.get(letter, 0)])
 
     # --- edge key ------------------------------------------------------------
     with open(os.path.join(OUTD, "mr_edge_key.tsv"), "w", newline="") as fh:
@@ -122,6 +147,10 @@ def main():
                             len(s["E"]), len(s["P"]), len(s["D"])])
 
     n_ent = len(ent)
+    gap = sum(by_motif_triads.values()) - sum(tallied.values())
+    if gap:
+        print(f"  note: tier1_triads exceeds triad rows by {gap:,} -- triads whose "
+              f"motif differs between the two arms, counted in both")
     print(f"  mr_motif_key.tsv      {len(MOTIFS)} motifs  "
           f"({sum(by_motif_triads.values()):,} triads)")
     print(f"  mr_edge_key.tsv       {len(EDGES)} directed edges")
