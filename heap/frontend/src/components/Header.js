@@ -15,10 +15,8 @@ const RESULT_PAGES = [
   { path: 'mediation', label: 'Disease Links' },
   { path: 'intervention', label: 'Intervention' },
   { path: 'enrichment', label: 'Tissues & Pathways' },
-  // The PES reorganization, kept beside the original until one is chosen.
   { path: 'causal', label: 'Causal Evidence (MR)' },
   { path: 'pes', label: 'Exposure Scores (PES)' },
-  { path: 'pes-guide', label: 'Exposure Scores — guided (new)' },
   { path: 'gwas', label: 'Exposure GWAS' },
   { path: 'architecture', label: 'Genetic & Exposomic Architecture', group: true },
 ];

@@ -14,7 +14,6 @@ const Associations = lazy(() => import('./subpages/Associations'));
 const Interactions = lazy(() => import('./subpages/Interactions'));
 const Mediation = lazy(() => import('./subpages/Mediation'));
 const Intervention = lazy(() => import('./subpages/Intervention'));
-const Pes = lazy(() => import('./subpages/Pes'));
 const Gwas = lazy(() => import('./subpages/Gwas'));
 // Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
 // typing the path, and reads scratch data, so it cannot affect the live site.
@@ -27,7 +26,8 @@ const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
 // The Tissues & Pathways page. The stacked version it replaced is archived
 // outside src/ at heap/frontend/deprecated/Enrichment.oldpage.js.
 const EnrichmentGuide = lazy(() => import('./subpages/EnrichmentGuide'));
-// Reorganized Exposure Scores, alongside the original for comparison.
+// The Exposure Scores page. The stacked version it replaced is archived
+// outside src/ at heap/frontend/deprecated/Pes.oldpage.js.
 const PesGuide = lazy(() => import('./subpages/PesGuide'));
 
 function Loading() {
@@ -56,7 +56,7 @@ function Results() {
             <Route path="intervention" element={<Intervention />} />
             <Route path="enrichment/*" element={<EnrichmentGuide />} />
             <Route path="causal/*" element={<CausalGuide />} />
-            <Route path="pes" element={<Pes />} />
+            <Route path="pes/*" element={<PesGuide />} />
             <Route path="gwas" element={<Gwas />} />
             <Route path="design-preview" element={<DesignPreview />} />
             <Route path="drill-design" element={<DrillDesign />} />

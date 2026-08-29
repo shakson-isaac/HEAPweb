@@ -290,8 +290,9 @@ SITE_ROUTES = [
     "/results/enrichment/tissue", "/results/enrichment/programs",
     "/results/causal", "/results/causal/entities", "/results/causal/triads",
     "/results/causal/effects", "/results/causal/coloc",
-    "/results/pes", "/results/pes-guide", "/results/pes-guide/tracks",
-    "/results/pes-guide/compare", "/results/pes-guide/disease",
+    # /results/pes-guide is the pre-promotion alias and must keep resolving.
+    "/results/pes", "/results/pes-guide", "/results/pes/tracks",
+    "/results/pes/compare", "/results/pes/disease",
     "/results/gwas",
     "/documentation/about", "/documentation/quickstart", "/documentation/methods",
     "/documentation/cite", "/documentation/api",

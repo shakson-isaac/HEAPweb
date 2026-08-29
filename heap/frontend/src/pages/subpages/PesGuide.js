@@ -1,4 +1,6 @@
-// A reorganized Exposure Scores page, running ALONGSIDE /results/pes.
+// Exposure Scores. Serves /results/pes as of 2026-08-29; the stacked page it
+// replaced is archived outside src/ at deprecated/Pes.oldpage.js, and
+// /results/pes-guide stays wired as an alias so older links resolve.
 //
 // The original opens with four panels and then adds seventeen more -- three
 // section cards and fourteen raw tables under "Supporting results" -- which is
@@ -19,7 +21,7 @@
 import React from 'react';
 import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
-  Alert, Box, Button, Card, CardContent, Divider, Typography,
+  Box, Button, Card, CardContent, Divider, Typography,
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -31,7 +33,7 @@ import PesWithinPerson from '../../components/pes/PesWithinPerson';
 import PesReadVsTrack from '../../components/pes/PesReadVsTrack';
 import PesDisease from '../../components/pes/PesDisease';
 
-const BASE = '/results/pes-guide';
+const BASE = '/results/pes';
 
 const VIEWS = [
   {
@@ -133,11 +135,6 @@ function Landing() {
           </Card>
         ))}
       </Box>
-
-      <Alert severity="success" sx={{ mt: 3, maxWidth: 900 }}>
-        A reorganization of <RouterLink to="/results/pes">the original Exposure Scores page</RouterLink>,
-        kept side by side. Same panels, same data.
-      </Alert>
     </Box>
   );
 }

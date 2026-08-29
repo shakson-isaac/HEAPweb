@@ -359,3 +359,21 @@ the Module 1 variance decomposition. The sections are still built and
 published, so reviving them is a frontend job only. Decide whether they belong
 in the `programs` view, in a fourth view, or on `/results/architecture` beside
 the decomposition they refer to.
+
+## Six PES panels lost in the 2026-08-29 promotion
+
+`/results/pes` now serves the guided version. Fourteen sections lost their only
+view; eight are superseded (four by the new tracking panel, four by the richer
+`pes_disease`). Six have no counterpart:
+
+- `pes_disease_specificity` — disease specificity archetypes
+- `pes_exposure_signatures` — the proteins behind each exposure's panel
+- `pes_dynamic_monitor` — dynamic monitoring panels
+- `pes_exposure_modifiability` — how modifiable each exposure is
+- `pes_switching_frequency` — how often each binary exposure switches
+- `pes_switch_vs_track` — switching against tracking
+
+The first two are a matched pair and carry a manuscript finding: the protein
+panels ARE exposure-specific (median |r| 0.17), while the disease signal is
+NOT. Losing one without the other would leave the site able to state half of
+it. Sections stay built and published, so reviving them is frontend-only.

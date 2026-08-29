@@ -115,3 +115,68 @@ The last three are a real content loss, not a reorganization. The bottom two
 tie enrichment back to the Module 1 variance decomposition, which nothing else
 on the site does. Reviving them is a decision, not a cleanup — see the entry in
 `docs/WEB_PUNCHLIST.md`.
+
+---
+
+# Pes.oldpage.js — the stacked Exposure Scores page
+
+Archived 2026-08-29, when `/results/pes` was handed to the guided version
+(`src/pages/subpages/PesGuide.js`). `/results/pes-guide` stays wired as an
+alias so older links resolve.
+
+## What replaced it
+
+The old page ran the four question panels and then stacked fifteen more
+sections under "Supporting results": 20,234px tall with 211 reachable
+controls, against 3,511px and 12 for the guide landing. The tail was raw
+export tables keyed by machine id (`..._f6179_0_0.multi_Selenium`,
+transitions written `0->0`), paginated ten rows at a time.
+
+## Fourteen sections lost their only view; eight of those are superseded
+
+`pes_imaging_tracking` survives — `PesTwoTimescales` reads it.
+
+**Superseded by `pes_track_bands` / `pes_track_headline`** (the within-person
+tracking panel, which shows the same thing per exposure across three visit
+intervals, with before/after levels for binary exposures):
+
+| section | what it showed |
+|---|---|
+| `pes_within_person` | within-person Δ-correlation, one row per exposure |
+| `pes_within_person_smoking` | the smoking transitions, as a table |
+| `pes_binary_transitions` | switch rates per binary exposure |
+| `pes_dose_vs_status` | dose-response, for pack-years only |
+
+**Superseded by `pes_disease`**, which is strictly richer — it carries
+`dC_over_cov` and `dC_beyond_selfreport` with intervals and a held-out flag,
+across every covariate specification:
+
+| section | what it showed |
+|---|---|
+| `pes_cox_delta_cindex` | ΔC-index per exposure-disease pair, no interval |
+| `pes_incremental_value` | covariates-only vs covariates+PES |
+| `pes_predictive_breadth` | per-exposure performance |
+| `pes_vs_selfreport` | PES against self-report |
+
+**No counterpart anywhere.** These are a real loss, not a reorganization:
+
+| section | what it showed |
+|---|---|
+| `pes_disease_specificity` | disease specificity archetypes — the evidence that PES→disease is GENERIC rather than exposure-specific |
+| `pes_exposure_signatures` | which proteins sit behind each exposure's panel — the counterpart showing the panels ARE exposure-specific |
+| `pes_dynamic_monitor` | dynamic monitoring panels |
+| `pes_exposure_modifiability` | how modifiable each exposure is |
+| `pes_switching_frequency` | how often each binary exposure switches |
+| `pes_switch_vs_track` | switching against tracking |
+
+The first two are a matched pair carrying a manuscript finding: the panels are
+exposure-specific, the disease signal is not. Reviving them is frontend-only —
+the sections are still built, published, and served by `/downloads` and the
+API. See `docs/WEB_PUNCHLIST.md`.
+
+## One disclosure note
+
+This page was the only place the `n=8` "took up daily smoking" cell appeared
+as a table row, via `pes_within_person_smoking` and its `ACCEPTED` carve-out in
+`audit_payload.py`. That cell is now drawn instead by the tracking panel, which
+publishes it under the reviewed `SECTION_FLOOR` of 5.
