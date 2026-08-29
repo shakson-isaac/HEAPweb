@@ -286,8 +286,8 @@ SITE_ROUTES = [
     "/", "/downloads",
     "/results/main", "/results/summary", "/results/associations",
     "/results/architecture", "/results/mediation", "/results/intervention",
-    "/results/enrichment", "/results/enrichment-guide",
-    "/results/enrichment-guide/tissue", "/results/enrichment-guide/programs",
+    "/results/enrichment", "/results/enrichment-guide",  # alias, must keep resolving
+    "/results/enrichment/tissue", "/results/enrichment/programs",
     "/results/causal", "/results/causal/entities", "/results/causal/triads",
     "/results/causal/effects", "/results/causal/coloc",
     "/results/pes", "/results/pes-guide", "/results/pes-guide/tracks",

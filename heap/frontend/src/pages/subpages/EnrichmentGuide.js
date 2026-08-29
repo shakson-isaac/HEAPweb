@@ -1,5 +1,6 @@
-// A reorganized Tissues & Pathways, running ALONGSIDE /results/enrichment so
-// the two can be compared. Same panels, same data.
+// Tissues & Pathways. Serves /results/enrichment as of 2026-08-29; the page
+// it replaced is archived outside src/ at deprecated/Enrichment.oldpage.js,
+// and /results/enrichment-guide stays as an alias so older links resolve.
 //
 // The original stacks ELEVEN panels: three interactive views, then eight raw
 // grids under "Every enrichment, as heatmaps", four of them 420-760px tall.
@@ -45,7 +46,7 @@ import TissueExplorer from '../../components/enrichment/TissueExplorer';
 import { prettyTissue } from '../../lib/tissueBodyMap';
 import { prettyExposure } from '../../lib/palette';
 
-const BASE = '/results/enrichment-guide';
+const BASE = '/results/enrichment';
 
 // The body map is NOT in here: it is the landing page itself. These are the
 // ways OUT of it, for detail the anatomogram cannot carry.
@@ -194,12 +195,6 @@ function Landing() {
           </Card>
         ))}
       </Box>
-
-      <Alert severity="success" sx={{ mt: 3, maxWidth: 900 }}>
-        A reorganization of{' '}
-        <RouterLink to="/results/enrichment">the original Tissues &amp; Pathways page</RouterLink>,
-        kept side by side. Same data, same panels.
-      </Alert>
     </Box>
   );
 }

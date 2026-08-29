@@ -341,3 +341,21 @@ builder -> packer -> bucket -> what the browser fetches.
 - [ ] `CI=true npm run build` succeeds. react-scripts promotes warnings to
   errors under CI, so a local build with CI unset enforces different rules than
   the deploy and will let a failure through.
+
+## Three enrichment panels lost in the 2026-08-29 promotion
+
+`/results/enrichment` now serves the guided version and the stacked page is
+archived. Five of its eight heatmap sections have a counterpart in the guide;
+three do not:
+
+- `inflammation_convergence` — where distinct exposure categories converge on
+  shared inflammatory pathways
+- `component_pathways` — which biology sits behind the exposomic variance
+  component
+- `geno_expo_pathways` — genetic versus exposomic pathways
+
+The last two are the only place on the site where enrichment is tied back to
+the Module 1 variance decomposition. The sections are still built and
+published, so reviving them is a frontend job only. Decide whether they belong
+in the `programs` view, in a fourth view, or on `/results/architecture` beside
+the decomposition they refer to.

@@ -77,3 +77,41 @@ of the triad builder does. Its only caller was the old page.
 
 Reviving the old page means restoring its default export to `Causal.js`, adding
 back the `EntityMotifBrowser` import, and pointing a route at it.
+
+---
+
+# Enrichment.oldpage.js — the stacked Tissues & Pathways page
+
+Archived 2026-08-29, when `/results/enrichment` was handed to the guided
+version (`src/pages/subpages/EnrichmentGuide.js`). `/results/enrichment-guide`
+stays wired as an alias so older links resolve.
+
+## What replaced it
+
+The old page stacked eleven panels: three interactive views, then eight raw
+heatmap grids under "Every enrichment, as heatmaps". The guide is a landing
+page plus three views (`tissue`, `programs`, `proteins`), 3,031 rendered words
+down to 750 + 625 + 637.
+
+## Eight payload sections are now drawn by NOTHING
+
+The guide runs on a purpose-built set (`enrich_exposure_program`,
+`enrich_program_tissue`, `enrich_exposure_tissue`, `bodymap_terms`,
+`pes_reads_ci`). It does not read any of the sections this page read. They are
+still built and published; no page draws them.
+
+| section | what it showed | covered by the guide? |
+|---|---|---|
+| `tissue_enrichment` | exposures vs GTEx tissue signatures | yes — body map + tissue view |
+| `pathway_enrichment` | exposures vs Reactome pathways | yes — programs view |
+| `tissue_themes` | tissues grouped into organ systems | yes — body map groups anatomically |
+| `pathway_themes` | pathways grouped into themes | yes — programs view |
+| `exposure_tissue` | tissue signal per exposure category | yes — `enrich_exposure_tissue` |
+| `inflammation_convergence` | where distinct categories converge on shared inflammatory pathways | **no counterpart found** |
+| `component_pathways` | which biology sits behind the exposomic variance component | **no counterpart found** |
+| `geno_expo_pathways` | genetic versus exposomic pathways | **no counterpart found** |
+
+The last three are a real content loss, not a reorganization. The bottom two
+tie enrichment back to the Module 1 variance decomposition, which nothing else
+on the site does. Reviving them is a decision, not a cleanup — see the entry in
+`docs/WEB_PUNCHLIST.md`.

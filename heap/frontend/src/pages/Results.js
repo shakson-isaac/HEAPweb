@@ -14,7 +14,6 @@ const Associations = lazy(() => import('./subpages/Associations'));
 const Interactions = lazy(() => import('./subpages/Interactions'));
 const Mediation = lazy(() => import('./subpages/Mediation'));
 const Intervention = lazy(() => import('./subpages/Intervention'));
-const Enrichment = lazy(() => import('./subpages/Enrichment'));
 const Pes = lazy(() => import('./subpages/Pes'));
 const Gwas = lazy(() => import('./subpages/Gwas'));
 // Unlinked design preview -- see subpages/DesignPreview.js. Reachable only by
@@ -25,8 +24,8 @@ const DrillDesign = lazy(() => import('./subpages/DrillDesign'));
 // The causal page. The stacked version it replaced is archived outside src/
 // at heap/frontend/deprecated/Causal.oldpage.js.
 const CausalGuide = lazy(() => import('./subpages/CausalGuide'));
-// Reorganized Tissues & Pathways, running alongside the original for
-// comparison; see subpages/EnrichmentGuide.js.
+// The Tissues & Pathways page. The stacked version it replaced is archived
+// outside src/ at heap/frontend/deprecated/Enrichment.oldpage.js.
 const EnrichmentGuide = lazy(() => import('./subpages/EnrichmentGuide'));
 // Reorganized Exposure Scores, alongside the original for comparison.
 const PesGuide = lazy(() => import('./subpages/PesGuide'));
@@ -55,7 +54,7 @@ function Results() {
             <Route path="interactions" element={<Interactions />} />
             <Route path="mediation" element={<Mediation />} />
             <Route path="intervention" element={<Intervention />} />
-            <Route path="enrichment" element={<Enrichment />} />
+            <Route path="enrichment/*" element={<EnrichmentGuide />} />
             <Route path="causal/*" element={<CausalGuide />} />
             <Route path="pes" element={<Pes />} />
             <Route path="gwas" element={<Gwas />} />
