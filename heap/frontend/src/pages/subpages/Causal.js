@@ -189,18 +189,6 @@ export function TriadExplorer({
     return m;
   }, [dec]);
 
-  // Final tier per direction for the selected triad, read from the same flags
-  // the motif rules use, so step 2 of the trace shows values rather than prose.
-  const edgeTiers = useMemo(() => {
-    if (!data) return null;
-    const out = {};
-    for (const [k, label] of [['pEP', 'E→P'], ['pPD', 'P→D'], ['pED', 'E→D'],
-                              ['pPE', 'P→E'], ['pDP', 'D→P'], ['pDE', 'D→E']]) {
-      const on = data[k] && (data[k][sel] === true || String(data[k][sel]).toUpperCase() === 'TRUE');
-      out[label] = on ? 'Tier 1 or better' : 'below Tier 1';
-    }
-    return out;
-  }, [data, sel]);
 
   const triadTiers = useMemo(() => {
     if (!data || !tierTbl) return null;
@@ -216,6 +204,30 @@ export function TriadExplorer({
     }
     return null;
   }, [data, tierTbl, sel]);
+
+  // Final tier per direction, for step 2 of the motif trace.
+  //
+  // This used to read the pEP..pDE booleans off mr_triads. Those columns are
+  // gone since the arm-scope change, and because the read was guarded it did
+  // not crash -- it silently reported EVERY edge as below Tier 1, which is a
+  // worse failure than the blank page beside it. Derived from the tier table
+  // now, within this triad's own arms, exactly as the presence flags are.
+  const edgeTiers = useMemo(() => {
+    if (!data || !triadTiers) return null;
+    const armsOf = String(data.arms?.[sel] || 'UKB').split('+').map((x) => x.trim());
+    const on = (sufs) => sufs.some((suf) => armsOf.some((panel) => {
+      const v = triadTiers[`tier_${suf}_${panel}`];
+      return v === 'Tier1' || v === 'Tier1plus';
+    }));
+    return {
+      'E→P': on(['EP']) ? 'Tier 1 or better' : 'below Tier 1',
+      'P→D': on(['PDcis', 'PDtrans']) ? 'Tier 1 or better' : 'below Tier 1',
+      'E→D': on(['ED']) ? 'Tier 1 or better' : 'below Tier 1',
+      'P→E': on(['PEcis', 'PEtrans']) ? 'Tier 1 or better' : 'below Tier 1',
+      'D→P': on(['DP']) ? 'Tier 1 or better' : 'below Tier 1',
+      'D→E': on(['DE']) ? 'Tier 1 or better' : 'below Tier 1',
+    };
+  }, [data, triadTiers, sel]);
 
   const decodeEst = useMemo(() => {
     if (!data || !dec || !decIndex) return null;
