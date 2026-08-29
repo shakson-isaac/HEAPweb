@@ -320,7 +320,7 @@ export default function PesReads() {
     });
     const exIds = new Set([...exMap.values()].map((r) => r.exposure_id));
 
-    const toPoint = (r, centred) => ({
+    const toPoint = (r, centered) => ({
       id: r.exposure_id,
       category: r.category,
       x: r[`${p}_${measure}`],
@@ -328,7 +328,7 @@ export default function PesReads() {
       xhi: r[`${p}_${measure}_hi`],
       // Exemplars sit centred on their row so the label points at the row it
       // belongs to; everything else is jittered within the row.
-      y: rowOf.get(r.category) + (centred ? 0 : jitter01(r.exposure_id) * 0.34),
+      y: rowOf.get(r.category) + (centered ? 0 : jitter01(r.exposure_id) * 0.34),
       label: prettyExposure(r.exposure_id),
       row: r,
     });
@@ -713,7 +713,7 @@ export default function PesReads() {
           variant="outlined"
           onClick={() => setLabelExemplars((v) => !v)}
           label={labelExemplars
-            ? 'category exemplars labelled — click to hide'
+            ? 'category exemplars labeled — click to hide'
             : 'category exemplars hidden — click to label'}
         />
       </Box>
@@ -756,7 +756,7 @@ export default function PesReads() {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, mb: 3 }}>
         Each dot is one exposure, jittered within its category row; the bar is its 95%
         bootstrap interval. The larger ringed point in each row is that category&rsquo;s
-        labelled exemplar, matching the printed figure. Every exposure drawn here also
+        labeled exemplar, matching the printed figure. Every exposure drawn here also
         appears in the table under plot 2, which carries the score-alone column.
       </Typography>
 

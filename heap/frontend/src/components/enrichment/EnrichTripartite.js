@@ -486,7 +486,7 @@ export default function EnrichTripartite() {
             <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 1.5, maxWidth: 900 }}>
               The gray <b>program→tissue</b> backbone does not move with this picker. It is a
               leading-edge overlap computed once under the primary specification and published
-              that way, so it is the same skeleton in every view; the coloured exposure→program
+              that way, so it is the same skeleton in every view; the colored exposure→program
               and the organ column are re-derived from the selected enrichment.
             </Typography>
           )}
@@ -560,7 +560,7 @@ export default function EnrichTripartite() {
 
           {view.sel.length === 0 && (
             <Alert severity="info" sx={{ mb: 1.5 }}>
-              No exposure selected — the left column is empty and the coloured edges are gone, but the
+              No exposure selected — the left column is empty and the colored edges are gone, but the
               grey backbone is unchanged. That is the point: it is a global count over all 114
               exposures, not a property of the selection.
             </Alert>
@@ -638,7 +638,7 @@ export default function EnrichTripartite() {
               ))}
 
               {/* program -> tissue: grey, weighted by supporting exposures.
-                  Drawn first so the coloured per-exposure edges sit on top, the
+                  Drawn first so the colored per-exposure edges sit on top, the
                   way the printed panel layers them. */}
               <g fill="none">
                 {view.ptEdges.map((b) => {
@@ -862,7 +862,7 @@ export default function EnrichTripartite() {
                   + `(${open.nUp} increased, ${open.nDn} decreased) — this count is the edge width. `}
                 {/* net_nes is a SUM over the enriched pathways, so it grows with
                     npath: it is not a mean effect size and is never used for
-                    colour or width. Named as a sum wherever it appears. */}
+                    color or width. Named as a sum wherever it appears. */}
                 {`Net NES = ${open.netNes === null ? '—' : open.netNes.toFixed(2)}, the SUM of NES over `
                   + 'those pathways (it grows with their number; it is not a mean effect size).'}
               </Typography>
@@ -876,7 +876,7 @@ export default function EnrichTripartite() {
             </Paper>
           )}
 
-          {/* --- legend: every colour, every line, and BOTH width scales --- */}
+          {/* --- legend: every color, every line, and BOTH width scales --- */}
           <Box sx={{ mt: 1.5 }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, alignItems: 'center', mb: 1 }}>
               {[[RED, 'exposure → program, increased'], [BLU, 'exposure → program, decreased'],
@@ -949,9 +949,9 @@ export default function EnrichTripartite() {
             <i>exposure → program → tissue</i> is the argument, and programs and organs keep the
             manuscript&apos;s display order (<code>HEAP_PROGRAM_LEVELS</code>,{' '}
             <code>HEAP_TISSUE_LEVELS</code>), not an alphabetical one. Every program and organ stays
-            on screen whatever is selected, so the coloured half of the picture can be seen changing
+            on screen whatever is selected, so the colored half of the picture can be seen changing
             against a backbone that does not. Hover a program to hold its edges on both sides, hover
-            an exposure to hold its edges and its badges, and click any coloured edge for the
+            an exposure to hold its edges and its badges, and click any colored edge for the
             Reactome pathways behind it.
           </Typography>
         </>

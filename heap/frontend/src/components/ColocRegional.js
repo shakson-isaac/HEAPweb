@@ -210,7 +210,7 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
               annotations: geneLabels,
               showlegend: false,
               margin: { l: 60, r: 12, t: 30, b: 45 },
-              title: { text: 'Same window, both signals, coloured by LD',
+              title: { text: 'Same window, both signals, colored by LD',
                        font: { size: 13 } },
             }}
           />

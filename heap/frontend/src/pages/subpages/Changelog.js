@@ -71,7 +71,7 @@ export default function Changelog() {
               <span>
                 Cis-pQTL colocalization with a hard gate at PP.H4 ≥ 0.8; {n('nColoc')} loci clear
                 it. Cis edges failing the gate because the two signals sit on distinct variants in
-                linkage disequilibrium are labelled LD-confounded rather than dropped.
+                linkage disequilibrium are labeled LD-confounded rather than dropped.
               </span>,
             ],
             [
@@ -98,7 +98,7 @@ export default function Changelog() {
               'Mediation reframed as descriptive',
               <Kind value="structural" />,
               <span>
-                Observational mediation is no longer a top-navigation destination and is labelled
+                Observational mediation is no longer a top-navigation destination and is labeled
                 descriptive wherever a mediated fraction appears, with a fixed caveat shown next
                 to the number. Causal adjudication moved to its own page, driven by MR and
                 colocalization.

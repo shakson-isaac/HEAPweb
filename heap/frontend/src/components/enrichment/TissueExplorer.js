@@ -492,7 +492,7 @@ function ProteinMode() {
             . A median taken over a dozen donors is a far softer number than one taken over
             several hundred, and the rank order should be read with that in mind.
             {plot.hasZero && scale === 'tpm' && ' A median of exactly 0 cannot be placed on a '
-              + 'log axis; those tissues are drawn as their own series on the tick labelled 0, '
+              + 'log axis; those tissues are drawn as their own series on the tick labeled 0, '
               + 'one decade below the smallest measured value, and are not a small measurement.'}
           </Typography>
         </>
@@ -669,8 +669,8 @@ function TissueMode() {
         exposures enrich but how strongly and in which direction. Direction is the sign of NES
         and is therefore the horizontal position — left of the dashed line the exposure&rsquo;s
         proteins are depleted from this tissue&rsquo;s signature, right of it they concentrate
-        in it. That leaves colour free to carry the exposure&rsquo;s category.
-        {!byCategory && ' The category lookup did not load, so points are coloured by direction '
+        in it. That leaves color free to carry the exposure&rsquo;s category.
+        {!byCategory && ' The category lookup did not load, so points are colored by direction '
           + 'instead — warm for enriched, cool for depleted.'}
         {' '}Only {tissues.length} of the 54 GTEx tissues have any exposure enriched at this
         threshold; the rest have none and are not offered in the picker.

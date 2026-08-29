@@ -205,7 +205,7 @@ export default function DetailedMethods() {
         </P>
         <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
           Earlier versions of this site displayed the maximally adjusted model by default and
-          labelled the sets Type1–Type7. Both are retired: the primary model is now{' '}
+          labeled the sets Type1–Type7. Both are retired: the primary model is now{' '}
           <Mono>base</Mono>, and adjustment for BMI is a sensitivity layer that cannot be read as
           a mediation test.
         </Alert>

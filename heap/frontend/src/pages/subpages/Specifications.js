@@ -156,7 +156,7 @@ export default function Specifications() {
           The nine deprivation variables are exposures in HEAP. Moving them into the covariate
           matrix deletes an entire exposure category from the model, which makes{' '}
           <Mono>base_ses</Mono> mis-specified for anything that treats the exposome as a whole. It
-          is offered in Module 2 only, and labelled with this caveat wherever it appears.
+          is offered in Module 2 only, and labeled with this caveat wherever it appears.
         </P>
         <SourceNote>
           <Mono>docs/TASKS.md</Mono> standing decision S1; set definition and the{' '}

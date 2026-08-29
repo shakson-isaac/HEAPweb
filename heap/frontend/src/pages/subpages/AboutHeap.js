@@ -120,7 +120,7 @@ export default function AboutHeap() {
           rows={[
             ['No generic "significant" badge', <span>Every relationship carries an explicit evidence level, and association is kept visually separate from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
             ['One primary specification', <span>All main results use the <Mono>base</Mono> covariate set; the other five are sensitivity layers behind a switcher. See <Link to="/documentation/models">Specifications</Link>.</span>],
-            ['+ BMI is not a mediation test', 'Attenuation after adjusting for BMI cannot distinguish mediation from confounding, so the BMI specification is labelled a sensitivity layer everywhere it appears.'],
+            ['+ BMI is not a mediation test', 'Attenuation after adjusting for BMI cannot distinguish mediation from confounding, so the BMI specification is labeled a sensitivity layer everywhere it appears.'],
             ['Mediation is descriptive', <span>Observational mediation is reported as descriptive; causal adjudication is kept separate, in <Link to="/results/causal">Mendelian randomization and colocalization</Link>.</span>],
             ['"Not tested" is not "not significant"', 'Empty states say which of the two they are.'],
             ['Nothing hand-typed', 'Every rendered number traces to a manuscript macro, a registry row or a payload file.'],

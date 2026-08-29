@@ -122,7 +122,7 @@ const NULL_STROKE = '#C9C2B8';
 // The published tissue |NES| runs 1.23 to 3.43.
 const NES_LO = 1.2;
 const NES_HI = 3.0;
-const TINT_FLOOR = 0.30;   // even the weakest hit keeps 30% of its colour
+const TINT_FLOOR = 0.30;   // even the weakest hit keeps 30% of its color
 
 // The whole-brain shape on the BODY svg. It is not a GTEx tissue and is never
 // painted red or blue: doing that would invent a brain-level enrichment nobody
@@ -160,7 +160,7 @@ const PAINT_STATES = [
   {
     id: 'lit',
     label: 'enriched (FDR q < 0.05)',
-    note: 'red up, blue down; colour depth is |NES| on a fixed 1.2–3.0 scale',
+    note: 'red up, blue down; color depth is |NES| on a fixed 1.2–3.0 scale',
   },
   {
     id: 'unlinked',
@@ -770,8 +770,8 @@ function Anatomogram({
       {nLabels > 0 && (
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, lineHeight: 1.3, minHeight: 32 }}>
           {placed.length === nLabels
-            ? `All ${nLabels} lit region${nLabels === 1 ? '' : 's'} labelled — click a box or the organ itself.`
-            : `${placed.length} of ${nLabels} lit regions labelled, strongest |NES| first — the gutters hold no more. `
+            ? `All ${nLabels} lit region${nLabels === 1 ? '' : 's'} labeled — click a box or the organ itself.`
+            : `${placed.length} of ${nLabels} lit regions labeled, strongest |NES| first — the gutters hold no more. `
               + 'Every lit region is still clickable on the figure and named on hover.'}
         </Typography>
       )}
@@ -1530,7 +1530,7 @@ export default function ExposureBodyMap({
         {r.mixed && (
           <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: MIXED_COLOR }}>
             The tissues on this shape point in opposite directions, so the shape is drawn in the
-            mixed colour rather than picking one.
+            mixed color rather than picking one.
           </Typography>
         )}
         {r.approximate && (
@@ -1820,7 +1820,7 @@ export default function ExposureBodyMap({
           <Box sx={{ mt: 2 }}>
             {!drill && (
               <Alert severity="info">
-                Click any labelled box beside the figure — or the organ itself, or any lit row in the
+                Click any labeled box beside the figure — or the organ itself, or any lit row in the
                 side panel — for the proteins that carried its enrichment, their effect sizes for this
                 exposure, and where each one is expressed across the 54 GTEx tissues.
               </Alert>
@@ -2043,7 +2043,7 @@ export default function ExposureBodyMap({
                           Dot area scales with the number of GTEx donors behind that tissue&rsquo;s median; a
                           median over a dozen donors is a far softer number than one over several hundred.
                           {profilePlot.hasZero && ' A median of exactly 0 cannot be placed on a log axis, so '
-                            + 'those tissues are drawn as their own series on the tick labelled 0, one decade '
+                            + 'those tissues are drawn as their own series on the tick labeled 0, one decade '
                             + 'below the smallest measured value — they are not a small measurement.'}
                           {!profile.here && ` ${prettyTissue(openTissue)} is not one of the 54 GTEx tissues in `
                             + 'this profile, so no row is highlighted.'}

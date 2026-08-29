@@ -177,7 +177,7 @@ export default function Pes() {
       </Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, maxWidth: 940 }}>
         Everything else the module exports, in full: the disease-prediction results the third
-        question summarises, and the per-exposure tables behind all three.
+        question summarizes, and the per-exposure tables behind all three.
       </Typography>
 
       <Biomonitoring />

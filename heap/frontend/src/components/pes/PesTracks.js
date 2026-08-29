@@ -256,7 +256,7 @@ export default function PesTracks() {
   // assert a precision nobody computed.
   const deltaTraces = useMemo(() => {
     if (!strip) return [];
-    const y = (r, centred) => strip.rowOf.get(r.category) + (centred ? 0 : jitter01(r.exposure_id) * 0.34);
+    const y = (r, centered) => strip.rowOf.get(r.category) + (centered ? 0 : jitter01(r.exposure_id) * 0.34);
     const gap = (r) => ((r.both == null || r.cov == null) ? null : r.both - r.cov);
     const custom = (arr) => arr.map((r) => [
       prettyExposure(r.exposure_id), prettyCategory(r.category),
@@ -265,11 +265,11 @@ export default function PesTracks() {
     const hov = '<b>%{customdata[0]}</b><br>gain %{x:+.3f} Δr'
       + '<br>covariates %{customdata[2]} → with score %{customdata[3]}'
       + '<br>%{customdata[4]} changed pairs<extra>%{customdata[1]}</extra>';
-    const mk = (arr, centred, size, ring) => ({
+    const mk = (arr, centered, size, ring) => ({
       type: 'scatter',
       mode: 'markers',
       x: arr.map(gap),
-      y: arr.map((r) => y(r, centred)),
+      y: arr.map((r) => y(r, centered)),
       customdata: custom(arr),
       hovertemplate: hov,
       marker: {
@@ -297,7 +297,7 @@ export default function PesTracks() {
 
   const stripTraces = useMemo(() => {
     if (!strip) return [];
-    const y = (r, centred) => strip.rowOf.get(r.category) + (centred ? 0 : jitter01(r.exposure_id) * 0.34);
+    const y = (r, centered) => strip.rowOf.get(r.category) + (centered ? 0 : jitter01(r.exposure_id) * 0.34);
     const errBar = (arr, val, lo, hi, color) => ({
       type: 'data',
       symmetric: false,

@@ -1,4 +1,5 @@
 // src/pages/Results.js
+import NotFound from './NotFound';
 import React, { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
@@ -64,6 +65,8 @@ function Results() {
             <Route path="causal-guide/*" element={<CausalGuide />} />
             <Route path="enrichment-guide/*" element={<EnrichmentGuide />} />
             <Route path="pes-guide/*" element={<PesGuide />} />
+            {/* /results/<unknown> rendered an empty shell before this. */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </div>

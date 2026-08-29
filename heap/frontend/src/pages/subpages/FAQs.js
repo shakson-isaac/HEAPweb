@@ -69,7 +69,7 @@ const FAQ_ITEMS = [
     a: [
       'No. Attenuation after adjusting for BMI cannot distinguish mediation from confounding — or from collider bias. All three produce the same attenuation.',
       <span key="b">
-        For that reason <Mono>+ BMI</Mono> is labelled a sensitivity specification everywhere on
+        For that reason <Mono>+ BMI</Mono> is labeled a sensitivity specification everywhere on
         this site and is never presented as a mediation test.
       </span>,
     ],

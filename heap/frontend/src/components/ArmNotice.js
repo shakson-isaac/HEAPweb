@@ -35,7 +35,7 @@ export function ArmChip({ sectionId }) {
     );
   }
   return (
-    <Tooltip title={`Protein instruments from ${LABEL[arm] || arm}. The other panel was analysed but is not shown in this section. Same participants either way \u2014 only the protein instruments differ.`}>
+    <Tooltip title={`Protein instruments from ${LABEL[arm] || arm}. The other panel was analyzed but is not shown in this section. Same participants either way \u2014 only the protein instruments differ.`}>
       <Chip size="small" color="warning" variant="outlined" label={`${arm} pQTL instruments`} />
     </Tooltip>
   );

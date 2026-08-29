@@ -216,7 +216,7 @@ export default function EvidenceTiers() {
           probability of a single shared causal variant is at least 0.8 (PP.H4 ≥ 0.8).{' '}
           {n('nColoc')} cis-pQTL loci clear it. Cis edges that fail the gate because the pQTL and the outcome
           signal sit on distinct variants in linkage disequilibrium are demoted rather than
-          dropped, and they are labelled LD-confounded wherever they appear.
+          dropped, and they are labeled LD-confounded wherever they appear.
         </P>
         <SourceNote>
           <Mono>S_coloc_summary</Mono>; the same tier gate is applied in{' '}

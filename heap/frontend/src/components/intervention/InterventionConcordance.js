@@ -295,7 +295,7 @@ const SCHEMES = {
     button: 'assay reliability',
     label: 'Olink–SomaScan assay correlation (Eldjarn et al.)',
     note: 'The reliability that weights the published r. The shared scatter '
-      + 'draws one marker size for every point, so reliability rides on colour '
+      + 'draws one marker size for every point, so reliability rides on color '
       + 'here rather than on point area.',
     of: (r) => {
       if (r.rel == null) return NO_ASSAY_PAIR;
@@ -1068,7 +1068,7 @@ export default function InterventionConcordance() {
             variant="caption"
             sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
           >
-            <b>{`Colour: ${scheme.label}.`}</b>
+            <b>{`Color: ${scheme.label}.`}</b>
             {' '}
             Error bars are 95% intervals. <b>Marker area</b> is the Olink–SomaScan assay
               correlation (Eldjarn et al.) — bigger means the platforms agree more closely

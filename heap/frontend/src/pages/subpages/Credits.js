@@ -77,7 +77,7 @@ const REFS = [
   },
   {
     what: 'Linkage disequilibrium',
-    used: 'PLINK against the 1000 Genomes European reference panel — the r² colouring on every regional colocalization plot.',
+    used: 'PLINK against the 1000 Genomes European reference panel — the r² coloring on every regional colocalization plot.',
     cite: 'Chang CC et al. Second-generation PLINK. GigaScience (2015).',
   },
   {
