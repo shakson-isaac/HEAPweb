@@ -1,8 +1,10 @@
+import { Link as RouterLink } from 'react-router-dom';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Chip,
   IconButton, Link, Pagination, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TextField, Typography,
+  Divider,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -757,6 +759,30 @@ export default function Downloads() {
 
             </Box>
           )}
+
+        {/* Downloads was the site's only dead end: everything here is a file to
+            take away, so a reader who finished had nowhere to click but Back.
+            These are the three places the data is actually interpreted. */}
+        <Box sx={{ mt: 4 }}>
+          <Divider sx={{ mb: 2 }} />
+          <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+            What these tables are behind
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
+            <Button component={RouterLink} to="/results/main" variant="outlined"
+                    sx={{ textTransform: 'none' }}>
+              Variance decomposition
+            </Button>
+            <Button component={RouterLink} to="/results/causal" variant="outlined"
+                    sx={{ textTransform: 'none' }}>
+              Causal evidence
+            </Button>
+            <Button component={RouterLink} to="/documentation/methods" variant="outlined"
+                    sx={{ textTransform: 'none' }}>
+              How these were computed
+            </Button>
+          </Box>
+        </Box>
         </SectionCard>
       </div>
     </div>
