@@ -61,7 +61,16 @@ JS_EXTRACT = r"""
   });
   return {
     blocks,
-    controls: document.querySelectorAll(
+    // Controls the visitor can actually reach. A collapsed MUI section keeps
+    // its whole subtree in the DOM, so a raw querySelectorAll counts every
+    // control behind every fold: /downloads reads as 189 controls when 33 are
+    // reachable, and its 156 "unlabelled buttons" all say "Schema + URL" once
+    // their section is open. Folded content is not clutter, and counting it as
+    // clutter has produced a false finding more than once.
+    controls: [...document.querySelectorAll(
+      'select, button, [role=tab], [role=button], input, .MuiSelect-root')]
+      .filter(e => !e.closest('.MuiCollapse-hidden, [hidden], [aria-hidden="true"]')).length,
+    controlsIncludingFolded: document.querySelectorAll(
       'select, button, [role=tab], [role=button], input, .MuiSelect-root').length,
     plots: document.querySelectorAll('.js-plotly-plot').length,
     svgs: document.querySelectorAll('svg').length,
