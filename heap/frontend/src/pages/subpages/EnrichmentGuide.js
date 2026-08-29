@@ -1,0 +1,269 @@
+// Tissues & Pathways. Serves /results/enrichment as of 2026-08-29; the page
+// it replaced is archived outside src/ at deprecated/Enrichment.oldpage.js,
+// and /results/enrichment-guide stays as an alias so older links resolve.
+//
+// The original stacks ELEVEN panels: three interactive views, then eight raw
+// grids under "Every enrichment, as heatmaps", four of them 420-760px tall.
+// Nothing says the three are alternatives rather than a sequence, and nothing
+// says the eight below are an appendix rather than the point.
+//
+// The eight grids are not carried over at all. They were briefly a viewpoint
+// here and the author's read was that the tab was unhelpful and its contents
+// not very useful -- so this version has three entry points and no reference
+// appendix. The original page still renders all eight; if this version is
+// promoted, those sections lose their only viewer and belong on Downloads or
+// out of the payload.
+//
+// The irony is that the three components already know what they are for. Their
+// own headers say it:
+//
+//   ExposureBodyMap   "THE ENTRY POINT: pick an exposure, see which tissues it
+//                      touches" -- starts from the question a non-specialist
+//                      arrives with, not from the analysis.
+//   TissueExplorer    "The two entry points this page has never offered" --
+//                      a reader holding a protein, or holding an organ.
+//   EnrichTripartite   main Fig 2d, for all 114 exposures rather than the ten
+//                      the printed panel had room for.
+//
+// So they are four different questions, and the page presented them as one
+// column. This gives each its own route and puts the headline result on the
+// landing page, where the causal redesign learned to put the reading key.
+import React from 'react';
+import {
+  Link as RouterLink, Route, Routes, useLocation, useNavigate, useSearchParams,
+} from 'react-router-dom';
+import {
+  Alert, Box, Button, Card, CardContent, Divider, Typography,
+} from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+import ExposureBodyMap from '../../components/enrichment/ExposureBodyMap';
+import LeadingEdgeEffects from '../../components/enrichment/LeadingEdgeEffects';
+import GtexProfile from '../../components/enrichment/GtexProfile';
+import EnrichTripartite from '../../components/enrichment/EnrichTripartite';
+import TissueExplorer from '../../components/enrichment/TissueExplorer';
+import { prettyTissue } from '../../lib/tissueBodyMap';
+import { prettyExposure } from '../../lib/palette';
+
+const BASE = '/results/enrichment';
+
+// The body map is NOT in here: it is the landing page itself. These are the
+// ways OUT of it, for detail the anatomogram cannot carry.
+const VIEWS = [
+  {
+    slug: 'tissue',
+    title: 'Start from a protein or an organ',
+    question: 'Where is this protein expressed, or what reaches this organ?',
+    payoff: 'The same question from the other end. Two modes, one vocabulary.',
+  },
+  {
+    slug: 'programs',
+    title: 'Programs and tissues',
+    question: 'Which biological programs carry an exposure into which tissues?',
+    payoff: 'Main Figure 2d, for all 114 exposures rather than the ten in print.',
+  },
+];
+
+const viewBySlug = (slug) => VIEWS.find((v) => v.slug === slug);
+
+function ViewPage({ view, children }) {
+  const { search } = useLocation();
+  const others = VIEWS.filter((v) => v.slug !== view.slug);
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Button
+        component={RouterLink}
+        to={`${BASE}${search}`}
+        size="small"
+        startIcon={<ArrowBackIcon />}
+        sx={{ textTransform: 'none', ml: -1 }}
+      >
+        Tissues &amp; pathways — overview
+      </Button>
+      <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>{view.title}</Typography>
+      <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2, maxWidth: 820 }}>
+        {view.question}
+      </Typography>
+
+      {children}
+
+      <Box sx={{ mt: 5 }}>
+        <Divider sx={{ mb: 2 }} />
+        <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+          Other viewpoints
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
+          {others.map((v) => (
+            <Button
+              key={v.slug}
+              component={RouterLink}
+              to={`${BASE}/${v.slug}${search}`}
+              variant="outlined"
+              endIcon={<ArrowForwardIcon />}
+              sx={{ textTransform: 'none' }}
+            >
+              {v.title}
+            </Button>
+          ))}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+// Clicking an organ leaves this page rather than expanding beneath the body.
+// The anatomogram answers WHERE; the proteins that carried the enrichment are a
+// different question and were pushing this page past 2,200px, which buried the
+// links below it.
+function ExposureBodyMapNav() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  return (
+    <ExposureBodyMap
+      onOpenTissue={(tissue, exposure) => {
+        // Both come from the component: it owns the exposure state, so it hands
+        // it out rather than the caller guessing. Carrying both in the URL is
+        // what makes the destination linkable.
+        const p = new URLSearchParams(params);
+        p.set('tissue', tissue);
+        if (exposure) p.set('exposure', exposure);
+        navigate(`${BASE}/proteins?${p.toString()}`);
+      }}
+    />
+  );
+}
+
+function Landing() {
+  const { search } = useLocation();
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+        Tissues &amp; pathways
+      </Typography>
+      {/* No lede. ExposureBodyMap opens with its own heading -- "What does this
+          exposure touch, and which proteins carry it?" -- and its own
+          description of picking an exposure and clicking an organ. A page-level
+          paragraph saying the same thing put the same sentence on screen twice,
+          thirty pixels apart. The NES convention stays because the component
+          prints NES values on the body and never defines the sign. */}
+      <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>
+        Positive NES means the set is enriched among proteins associated with that
+        exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
+      </Typography>
+
+      {/* The body map IS the front page.
+          A first pass landed on a compact organ-system heatmap with the
+          anatomogram one click away. That inverted the section: this component's
+          own header calls itself "THE ENTRY POINT" and opens on the question a
+          non-specialist actually arrives with -- "I play strenuous sports; what
+          does that show up in?" -- while a category-by-organ grid answers a
+          question you need the vocabulary to ask. The grid is still available,
+          under Every enrichment, where it belongs among the other reference
+          views. */}
+      <ExposureBodyMapNav />
+
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+        More detail
+      </Typography>
+      <Box
+        sx={{
+          display: 'grid', gap: 2, mt: 1,
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, maxWidth: 1000,
+        }}
+      >
+        {VIEWS.map((v) => (
+          <Card key={v.slug} variant="outlined">
+            <CardContent>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{v.title}</Typography>
+              <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
+                {v.question}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1.5 }}>{v.payoff}</Typography>
+              <Button
+                component={RouterLink}
+                to={`${BASE}/${v.slug}${search}`}
+                variant="contained"
+                endIcon={<ArrowForwardIcon />}
+                sx={{ mt: 2, textTransform: 'none' }}
+              >
+                Open
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+const ViewTissue = () => (
+  <ViewPage view={viewBySlug('tissue')}><TissueExplorer /></ViewPage>
+);
+const ViewPrograms = () => (
+  <ViewPage view={viewBySlug('programs')}><EnrichTripartite /></ViewPage>
+);
+
+// The proteins that carried one exposure's enrichment in one tissue. Reached by
+// clicking an organ; linkable on its own because both slots are in the URL.
+function ViewProteins() {
+  const [gene, setGene] = React.useState(null);
+  const [params] = useSearchParams();
+  const exposure = params.get('exposure') || '';
+  const tissue = params.get('tissue') || '';
+  const { search } = useLocation();
+
+  if (!exposure || !tissue) {
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Button component={RouterLink} to={BASE} startIcon={<ArrowBackIcon />}
+                sx={{ textTransform: 'none', ml: -1 }}>
+          Tissues &amp; pathways
+        </Button>
+        <Alert severity="info" sx={{ mt: 2, maxWidth: 900 }}>
+          Pick an exposure on the body map and click an organ to see the proteins
+          that carried its enrichment.
+        </Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Button component={RouterLink} to={`${BASE}${search}`} startIcon={<ArrowBackIcon />}
+              size="small" sx={{ textTransform: 'none', ml: -1 }}>
+        Back to the body
+      </Button>
+      <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, mb: 2 }}>
+        {`${prettyExposure(exposure)} → ${prettyTissue(tissue)}`}
+      </Typography>
+
+      {/* Built from two purpose-made panels rather than by re-rendering the
+          body map in a detail mode. The list ranks the leading edge by the one
+          number that varies protein to protein; picking a row shows where that
+          protein is expressed. */}
+      <LeadingEdgeEffects exposure={exposure} tissue={tissue} onPickGene={setGene} selected={gene} />
+
+      {gene && (
+        <Box sx={{ mt: 4 }}>
+          <Divider sx={{ mb: 2 }} />
+          <GtexProfile gene={gene} tissue={tissue} />
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+export default function EnrichmentGuide() {
+  return (
+    <Routes>
+      <Route index element={<Landing />} />
+      <Route path="proteins" element={<ViewProteins />} />
+      <Route path="tissue" element={<ViewTissue />} />
+      <Route path="programs" element={<ViewPrograms />} />
+      <Route path="*" element={<Landing />} />
+    </Routes>
+  );
+}
