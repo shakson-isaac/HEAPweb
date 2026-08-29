@@ -16,11 +16,21 @@ Four checks:
             200 with a readable size
   staleness which locally built sections are not yet published -- the cause of
             "unknown section" errors on the live site
+    render    (--site) every route actually DRAWS, in a real browser
+
+RENDER IS THE CHECK THAT WOULD HAVE CAUGHT THE 2026-08-29 BREAKAGE. The other
+four all passed while /results/causal/triads was a blank page: the payload was
+correct, every section resolved, nothing was stale. What broke was the SITE's
+ability to render what it had fetched -- the MR arm-scope change dropped the
+pEP..pDE columns the triad DAG read, and an unguarded access threw on every
+render. "The data is right and reachable" and "the page works" are different
+claims, and only the second is what a visitor experiences.
 
 Exit code is non-zero if anything fails, so it can gate a deploy.
 
   python3 tools/check_public.py            # test the live bucket
   python3 tools/check_public.py --base http://localhost:3008   # a local preview
+    python3 tools/check_public.py --site https://<preview>.web.app   # + render
 """
 import argparse, gzip, io, json, os, re, sys, urllib.error, urllib.request
 
@@ -35,11 +45,21 @@ LOCAL_MANIFEST = os.path.join(HERE, "build", "web", "v1", "manifest.json.gz")
 DOC_CLAIMS = {
     "nProteins": "2686",
     "key_column": "Protein",
-    "motif_cols": ["motif", "tier1_triads", "tier1_proteins",
+    # Updated 2026-08-29 for the pQTL arm-scope rebuild. A motif is now
+    # assembled WITHIN one platform, so tier1 = "either arm" and the old
+    # tier1_triads survive as the ukb_triads column (B 1353, C 4499, E 12892).
+    # These are transcribed from the summariser's own output:
+    #   HEAP/docs/manuscript_stats/module5/mr_motif_counts.tsv
+    # Deliberately hardcoded, not read from that file: this is a tripwire
+    # against the live data moving without anyone deciding it should.
+    # Invariant that must hold: tier1 == ukb + decode - tier1plus.
+    "motif_cols": ["motif", "ukb_triads", "decode_triads",
+                   "tier1_triads", "tier1_proteins",
+                   "tier1plus_triads", "tier1plus_proteins",
                    "nominal_triads", "nominal_proteins"],
-    "motifs": {"A": (6, 3, 84, 25), "B": (1353, 325, 2232, 404),
-               "C": (4499, 450, 4829, 444), "D": (30, 4, 722, 41),
-               "E": (12892, 469, 17999, 550)},
+    "motifs": {"A": (6, 3, 84, 25), "B": (1368, 326, 2232, 404),
+               "C": (4591, 460, 4829, 444), "D": (30, 4, 722, 41),
+               "E": (14273, 490, 17999, 550)},
 }
 
 fails, warns = [], []
@@ -99,6 +119,21 @@ def check_drift(base):
             fail(f"motif {m[0]}: docs show {doc}, live is {tuple(live)}")
         else:
             ok(f"motif {m[0]} counts")
+
+    # The arm-scope invariant. A motif is assembled within ONE platform, so a
+    # triad is UKB, deCODE, or both, and nothing else -- tier1 must be the
+    # union. If someone pools the two arms' edges and evaluates motifs on the
+    # union, extra triads appear that belong to neither arm and this breaks.
+    # That is trap 2 of the rebuild brief, made mechanical.
+    if all(c in motifs for c in ("ukb_triads", "decode_triads", "tier1plus_triads")):
+        for i, m in enumerate(motifs.get("motif", [])):
+            u, d = motifs["ukb_triads"][i], motifs["decode_triads"][i]
+            t, b = motifs["tier1_triads"][i], motifs["tier1plus_triads"][i]
+            if u + d - b != t:
+                fail(f"motif {m[0]}: arm scope broken -- "
+                     f"ukb {u} + decode {d} - both {b} != tier1 {t}")
+            else:
+                ok(f"motif {m[0]} arm scope ({u}+{d}-{b}={t})")
     try:
         h = fetch_json(f"{base}/meta/headline.json.gz")
         live = str(h["macros"]["nProteins"]["value"])
@@ -243,9 +278,86 @@ def check_pages(base):
             ok(f"page '{page}': all {n} section(s) resolve")
 
 
+
+# Routes a visitor can reach. Listed here rather than derived from the router, so
+# that a route silently dropped from Results.js fails this check instead of
+# quietly disappearing from it.
+SITE_ROUTES = [
+    "/", "/downloads",
+    "/results/main", "/results/summary", "/results/associations",
+    "/results/architecture", "/results/mediation", "/results/intervention",
+    "/results/enrichment", "/results/enrichment-guide",
+    "/results/enrichment-guide/tissue", "/results/enrichment-guide/programs",
+    "/results/causal", "/results/causal/entities", "/results/causal/triads",
+    "/results/causal/effects", "/results/causal/coloc",
+    "/results/pes", "/results/pes-guide", "/results/pes-guide/tracks",
+    "/results/pes-guide/compare", "/results/pes-guide/disease",
+    "/results/gwas",
+    "/documentation/about", "/documentation/quickstart", "/documentation/methods",
+    "/documentation/cite", "/documentation/api",
+]
+
+# Below this a route has drawn its chrome and nothing else, which is what a
+# thrown render looks like from outside. The 404 page is ~46 words, so the floor
+# sits under it and "did we fall through to the 404" is checked separately.
+MIN_WORDS = 30
+
+
+def check_render(site):
+    """Load every route in a real browser and require that it actually draws.
+
+    This is the check the others cannot do: a page can fetch correct data and
+    still throw while rendering it. Only uncaught exceptions count as errors --
+    console errors are ignored because analytics is blocked in headless and
+    would otherwise fail every route.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        warn("render: playwright not installed, skipped")
+        return
+    import glob as _glob
+    exe = sorted(_glob.glob(os.path.expanduser(
+        "~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome")))
+    if not exe:
+        warn("render: no chromium under ~/.cache/ms-playwright, skipped")
+        return
+
+    print(f"\n[render] every route draws  ({site})")
+    with sync_playwright() as p:
+        # executable_path is explicit: the installed browser version does not
+        # match what the playwright package expects and the default launch fails.
+        b = p.chromium.launch(executable_path=exe[-1], args=["--no-sandbox"])
+        for route in SITE_ROUTES:
+            pg = b.new_page(viewport={"width": 1440, "height": 1000})
+            errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)[:120]))
+            try:
+                pg.goto(site.rstrip("/") + route, wait_until="networkidle", timeout=70000)
+                pg.wait_for_timeout(6000)
+                text = pg.inner_text("body")
+            except Exception as e:
+                fail(f"render {route}: {str(e)[:90]}")
+                pg.close()
+                continue
+            n = len(text.split())
+            if errs:
+                fail(f"render {route}: threw -- {errs[0]}")
+            elif "That page does not exist" in text:
+                fail(f"render {route}: fell through to the 404")
+            elif n < MIN_WORDS:
+                fail(f"render {route}: {n} words -- chrome only, nothing drew")
+            else:
+                ok(f"render {route}: {n} words")
+            pg.close()
+        b.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=DEFAULT_BASE)
+    ap.add_argument("--site", default=None,
+                    help="site URL; adds a browser pass asserting every route draws")
     ap.add_argument("--sample", type=int, default=0,
                     help="extra download files to HEAD beyond one per folder")
     a = ap.parse_args()
@@ -255,6 +367,8 @@ def main():
     check_downloads(a.base, a.sample)
     check_staleness(a.base)
     check_pages(a.base)
+    if a.site:
+        check_render(a.site)
     print(f"\n{'-'*60}\n{len(fails)} failure(s), {len(warns)} warning(s)")
     if fails:
         print("FAILED:"); [print(f"  - {m}") for m in fails]
