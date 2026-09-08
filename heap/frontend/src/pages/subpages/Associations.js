@@ -17,7 +17,7 @@ const isTrue = (v) => v === true || String(v).toUpperCase() === 'TRUE';
 // absent -- it is Module-2 only and over-adjusts by pulling deprivation out of
 // the exposome, and the site used to serve it unlabelled as "Type6".
 const SPECS = [
-  { id: 'assoc_base', label: 'Primary', note: 'base: age, age², sex, their interactions, assessment centre, 20 genetic PCs' },
+  { id: 'assoc_base', label: 'Primary', note: 'base: age, age², sex, their interactions, assessment center, 20 genetic PCs' },
   { id: 'assoc_base_plus_bmi', label: '+ BMI', note: 'base + BMI. A sensitivity layer, NOT a mediation test — attenuation here cannot separate mediation from confounding' },
   { id: 'assoc_base_plus_blood_draw', label: '+ blood draw', note: 'base + fasting time and assessment season' },
   { id: 'assoc_base_plus_clinical', label: '+ clinical', note: 'base + BMI, fasting, season and 5 medication classes (maximal explicit adjustment)' },

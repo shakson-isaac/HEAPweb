@@ -18,12 +18,7 @@ export default function AboutHeap() {
       title="About HEAP"
       lead="HEAP (Human Exposomic Architecture of the Proteome) measures how modifiable lifestyle and environmental exposures are reflected in the human plasma proteome, how those proteomic signatures relate to incident disease, and which of those relationships carry genetic or interventional support."
     >
-      <AuthorNote what="Landing framing — one paragraph, yours to write.">
-        This page opens with a structural description. The reframe that the revised manuscript
-        turns on (proteins as a record of exposure; a minority of causal intermediates against a
-        majority of reporters) is an interpretation of the results, so it is quoted below from
-        the manuscript rather than paraphrased here.
-      </AuthorNote>
+      <AuthorNote what="Landing framing — one paragraph, yours to write." />
 
       <Section title="The claim, in the manuscript's own words">
         <Paper variant="outlined" sx={{ p: 2, mb: 1, maxWidth: 820, borderLeft: '4px solid #124533' }}>

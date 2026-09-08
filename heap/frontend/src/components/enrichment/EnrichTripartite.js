@@ -44,7 +44,7 @@ import { SpecPicker } from '../../lib/covariateSpecs';
 //                           module2_program_tissue_edges.R. It is a property of
 //                           the STUDY, not of the selection.
 //
-//   So the grey backbone does not move when the picker moves. That looks like a
+//   So the gray backbone does not move when the picker moves. That looks like a
 //   bug and is not one: it is the published backbone, drawn as published, and
 //   redrawing it per exposure would be a different quantity wearing the same
 //   name. The whole middle and right columns are therefore held FIXED -- all
@@ -57,7 +57,7 @@ import { SpecPicker } from '../../lib/covariateSpecs';
 //   right of the organ labels, because an edge would read as "this exposure
 //   flows through this program into this tissue" -- a claim neither table makes.
 //   Hovering an exposure therefore lights its coloured edges and its badges and
-//   dims the whole grey backbone: no grey edge belongs to any one exposure.
+//   dims the whole gray backbone: no grey edge belongs to any one exposure.
 // ---------------------------------------------------------------------------
 
 // --- constants copied from HEAP's single source of truth --------------------
@@ -335,7 +335,7 @@ export default function EnrichTripartite() {
 
     // The middle and right columns are FIXED: every program and every organ is
     // drawn whether or not the current selection reaches it. That is what makes
-    // the grey backbone's independence visible instead of merely asserted --
+    // the gray backbone's independence visible instead of merely asserted --
     // change the exposures and the grey half of the picture does not move.
     const expH = Math.max(sel.length, 1) * EXP_PITCH;
     const innerH = Math.max(expH, programs.length * 52, TISSUE_LEVELS.length * 50, 430);
@@ -428,7 +428,7 @@ export default function EnrichTripartite() {
   // Hovering a PROGRAM lights its edges both ways: both halves belong to that
   // program, so both are legitimately its.
   // Hovering an EXPOSURE lights only its coloured edges and its own badges, and
-  // dims the entire grey backbone -- no grey edge is the property of any one
+  // dims the entire gray backbone -- no grey edge is the property of any one
   // exposure, and lighting one here would invent support that no table claims.
   const epLit = (e) => !hover
     || (hover.kind === 'program' && hover.id === e.program)
@@ -561,7 +561,7 @@ export default function EnrichTripartite() {
           {view.sel.length === 0 && (
             <Alert severity="info" sx={{ mb: 1.5 }}>
               No exposure selected — the left column is empty and the colored edges are gone, but the
-              grey backbone is unchanged. That is the point: it is a global count over all 114
+              gray backbone is unchanged. That is the point: it is a global count over all 114
               exposures, not a property of the selection.
             </Alert>
           )}
@@ -591,7 +591,7 @@ export default function EnrichTripartite() {
               aria-label={
                 `Tripartite flow: ${view.sel.length} exposures on the left, ${view.programs.length} `
                 + 'biological program clusters in the middle, and 8 organ systems on the right. '
-                + 'Colored edges are per-exposure; the grey program-to-tissue backbone is a global '
+                + 'Colored edges are per-exposure; the gray program-to-tissue backbone is a global '
                 + 'count over all 114 exposures and does not change with the selection.'
               }
               style={{ display: 'block', minWidth: view.svgW, background: '#fff' }}
@@ -837,7 +837,7 @@ export default function EnrichTripartite() {
                       {`${g.expLabel} — own GTEx enrichment in ${g.organ}: ${g.hits.length} tissue`
                         + `${g.hits.length === 1 ? '' : 's'} (${g.up} increased, ${g.dn} decreased); `
                         + `strongest ${top.tissue} NES ${top.nes === null ? '—' : top.nes.toFixed(2)}, `
-                        + `q ${fmtQ(top.q)}. Independent of the grey backbone.`}
+                        + `q ${fmtQ(top.q)}. Independent of the gray backbone.`}
                     </title>
                   </g>
                 );
@@ -880,7 +880,7 @@ export default function EnrichTripartite() {
           <Box sx={{ mt: 1.5 }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, alignItems: 'center', mb: 1 }}>
               {[[RED, 'exposure → program, increased'], [BLU, 'exposure → program, decreased'],
-                [GREY, 'program → tissue backbone (grey, global)']].map(([c, t]) => (
+                [GREY, 'program → tissue backbone (gray, global)']].map(([c, t]) => (
                   <Box key={t} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <svg width="42" height="10" aria-hidden="true">
                       <line x1="1" y1="5" x2="41" y2="5" stroke={c} strokeWidth="3" strokeLinecap="round" />
@@ -924,25 +924,17 @@ export default function EnrichTripartite() {
             </Paper>
           </Box>
 
-          {/* --- the note the next reader needs ---------------------------- */}
-          <Alert severity="info" sx={{ mt: 1.5 }}>
-            <b>The grey backbone does not respond to the exposure picker, and that is correct.</b>{' '}
-            Its weight, <i>n_exp</i>, counts how many of the 114 exposures support each
-            program→tissue link across the whole study — leading-edge protein overlap (≥ 3 shared
-            genes, same NES sign) in <code>module2_program_tissue_edges.R</code>. It is a property of
-            the study, not of your selection, so it is drawn as published. The per-exposure tissue
-            signal does exist and is the badge grid on the right: the selected exposure&apos;s own
-            GTEx enrichment. It is drawn as badges rather than edges because an edge would read as
-            &ldquo;this exposure reaches this tissue through this program&rdquo;, which neither table
-            claims.
-            {view.outside > 0 && (
-              <>
-                {' '}Across the current selection, {view.outside} further significant tissue
-                enrichment{view.outside === 1 ? '' : 's'} fall outside the eight organ groups
-                (testis, thyroid, kidney and the rest) and so carry no badge.
-              </>
-            )}
-          </Alert>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, maxWidth: 880 }}>
+              The gray backbone is a study-wide count across all 114 exposures, so it does not
+              change with the picker. The selected exposure&apos;s own tissue signal is the badge
+              grid on the right.
+              {view.outside > 0 && (
+                <>
+                  {' '}{view.outside} further tissue enrichment{view.outside === 1 ? '' : 's'} fall
+                  outside the eight organ groups and carry no badge.
+                </>
+              )}
+            </Typography>
 
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}>
             Read left to right. Columns are hand-placed rather than force-directed: the order{' '}

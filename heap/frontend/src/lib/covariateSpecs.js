@@ -27,7 +27,7 @@ export const SPECS = [
     assocSection: 'assoc_base',
     label: 'Primary (base)',
     refits: false,
-    note: 'base: age, age², sex, their interactions, assessment centre, 20 genetic PCs',
+    note: 'base: age, age², sex, their interactions, assessment center, 20 genetic PCs',
   },
   {
     id: 'base_bmi',

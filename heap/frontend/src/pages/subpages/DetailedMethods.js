@@ -199,7 +199,7 @@ export default function DetailedMethods() {
       <Section title="Covariate adjustment">
         <P>
           All main results use the <Mono>base</Mono> covariate set: age, age², sex, their
-          interactions, assessment centre and 20 genetic principal components. Five supplementary
+          interactions, assessment center and 20 genetic principal components. Five supplementary
           sets add one potentially mediating or optional adjustment each, and results are deposited
           under all of them.
         </P>

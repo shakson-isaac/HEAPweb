@@ -116,9 +116,6 @@ function participantsText(macros) {
 }
 
 function StatBar({ macros, meta, loading, error }) {
-  const sourceFile = meta && meta.sources && meta.sources.length
-    ? String(meta.sources[0]).split('/').slice(-2).join('/')
-    : 'macros/numbers.tex';
 
   return (
     <section className="home-stats" aria-label="HEAP in numbers">
@@ -153,14 +150,6 @@ function StatBar({ macros, meta, loading, error }) {
           );
         })}
       </div>
-
-      <p className="home-provenance">
-        Every number above is read at page load from{' '}
-        <code>meta/headline.json.gz</code>, generated from <code>{sourceFile}</code>
-        {meta && meta.n_macros ? ` (${meta.n_macros} macros` : ''}
-        {meta && meta.version ? `, payload ${meta.version})` : meta && meta.n_macros ? ')' : ''}.
-        Hover a tile for its macro name. Nothing on this page is typed by hand.
-      </p>
     </section>
   );
 }
@@ -283,7 +272,6 @@ const Home = () => {
   return (
     <div className="home">
       <section className="home-hero">
-        <p className="home-eyebrow">UK Biobank · exposures · genetics · plasma proteomics · disease</p>
         <h1 className="home-title">
           HEAP
           <span className="home-title-expansion">

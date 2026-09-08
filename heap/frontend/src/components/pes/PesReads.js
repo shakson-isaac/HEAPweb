@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
-  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Box, Chip, Link as MuiLink, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
@@ -611,7 +612,7 @@ export default function PesReads() {
         'Two readings of the same models. First the proteomic exposure score on its own, one '
         + 'exposure per dot with its 95% interval; then what that score adds on top of the '
         + 'covariate benchmark. Switching the specification below moves the second plot and '
-        + 'leaves the first one standing still — that is the point, not an artefact.'
+        + 'leaves the first one standing still — that is the point, not an artifact.'
       }
       loading={loading}
       error={error}
@@ -654,16 +655,10 @@ export default function PesReads() {
         {spec.note}
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <b>What this picker does and does not change.</b> Changing the covariate set does{' '}
-        <b>not</b> retrain the proteomic score. Under <b>Primary</b>, <b>+ BMI</b>,{' '}
-        <b>+ clinical</b> and <b>+ blood draw</b> the score is one fixed model and only the
-        covariate benchmark it is measured against moves, so the question the picker answers is
-        “does this one fixed score still add beyond a richer covariate block?”. You can watch
-        that happen: plot 1 is identical under all four, plot 2 is not.{' '}
-        <b>Healthy at baseline</b> is the only specification that restricts the sample and
-        genuinely refits the score, and it is the only one that moves plot 1.
-      </Alert>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 880 }}>
+        The picker changes the comparison, not the score — only <b>Healthy at baseline</b> refits
+        it. <MuiLink component={RouterLink} to="/documentation/methods">Methods</MuiLink>
+      </Typography>
 
       <PlotHeading
         index={1}
@@ -772,16 +767,11 @@ export default function PesReads() {
         }
       />
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <b>The bar on each point is the interval on the difference itself.</b> That is
-        the reason this plot shows the gap rather than the two models side by side:
-        the covariates-only and covariates + score models are fitted in the same
-        people, so their errors move together and their two intervals can overlap
-        while the difference is reliably above zero. In this view{' '}
-        <b>{nOverlapReal}</b> exposures do exactly that. Reading overlap between the
-        two model intervals is a stricter and wrong test; the interval drawn here is
-        the right one, and it is also what the &Delta; column of the table reports.
-      </Alert>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 880 }}>
+          The bar is the interval on the difference, not on either model — {nOverlapReal} exposures
+          here have overlapping model intervals but a difference clear of zero.{' '}
+          <MuiLink component={RouterLink} to="/documentation/methods">Methods</MuiLink>
+        </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
         <Chip size="small" label={`${incPoints.length} ${view.type} exposures`} />
@@ -851,13 +841,8 @@ export default function PesReads() {
       />
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        Faded points in plot 2 are exposures whose increment interval includes zero — the gain is
-        drawn at its estimated size, but it is not established. Continuous and binary exposures
-        are scored on different metrics and are never plotted on the same axis: continuous
-        exposures use held-out R², binary ones held-out AUC, and the AUPR view re-reads the same
-        binary exposures on a metric that does not flatter a rare outcome. The export carries no
-        per-exposure sample size, so prevalence stands in for it on the binary views. Every value
-        is out of sample; a negative R² means the model predicted worse than the outcome mean.
+        Faded points have an interval crossing zero. Continuous exposures are scored on held-out
+        R², binary on AUC or AUPR, and are never on the same axis.
       </Typography>
     </SectionCard>
   );

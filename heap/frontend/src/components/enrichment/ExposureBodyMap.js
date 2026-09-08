@@ -60,7 +60,7 @@ const brainSvgUrl = `${ASSET_BASE}/homo_sapiens.brain.svg`;
 //   ONE EXPOSURE. That is an intersection taken in this component, from the
 //   shard on screen, and it moves every time the exposure picker moves.
 //
-//   The grey program->tissue backbone in the tripartite panel is a DIFFERENT
+//   The gray program->tissue backbone in the tripartite panel is a DIFFERENT
 //   quantity that happens to be built from the same ingredient: >= 3 shared
 //   leading-edge genes with the same NES sign, computed in R by
 //   module2_program_tissue_edges.R across all 114 exposures at once, and it
@@ -1681,7 +1681,7 @@ export default function ExposureBodyMap({
                 intersection taken in your browser from the shard on screen, so it moves whenever the
                 exposure picker moves.
                 <br />
-                The grey program&rarr;tissue backbone in the tripartite panel is a different quantity:
+                The gray program&rarr;tissue backbone in the tripartite panel is a different quantity:
                 &ge; 3 shared leading-edge genes with the same NES sign, computed in R across all 114
                 exposures at once, and fixed regardless of which exposure is selected. Do not read
                 one as the other.
