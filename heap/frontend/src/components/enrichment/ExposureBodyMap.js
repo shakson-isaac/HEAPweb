@@ -1554,14 +1554,12 @@ export default function ExposureBodyMap({
 
   return (
     <SectionCard
-      title={detailFor ? 'The leading edge' : 'What does this exposure touch, and which proteins carry it?'}
-      subtitle={detailFor ? null : (
-        'Pick an exposure and the body shows the tissues whose expression signature its plasma '
-        + 'proteins concentrate in (GSEA, FDR q < 0.05). Click an organ for the exact proteins '
-        + 'that drove that enrichment — the GSEA leading edge, not every associated protein that '
-        + 'happens to be expressed there. Choosing one of the exposure’s enriched pathways narrows '
-        + 'the figure to the tissues that share leading-edge proteins with it.'
-      )}
+        title={detailFor ? 'The leading edge'
+          : "Which tissues is this exposure's signature enriched in?"}
+        subtitle={detailFor ? null : (
+          "The body shows tissues whose expression signature this exposure's proteins are "
+          + 'enriched for. Click an organ for the leading-edge proteins behind it.'
+        )}
       loading={loading}
       error={error}
       empty={!loading && !error && !parsed}
