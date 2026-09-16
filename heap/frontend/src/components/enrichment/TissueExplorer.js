@@ -3,7 +3,6 @@ import {
   Alert, AlertTitle, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import Select from 'react-select';
-import { enrichmentCopy } from '../../copy/enrichment';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
 import ColumnarTable from '../ColumnarTable';
@@ -727,8 +726,12 @@ export default function TissueExplorer() {
 
   return (
     <SectionCard
-      title={enrichmentCopy.tissue.title}
-      subtitle={enrichmentCopy.tissue.subtitle}
+      title="Start from a protein, or start from a tissue"
+      subtitle={
+        'The rest of this page runs one way: pick an exposure and see which tissues light up. '
+        + 'These two views run the other way — from a protein to where its gene is transcribed, '
+        + 'and from a tissue to the exposures whose proteins concentrate in it.'
+      }
     >
       <ToggleButtonGroup
         size="small"

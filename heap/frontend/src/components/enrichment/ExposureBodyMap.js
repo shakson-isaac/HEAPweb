@@ -3,7 +3,6 @@ import {
   Alert, AlertTitle, Box, Chip, Paper, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import Select from 'react-select';
-import { enrichmentCopy } from '../../copy/enrichment';
 import SectionCard from '../SectionCard';
 import ColumnarTable from '../ColumnarTable';
 import PlotPanel from '../PlotPanel';
@@ -1555,8 +1554,12 @@ export default function ExposureBodyMap({
 
   return (
     <SectionCard
-        title={detailFor ? 'The leading edge' : enrichmentCopy.bodyMap.title}
-        subtitle={detailFor ? null : enrichmentCopy.bodyMap.subtitle}
+        title={detailFor ? 'The leading edge'
+          : "Which tissues is this exposure's signature enriched in?"}
+        subtitle={detailFor ? null : (
+          "The body shows tissues whose expression signature this exposure's proteins are "
+          + 'enriched for. Click an organ for the leading-edge proteins behind it.'
+        )}
       loading={loading}
       error={error}
       empty={!loading && !error && !parsed}
