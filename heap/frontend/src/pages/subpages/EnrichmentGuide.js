@@ -38,6 +38,7 @@ import {
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+import { enrichmentCopy } from '../../copy/enrichment';
 import ExposureBodyMap from '../../components/enrichment/ExposureBodyMap';
 import LeadingEdgeEffects from '../../components/enrichment/LeadingEdgeEffects';
 import GtexProfile from '../../components/enrichment/GtexProfile';
@@ -51,18 +52,8 @@ const BASE = '/results/enrichment';
 // The body map is NOT in here: it is the landing page itself. These are the
 // ways OUT of it, for detail the anatomogram cannot carry.
 const VIEWS = [
-  {
-    slug: 'tissue',
-    title: 'Start from a protein or an organ',
-    question: 'Where is this protein expressed, or what reaches this organ?',
-    payoff: 'The same question from the other end. Two modes, one vocabulary.',
-  },
-  {
-    slug: 'programs',
-    title: 'Programs and tissues',
-    question: 'Which biological programs carry an exposure into which tissues?',
-    payoff: 'Main Figure 2d, for all 114 exposures rather than the ten in print.',
-  },
+  { slug: 'tissue', ...enrichmentCopy.views.tissue },
+  { slug: 'programs', ...enrichmentCopy.views.programs },
 ];
 
 const viewBySlug = (slug) => VIEWS.find((v) => v.slug === slug);
@@ -147,10 +138,7 @@ function Landing() {
           paragraph saying the same thing put the same sentence on screen twice,
           thirty pixels apart. The NES convention stays because the component
           prints NES values on the body and never defines the sign. */}
-      <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>
-        Positive NES means the set is enriched among proteins associated with that
-        exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
-      </Typography>
+      <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>{enrichmentCopy.bodyMap.nes}</Typography>
 
       {/* The body map IS the front page.
           A first pass landed on a compact organ-system heatmap with the

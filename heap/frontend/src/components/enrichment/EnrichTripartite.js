@@ -3,6 +3,7 @@ import {
   Alert, Box, Chip, Paper, Slider, Typography,
 } from '@mui/material';
 import Select from 'react-select';
+import { enrichmentCopy } from '../../copy/enrichment';
 import SectionCard from '../SectionCard';
 import { useSection } from '../../lib/useSection';
 import { prettyExposure } from '../../lib/palette';
@@ -463,13 +464,8 @@ export default function EnrichTripartite() {
 
   return (
     <SectionCard
-      title="Exposure → biological program → tissue, for any exposure"
-      subtitle={
-        'Main Figure 2d routes ten curated exemplar exposures through the biological program '
-        + 'clusters to organ systems. The enrichment behind it was never narrowed to those ten — '
-        + 'this is the same panel, drawn for any of the 114 exposures, so the reader can ask why '
-        + 'the exemplars were the exemplars. All edges are FDR q < 0.05.'
-      }
+      title={enrichmentCopy.programs.title}
+      subtitle={enrichmentCopy.programs.subtitle}
       loading={loading}
       error={error}
       empty={!loading && !error && !view}
@@ -925,9 +921,7 @@ export default function EnrichTripartite() {
           </Box>
 
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, maxWidth: 880 }}>
-              The gray backbone is a study-wide count across all 114 exposures, so it does not
-              change with the picker. The selected exposure&apos;s own tissue signal is the badge
-              grid on the right.
+              {enrichmentCopy.programs.backbone}
               {view.outside > 0 && (
                 <>
                   {' '}{view.outside} further tissue enrichment{view.outside === 1 ? '' : 's'} fall
