@@ -591,10 +591,6 @@ export default function Downloads() {
   }, [cat.data, datasets]);
 
   const nWorkbook = datasets.filter((d) => d.delivery === 'workbook').length;
-  const nData = datasets.filter((d) => d.delivery === 'data').length;
-  const built = datasets.length
-    ? datasets.map((d) => d.updated).filter(Boolean).sort().slice(-1)[0]
-    : null;
 
   return (
     <div className="flex p-6">
@@ -604,16 +600,11 @@ export default function Downloads() {
         <SectionCard loading={cat.loading || supp.loading} error={cat.error || supp.error}>
           {cat.data && supp.data && (
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, maxWidth: 900 }}>
-                Catalog <b>{cat.data.version}</b> · archive prefix <code>{supp.data.prefix}</code> ·
-                {' '}{cat.data.n_available} of {cat.data.n_datasets} registry entries available
-                ({nWorkbook} workbook sheets, {nData} data deposits) ·
-                {' '}{fmtInt(totals.files)} published files in {folders.length} folders,
-                {' '}{fmtBytes(totals.gz)} to transfer, {fmtBytes(totals.raw)} on disk ·
-                {' '}built {built}. Every number on this page is read from{' '}
-                <code>catalog.json.gz</code> and <code>supp_catalog.json.gz</code>; cite the paper,
-                not the files.
-              </Typography>
+              {/* The catalog provenance line was here: version, archive prefix, registry
+                  counts, file/byte totals, build date, and which payload objects the
+                  numbers came from. All of it is live-computed from cat.data / supp.data,
+                  so nothing is lost by not printing it -- the values are in the payload.
+                  Each folder row below still carries its own size. */}
 
               {/* ---------------------------------------------- everything --- */}
               <SectionCard title="Everything, in one file">
@@ -672,16 +663,13 @@ export default function Downloads() {
                   <Chip
                     size="small"
                     variant="outlined"
-                    label={`${dsMatch.length} of ${datasets.length} registry entries`}
+                    label={`${dsMatch.length} of ${datasets.length} datasets`}
                   />
                 </Box>
                 {query && nFileMatch === 0 && dsMatch.length === 0 && (
                   <Alert severity="info" sx={{ mt: 1 }}>
                     Nothing named “{q.trim()}” appears in any of the {fmtInt(totals.files)} published
-                    file names or column schemas, or in the {datasets.length} registry entries. All{' '}
-                    {cat.data.n_available} registry entries are available and{' '}
-                    {cat.data.n_missing} are missing, so this is a search miss rather than an
-                    unpublished dataset.
+                    file names or column schemas, or in the {datasets.length} datasets.
                   </Alert>
                 )}
               </Box>
