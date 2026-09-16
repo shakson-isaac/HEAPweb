@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Chip, Paper, Typography } from '@mui/material';
+import { Chip, Paper, Typography } from '@mui/material';
 import {
   AuthorNote, DocPage, Mono, P, Section, SimpleTable, SourceNote, useHeadline, macro,
 } from '../Documentation';
@@ -219,12 +219,11 @@ export default function Changelog() {
         <SourceNote><Mono>docs/WEBSITE_PLAN.md</Mono> §15.</SourceNote>
       </Section>
 
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          Rows marked <Kind value="scientific" /> would assert what a result means and are left
-          for the author; every row on this page is currently structural.
-        </Typography>
-      </Box>
+      {/* Was: "Rows marked <scientific> would assert what a result means and are
+          left for the author; every row on this page is currently structural."
+          That tells a visitor about the site's editorial state, not about HEAP.
+          Kept here because the fact is useful: no row on this page yet asserts
+          what a result MEANS. */}
     </DocPage>
   );
 }

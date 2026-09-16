@@ -8,8 +8,7 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
 import {
-  Alert, Box, Chip, CircularProgress, Divider, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Typography,
+  Alert, Box, CircularProgress, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
 import { WEB_DATA_BASE } from '../lib/heapdata';
 import { DOC_PAGES } from '../lib/docPages';
@@ -82,23 +81,22 @@ export function SourceNote({ children }) {
  * here, interpretive copy belongs to the author, so anything that would assert
  * what a result *means* is marked rather than written.
  */
-export function AuthorNote({ what, children }) {
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 2, mb: 2, maxWidth: 820, borderStyle: 'dashed', borderWidth: 2,
-        borderColor: '#b8860b', backgroundColor: '#fffdf5',
-      }}
-    >
-      <Chip
-        size="small" label="AUTHOR"
-        sx={{ mb: 1, fontWeight: 700, letterSpacing: 0.5, backgroundColor: '#b8860b', color: '#fff' }}
-      />
-      <Typography variant="body2" sx={{ fontWeight: 600, mb: children ? 0.5 : 0 }}>{what}</Typography>
-      {children && <Typography variant="body2" sx={{ color: 'text.secondary' }}>{children}</Typography>}
-    </Paper>
-  );
+/** A note to the AUTHOR, kept in the source and never rendered.
+ *
+ * These mark prose the author still owes ("Landing framing -- one paragraph,
+ * yours to write") and open questions ("Confirm the author list before this
+ * page goes public"). They were rendering on the public site as gold AUTHOR
+ * chips, which is how a private to-do list ended up in front of visitors.
+ *
+ * The call sites are left exactly as they are: `what` and any children stay
+ * in the source, greppable and visible in the editor, which is where they are
+ * useful. Nothing reaches the page.
+ *
+ * To see them on screen again while working, return the JSX below instead of
+ * null -- but do not ship it that way.
+ */
+export function AuthorNote() {
+  return null;
 }
 
 /** Plain reference table. `head` is an array of column labels. */
