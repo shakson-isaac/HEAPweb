@@ -629,20 +629,12 @@ export default function Downloads() {
                     <Box sx={{ mt: 1 }}><CopyUrl url={xlsxUrl} /></Box>
                   </Paper>
                 </Box>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                    The two catalogs behind this page are public objects as well:
-                  </Typography>
-                  <CopyUrl url={CATALOG_URL} />
-                  <CopyUrl url={SUPP_CATALOG_URL} />
-                </Box>
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Objects are stored gzipped and served with <code>Content-Encoding: gzip</code>.
-                  A browser download, or <code>curl -o name.tsv &lt;url&gt;</code>, writes the plain
-                  TSV; <code>curl --compressed</code> keeps the transfer compressed. Both sizes are
-                  shown below: <b>download</b> is what crosses the wire, <b>uncompressed</b> is what
-                  lands on disk.
-                </Alert>
+                {/* The catalog.json.gz / supp_catalog.json.gz copy-links were here. They are
+                    the machinery behind the page, not something to download. Both are
+                    still public and documented on /documentation/api. */}
+                {/* The gzip / curl --compressed explainer was here. It is transport detail,
+                    and /documentation/api already covers it. The per-folder rows label
+                    their two sizes "download" and "uncompressed" on their own. */}
               </SectionCard>
 
               {/* -------------------------------------------------- search --- */}
@@ -677,7 +669,6 @@ export default function Downloads() {
               {/* ------------------------------------------------- archive --- */}
               <SectionCard
                 title="Supplementary data archive"
-                subtitle={`${fmtInt(totals.files)} files under ${supp.data.prefix}/, grouped as the archive stores them. Expand a folder for per-file sizes, row counts and column schemas.`}
               >
                 {folders.map((f) => (
                   <FolderCard
@@ -696,7 +687,6 @@ export default function Downloads() {
               {/* ------------------------------------------------ registry --- */}
               <SectionCard
                 title="Manuscript registry"
-                subtitle={`The ${cat.data.n_datasets} Supplementary Table and Supplementary Data entries of ${cat.data.config.split('/').slice(-2).join('/')}, in registry order. Workbook entries are sheets of the xlsx; data entries are folders of the archive above.`}
               >
                 {groups.map((g) => {
                   const entries = g.entries.filter((d) => dsMatch.includes(d));
