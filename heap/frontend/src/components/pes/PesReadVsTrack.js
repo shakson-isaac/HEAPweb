@@ -291,20 +291,8 @@ export default function PesReadVsTrack() {
 
       {built && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-          {built.nReads} exposures have a reads estimate under <code>{spec}</code>;{' '}
-          <b>{built.rows.length}</b> of them also have a within-person estimate and can be
-          plotted. The other <b>{built.dropped.length}</b> are not on this plot
-          {built.droppedByCat.length > 0 && (
-            <> ({built.droppedByCat.map(([c, n]) => `${n} ${prettyCategory(c).toLowerCase()}`).join(', ')})</>
-          )}
-          : tracking pairs a baseline visit with a repeat visit and needs at least 30 such pairs
-          and 15 people whose exposure actually changed, so exposures that are fixed at baseline
-          or assigned from an address — residential pollution, deprivation indices — never
-          produce one. They are measured, not discarded; they simply have no y value.
-          {built.orphanTracked.length > 0 && (
-            <> A further {built.orphanTracked.length} exposures have a tracking estimate but no
-            reads estimate under this specification.</>
-          )}
+          {built.dropped.length} exposures are fixed at baseline or assigned from an address, so
+          they have no tracking estimate and are not plotted.
         </Typography>
       )}
 

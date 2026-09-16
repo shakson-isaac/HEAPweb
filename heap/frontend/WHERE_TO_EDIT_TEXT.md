@@ -326,7 +326,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/pes`
 
-17 passages of 20+ words; 60 shorter labels not listed.
+16 passages of 20+ words; 60 shorter labels not listed.
 
 **`src/components/pes/PesDisease.js`**
 
@@ -346,13 +346,11 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > Each point is one exposure, colored by its category. The x axis is how well a proteome-only score reads that exposure in held-out people; the y axis i...
 **`src/components/pes/PesReads.js`**
 
-- **PesReads.js:611** (56 words, subtitle)
-  > Two readings of the same models. First the proteomic exposure score on its own, one exposure per dot with its 95% interval; then what that score adds ...
-- **PesReads.js:681** (23 words, title)
+- **PesReads.js:670** (23 words, title)
   > The axis is floored so one extreme value does not compress the rest. These exposures are still in the table under plot 2.
-- **PesReads.js:751** (50 words, text)
+- **PesReads.js:740** (50 words, text)
   > Each dot is one exposure, jittered within its category row; the bar is its 95% bootstrap interval. The larger ringed point in each row is that categor...
-- **PesReads.js:843** (26 words, text)
+- **PesReads.js:826** (26 words, text)
   > Faded points have an interval crossing zero. Continuous exposures are scored on held-out R², binary on AUC or AUPR, and are never on the same axis.
 **`src/components/pes/PesTracks.js`**
 

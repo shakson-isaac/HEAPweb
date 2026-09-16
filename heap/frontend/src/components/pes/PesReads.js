@@ -608,12 +608,6 @@ export default function PesReads() {
   return (
     <SectionCard
       title="Does the proteome read the exposure?"
-      subtitle={
-        'Two readings of the same models. First the proteomic exposure score on its own, one '
-        + 'exposure per dot with its 95% interval; then what that score adds on top of the '
-        + 'covariate benchmark. Switching the specification below moves the second plot and '
-        + 'leaves the first one standing still — that is the point, not an artifact.'
-      }
       loading={loading}
       error={error}
       empty={!loading && !error && !rows.length}
@@ -663,11 +657,6 @@ export default function PesReads() {
       <PlotHeading
         index={1}
         title="The score on its own"
-        note={
-            'This is the score itself; only Healthy at baseline changes it. Laid out like the '
-            + 'printed panel: one row per exposure category, every exposure a dot with its 95% '
-            + 'interval, and no covariate contrast anywhere on the plot. The spread inside a row is part of the answer.'
-        }
       />
 
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
@@ -758,13 +747,7 @@ export default function PesReads() {
       <PlotHeading
         index={2}
         title="What the score adds beyond the covariates"
-        note={
-          'This is what the score adds, which every specification changes. Same layout as '
-          + 'plot 1 \u2014 the same category rows, the same exposures \u2014 but x is now the '
-          + 'gap between the two nested models: covariates alone, versus those covariates '
-          + 'with the proteomic score added. A point on the zero line is an exposure the '
-          + 'proteome cannot read beyond what the covariates already knew.'
-        }
+        note='A point on zero is an exposure the proteome cannot read beyond the covariates.'
       />
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 880 }}>
