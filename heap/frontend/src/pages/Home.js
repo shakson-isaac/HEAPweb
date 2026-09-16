@@ -44,8 +44,10 @@ import './Home.css';
 //    relationships have genetic or interventional support."
 // It is not used verbatim because it asserts what the proteome reflects. Fallback below.
 const HERO_CLAIM =
-  'A UK Biobank resource of exposure, proteome and disease summary statistics: '
-  + 'browsable protein by protein and exposure by exposure, and available to download.';
+  'A resource of 169 lifestyle and environmental exposures, 2,686 plasma proteins,'
+  + ' impacting 181 diseases across 53,014 participants in the UK Biobank. Browse the'
+  + ' HEAP resource by protein, exposure or disease, and download the summary statistics'
+  + ' and weights.';
 
 // AUTHOR: reporter/intermediate framing -- needs Shakson's wording.
 // The plan's proposed strapline (WEBSITE_PLAN.md section 3) reads:
@@ -53,10 +55,10 @@ const HERO_CLAIM =
 //    has genetic evidence consistent with causal mediation."
 // That is the paper's central claim and is the author's sentence to approve, so the
 // fallback below states only how the evidence is laid out on this site.
-const HERO_FRAMING =
-  'Observational association, disease link and genetic evidence (Mendelian randomization '
-  + 'and colocalization) are shown separately for each relationship, never merged into a '
-  + 'single verdict.';
+// const HERO_FRAMING =
+//   'Observational association, disease link and genetic evidence (Mendelian randomization '
+//   + 'and colocalization) are shown separately for each relationship, never merged into a '
+//   + 'single verdict.';
 
 // ---------------------------------------------------------------------------
 // Stat bar -- macro-driven (S8)
@@ -139,13 +141,15 @@ function StatBar({ macros, meta, loading, error }) {
                 {text || (loading ? '…' : '—')}
               </div>
               <div className="home-stat-label">{tile.label}</div>
-              {macro && macro.note && <div className="home-stat-note">{macro.note}</div>}
+              {/* The macro's own note is NOT displayed. It is authored in
+                  HEAP_manuscript/macros/numbers.tex as a note to the authors -- it says
+                  things like "-- CONFIRMED" and "case floor=100" -- and it rode through
+                  the payload onto a public page. It stays in the payload; it is simply
+                  not rendered. Hover a tile for its macro name if you need provenance. */}
               {!macro && !loading && (
                 <div className="home-stat-note">macro not in this payload build</div>
               )}
-              {tile.footnote && (
-                <div className="home-stat-note home-stat-note--flag">{tile.footnote}</div>
-              )}
+              {/* tile.footnote is likewise not rendered -- see the note above. */}
             </div>
           );
         })}
@@ -165,26 +169,25 @@ const ENTRY_CARDS = [
   {
     to: '/results/associations',
     title: 'Exposure–protein associations',
-    body: 'Every exposure tested against one protein, as a Miami plot and a table with '
-      + 'effect size, standard error, p-value and sample size. Five alternative covariate '
-      + 'specifications sit behind a switcher; the primary base model is the default.',
+    body: 'Each exposure-protein association, grouped by exposures as a Miami plot and a table with '
+      + 'effect size, standard error, p-value and sample size. Alternative covariate '
+      + 'specifications are shown.',
   },
   {
     to: '/results/causal',
     title: 'Causal evidence',
-    body: 'Mendelian randomization and colocalization for protein–disease pairs, '
-      + 'reported as directed edges and motif profiles rather than one label per protein.',
+    body: 'Mendelian randomization to identify exposure-protein-disease triads and colocalization for protein–disease pairs.',
   },
   {
     to: '/results/pes',
     title: 'Proteome-based exposure scores',
-    body: 'Trained scores for each exposure: how well each one reproduces its exposure, '
-      + 'how the scores track over repeat visits, and how they relate to incident disease.',
+    body: 'Trained proteomic scores for each exposure. Showing how well exposures are predicted, '
+      + 'how well exposures are tracked over repeat visits, and how well they relate to incident disease.',
   },
   {
     to: '/downloads',
     title: 'Downloads',
-    body: 'Summary statistics and score weights as files, for reuse outside this site.',
+    body: 'Summary statistics and score weights.',
   },
 ];
 
@@ -192,8 +195,8 @@ const ENTRY_CARDS = [
 // /start exists (queue item Q8), at which point this block moves there unchanged.
 const USE_CASES = [
   {
-    lead: 'I study a protein',
-    body: 'Its exposure associations, then its disease links and the genetic evidence '
+    lead: 'Protein View',
+    body: 'Look at exposure associations, disease links, and genetic evidence '
       + 'around them.',
     links: [
       { to: '/results/associations', label: 'Associations' },
@@ -202,9 +205,9 @@ const USE_CASES = [
     ],
   },
   {
-    lead: 'I study a lifestyle exposure',
-    body: 'Its proteomic signature, the tissues and pathways that signature is enriched '
-      + 'for, and how it compares with intervention trials.',
+    lead: 'Exposure View',
+    body: 'Look at proteomic signatures, tissues and pathway enrichment, '
+      + 'and how these signatures compare with intervention trials.',
     links: [
       { to: '/results/summary', label: 'Lifestyle Categories' },
       { to: '/results/enrichment', label: 'Tissues & Pathways' },
@@ -212,25 +215,25 @@ const USE_CASES = [
     ],
   },
   {
-    lead: 'I study a disease',
-    body: 'The proteins linking lifestyle exposures to that disease, kept separate from '
-      + 'the Mendelian randomization verdict on the same pair.',
+    lead: 'Disease View',
+    body: 'Look at the proteins linking exposures to disease, and identify whether they are causative via '
+      + 'Mendelian randomization.',
     links: [
       { to: '/results/mediation', label: 'Disease Links' },
       { to: '/results/causal', label: 'Causal Evidence' },
     ],
   },
   {
-    lead: 'I have my own proteomics cohort',
-    body: 'The exposure-score model cards and their weights, to score your own samples.',
+    lead: 'Generalization: New Proteomics Cohort',
+    body: 'Use the exposure-score model cards and their weights to score your own samples.',
     links: [
       { to: '/results/pes', label: 'Exposure Scores' },
       { to: '/downloads', label: 'Downloads' },
     ],
   },
   {
-    lead: 'I want HEAP summary statistics',
-    body: 'Browse a result on the site, or take the underlying files.',
+    lead: 'HEAP summary statistics',
+    body: 'Browse results on this site and download.',
     links: [
       { to: '/results/main', label: 'Main Results' },
       { to: '/downloads', label: 'Downloads' },
@@ -282,9 +285,6 @@ const Home = () => {
 
         {/* AUTHOR: hero claim -- needs Shakson's wording (S13). Neutral fallback below. */}
         <p className="home-lede">{HERO_CLAIM}</p>
-
-        {/* AUTHOR: reporter/intermediate framing -- needs Shakson's wording (S13). */}
-        <p className="home-framing">{HERO_FRAMING}</p>
 
         <div className="home-hero-actions">
           <a className="home-cta" href="#start-here">Start here</a>
