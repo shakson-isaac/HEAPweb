@@ -1,105 +1,20 @@
 # Writing for heap.bio
 
-Derived from the user's review of the full rendered copy, 2026-09-08. At that
-review 23% of the site's 9,753 words were about the website rather than about
-the science. Every rule below exists to stop one thing that actually shipped.
+**The rules moved.** They now live in the Claude Code skill at
+`.claude/skills/web-writing/SKILL.md` in the workspace root, which loads
+automatically whenever site copy is being written or edited.
 
-## The one rule
+This file previously held an earlier version (2026-09-08). Two of its rules
+were overruled on 2026-09-17 and must not be followed:
 
-**Write about the finding, not about the website.**
+- ~~Captions keep units, the sample definition, or a suppression rule.~~
+  Nothing goes under a results panel but its one result sentence.
+- ~~A caveat a reader could misread keeps one clause and links to Methods.~~
+  Results pages carry no caveats at all.
 
-A visitor came for a result. They did not come for the payload format, the
-build process, or the reasoning behind a design decision. If a sentence would
-stop being true when the site is rebuilt differently, it is about the website.
+In short: on `/results/*`, a heading and one to three sentences stating a
+result, taken from the manuscript. Section headings are questions, panel
+headings are results. Never describe the plot, explain controls, or show build
+details. `/documentation/*` may be longer.
 
-## Two voices, split by page
-
-| pages | assumes | does not assume |
-|---|---|---|
-| `/` and `/documentation/*` | knows proteomics and epidemiology | knows what HEAP claims, what a PES is, what a motif is |
-| `/results/*` | knows the paper's vocabulary | — |
-
-Terms of art are defined **once**, on the newcomer side, at first use. A
-results page never re-defines them.
-
-**The handoff is the risk.** A newcomer who clicks Results from the landing
-page hits peer voice immediately. So the landing page owes them the vocabulary
-before they get there: PES, motif, tier, exposome. If a results page needs a
-term the landing page never introduced, that is a bug on the landing page, not
-a reason to explain it again in the results.
-
-## Four things that never appear on a results page
-
-**A · Plumbing.** File names, payload paths, section ids, macro counts, "read
-at page load", "generated from", "not exported". The reader cannot act on any
-of it.
-
-> ~~Every number above is read at page load from `meta/headline.json.gz`,
-> generated from `macros/numbers.tex` (92 macros, payload v1). Nothing on this
-> page is typed by hand.~~ → **delete** (32 words)
-
-**B · Usage instructions.** "Hover any point", "click a row to lock", "use the
-picker", "the search box filters both". People know what a dropdown does.
-Write these only where the control does something genuinely unobvious, and
-then as a placeholder or tooltip, not as prose.
-
-**C · Design reasoning.** "That is deliberate", "and that is correct", "rather
-than implying", "this page opens with". These defend a choice to a reviewer
-who is not reading. If a plot needs defending, fix the plot.
-
-> ~~This page opens with a structural description. The reframe that the revised
-> manuscript turns on … is an interpretation of the results, so it is quoted
-> below rather than paraphrased here.~~ → **delete** (49 words)
-
-**D · Decorative keyword strings.** A row of capitalised nouns is not a
-sentence and carries no information.
-
-> ~~UK BIOBANK · EXPOSURES · GENETICS · PLASMA PROTEOMICS · DISEASE~~ →
-> **delete** (11 words)
-
-## Captions say only what the plot cannot
-
-The plot is interactive and self-labelling. A caption adds units, the sample
-definition, or a suppression rule — nothing the reader could get by looking.
-
-No interpretation line, no reading instructions, no restating the axis.
-
-> **Does it track change?**  ← take-home, in the heading
-> [ plot ]
-> n is people, not visits: each interval pairs two visits per person.  ← all
-> the caption is for
-
-## Caveats live in Methods
-
-A results page carries findings. Anything of the form "this does not mean X"
-or "be careful not to read Y" goes to `/documentation/methods`.
-
-**The exception, and it is narrow.** If a reader can actively misread the plot
-without the caveat, one clause stays on the page and links out. One clause —
-not a paragraph, and never a coloured callout box.
-
-> ~~What this picker does and does not change. Changing the covariate set does
-> not retrain the proteomic score. Under Primary, + BMI, + clinical and +
-> blood draw the score is one fixed model and only the covariate benchmark it
-> is measured against moves, so the question the picker answers is …~~ (105 words)
->
-> → The picker changes the comparison, not the score — only *Healthy at
-> baseline* refits it. [Methods](/documentation/methods) (17 words)
-
-## Before you commit copy
-
-1. Would this sentence still be true if the site were rebuilt differently? If
-   yes, it is about the website — cut it.
-2. Is it telling the reader how to operate a control they can see?
-3. Is it defending a decision rather than reporting a result?
-4. Could the reader get it by looking at the plot?
-5. Is it a caveat? Then it belongs in Methods.
-
-Five yeses is the whole 23%.
-
-## Measuring it
-
-`tools/page_audit.py` reports rendered prose per route. The copy deck that
-produced this document is regenerated by crawling the preview and grouping
-every rendered text block by page — see the session of 2026-09-08. Rerun it
-after a copy pass to check the share of container-writing has actually fallen.
+To find where a sentence lives: `heap/frontend/WHERE_TO_EDIT_TEXT.md`.
