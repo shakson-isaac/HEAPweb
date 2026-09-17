@@ -144,8 +144,9 @@ export default function PesWithinPerson() {
         When this exposure changes, does the score follow?
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, maxWidth: 880 }}>
-        Alcohol PES rose with alcohol dose, and smoking PES increased in people who started
-        smoking and decreased in those who quit.
+        Within-person changes in PES correlated with changes in self-reported exposure. For
+        example, alcohol PES rose with alcohol dose, and smoking PES increased in people who
+        started smoking and decreased in those who quit.
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>

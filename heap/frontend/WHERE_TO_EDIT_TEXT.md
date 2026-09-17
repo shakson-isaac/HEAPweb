@@ -346,8 +346,8 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > Within-person correlation between change in PES and change in exposure, for each exposure against the covariate benchmark; error bars, 95% bootstrap c...
 **`src/components/pes/PesWithinPerson.js`**
 
-- **PesWithinPerson.js:146** (21 words, text)
-  > Alcohol PES rose with alcohol dose, and smoking PES increased in people who started smoking and decreased in those who quit.
+- **PesWithinPerson.js:146** (33 words, text)
+  > Within-person changes in PES correlated with changes in self-reported exposure. For example, alcohol PES rose with alcohol dose, and smoking PES incre...
 **`src/pages/subpages/PesGuide.js`**
 
 - **PesGuide.js:107** (23 words, text)
