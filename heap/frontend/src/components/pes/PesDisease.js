@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, AlertTitle, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import Select from 'react-select';
 import SectionCard from '../SectionCard';
@@ -159,10 +159,6 @@ export default function PesDisease() {
   }, [data, spec]);
 
   const category = rows[0]?.category || '';
-  const whatVaries = rows[0]?.whatVaries || '';
-  // Read the meaning of the spec off the deposit's own manifest text rather than
-  // hardcoding which spec retrains: if the manifest changes, this follows.
-  const retrained = /retrain/i.test(whatVaries);
   const nSig = rows.filter((r) => r.q !== null && r.q < Q_SIG).length;
   const nMain = rows.filter((r) => r.main).length;
   // Held-out for base and base_exclprev; bootstrap intervals only for base.
@@ -334,12 +330,7 @@ export default function PesDisease() {
   return (
     <SectionCard
       title={<>Does the exposure&apos;s proteomic score predict incident disease?</>}
-      subtitle={
-        'One proteomic exposure score (PES) against all 170 incident diseases, with '
-        + 'confidence intervals, under five covariate specifications. The hazard ratio is '
-        + 'the metric that means the same thing in all five; the held-out gain in '
-        + 'discrimination is richer but exists only under the primary specification.'
-      }
+      subtitle="Adding the PES improved held-out prediction for exposure–disease pairs including smoking and COPD, and physical activity and type 2 diabetes."
       loading={kLoading}
       error={kError}
     >
@@ -405,36 +396,10 @@ export default function PesDisease() {
             Held-out ΔC
           </ToggleButton>
         </ToggleButtonGroup>
-        <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 460 }}>
-          The two HR views are comparable across all five specifications. Held-out ΔC was only
-          ever computed under the primary specification, so it is offered there and nowhere else.
-        </Typography>
         <Chip size="small" variant="outlined" label={`${rows.length} diseases`} />
         <Chip size="small" color={nSig ? 'primary' : 'default'} label={`${nSig} with q<0.05`} />
         {nMain > 0 && <Chip size="small" label={`★ ${nMain} in printed main figure`} />}
       </Box>
-
-      {whatVaries && (
-        <Alert severity={retrained ? 'warning' : 'info'} sx={{ mb: 2 }}>
-          <AlertTitle>{SPEC_LABEL[spec] || spec}</AlertTitle>
-          {heldOut ? (
-            <>
-              Reference specification, and the only one scored out of sample: hazard ratios,
-              held-out C-indices and bootstrap intervals all come from here.
-            </>
-          ) : (
-            <>
-              What varies: <b>{whatVaries}</b>.{' '}
-              {retrained
-                ? 'The score is rebuilt on the restricted sample, so a change here is a '
-                  + 'question about whether the PES survives retraining — a different and '
-                  + 'harder question than whether it survives a richer adjustment.'
-                : 'The PES itself is not retrained; only the Cox adjustment changes. A change '
-                  + 'here says something about confounding control, not about the score.'}
-            </>
-          )}
-        </Alert>
-      )}
 
       {view === 'dc' && !heldOutHasCI && (
         <Alert severity="info" sx={{ mb: 2 }}>
@@ -491,12 +456,6 @@ export default function PesDisease() {
         />
       )}
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        Color marks the direction and FDR significance of the hazard ratio and keeps that meaning
-        in every view. &ldquo;Beyond self-report&rdquo; means the participant&apos;s own answer to
-        the exposure question is already in the Cox model, so what is left is what the proteins
-        add on top of asking.
-      </Typography>
     </SectionCard>
   );
 }

@@ -24,6 +24,7 @@ import {
   Box, Button, Card, CardContent, Divider, Typography,
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import pesSchematic from '../../assets/pes_schematic.svg';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import PesReads from '../../components/pes/PesReads';
@@ -40,19 +41,16 @@ const VIEWS = [
     slug: 'tracks',
     title: 'Does it track change?',
     question: 'When someone’s exposure changes, does their score move with it?',
-    payoff: 'Within-person change over ~10 years and over ~2, with the exemplars the paper uses.',
   },
   {
     slug: 'compare',
     title: 'Reading versus tracking',
     question: 'Are the scores that read an exposure well the same ones that track it?',
-    payoff: 'The two things a score has to do, on one pair of axes.',
   },
   {
     slug: 'disease',
     title: 'Does it predict disease?',
     question: 'Does an exposure’s score carry risk for incident disease?',
-    payoff: 'Per-exposure disease associations, held out, with the specification stated.',
   },
 ];
 
@@ -98,15 +96,24 @@ function Landing() {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-        Exposure scores
+        Proteome-based exposure scores
       </Typography>
-      <Typography variant="body1" sx={{ mb: 3, maxWidth: 840 }}>
-        A proteomic exposure score is trained to predict one lifestyle exposure from plasma
-        proteins alone. The first question is whether that works at all.
+      <Typography variant="body1" sx={{ mb: 2.5, maxWidth: 840 }}>
+        A proteome-based exposure score (PES) predicts a single exposure from plasma proteins
+        alone.
       </Typography>
 
-      {/* No further lede: PesReads opens with its own framing, and a paragraph
-          restating it is the duplication this redesign keeps removing. */}
+      {/* Fig 6a, the study design. Copied from the manuscript's shipping source,
+          HEAP/scripts/visualizations/figures/fig_module6_schematic_compact.tex ->
+          IGLOO/.../exploratory/module6/fig_module6_schematic_compact.svg.
+          NOT fig_module6_schematic.R, whose cohort counts are wrong. Re-copy if
+          Fig 6a changes. Glyphs are outlined paths, so no fonts are needed. */}
+      <Box
+        component="img"
+        src={pesSchematic}
+        alt="PES study design: trained on 51,804 baseline participants with 5-fold cross-validation, tested in 1,210 held-out participants with repeat visits at imaging (1,169 and 1,112); 165 exposures in 13 categories, each tested on reading the exposure, tracking within-person change, and predicting disease."
+        sx={{ display: 'block', width: '100%', maxWidth: 520, height: 'auto', mb: 4 }}
+      />
       <PesReads />
 
       <Divider sx={{ my: 4 }} />
@@ -125,7 +132,6 @@ function Landing() {
               <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
                 {v.question}
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1.5 }}>{v.payoff}</Typography>
               <Button component={RouterLink} to={`${BASE}/${v.slug}${search}`}
                       variant="contained" endIcon={<ArrowForwardIcon />}
                       sx={{ mt: 2, textTransform: 'none' }}>

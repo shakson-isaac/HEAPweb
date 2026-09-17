@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
@@ -435,45 +435,12 @@ export default function PesTracks() {
     },
   ];
 
-  // The plot-1 note reads the identity count off the data, so the specification
-  // caveat is demonstrated by the number rather than claimed by the prose.
-  const plotOneNote = () => {
-    if (!identity) {
-      return 'This is the score’s own tracking, read against zero rather than against the '
-        + 'covariates. Switching to + BMI, + clinical or + blood draw will not move a single '
-        + 'point here — those specifications re-adjust the gray benchmark and do not refit '
-        + 'the score. Healthy at baseline is the only one that changes this plot.';
-    }
-    if (spec.refits) {
-      return 'This is the one specification that moves this plot: restricting to participants '
-        + 'without prevalent major disease changes the sample, so the score is refitted and '
-        + `${identity.differ} of the ${identity.shared} exposures it shares with Primary carry a `
-        + 'different Δ-correlation. Compare it against Primary to see how much of the tracking '
-        + 'survives in people who were healthy at baseline.';
-    }
-    return `Nothing in this plot moved. Measured against Primary, ${identity.same} of the `
-      + `${identity.shared} exposures it shares with Primary carry a byte-identical `
-      + `Δ-correlation: “${spec.label}” re-adjusts the gray covariate benchmark and does not `
-      + 'refit the proteome score, so the colored points are the same numbers under a different '
-      + 'label. Healthy at baseline is the only specification that refits the score.';
-  };
 
-  const plotTwoNote = 'The two nested models as the two axes: x is how well the covariates '
-    + 'alone track within-person change, y is how well they track it once the proteome score is '
-    + 'added. A point on the diagonal means the score added nothing; the distance above the '
-    + 'diagonal is the gain. Unlike the plot above, every specification moves both coordinates — '
-    + 're-adjusting the covariates is exactly what + BMI, + clinical and + blood draw do.';
 
   return (
     <SectionCard
       title="Does the score track within-person change?"
-      subtitle={
-        'Δ-correlation per exposure: how strongly the change in a person’s proteome score '
-        + 'between visits moves with the change in their actual exposure, with a 95% bootstrap '
-        + 'interval on every point. First the score on its own, against zero, as in the printed '
-        + 'panel; then the two nested models side by side — what the covariates track within a '
-        + 'person, and what they track once the score is added.'
-      }
+      subtitle="Within-person correlation between change in PES and change in exposure, for each exposure against the covariate benchmark; error bars, 95% bootstrap confidence intervals."
       loading={loading}
       error={error}
       empty={!loading && !error && !rows.length}
@@ -500,16 +467,6 @@ export default function PesTracks() {
         {spec.note}
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <b>Two plots, and the picker moves only one of them.</b> Plot 1 is the score itself:
-        under <b>Primary</b>, <b>+ BMI</b>, <b>+ clinical</b> and <b>+ blood draw</b> the
-        proteome score is never refitted, so its Δ-correlation is identical by construction and
-        plot 1 does not change. Only <b>Healthy at baseline</b> restricts the sample, refits the
-        score and moves it. Plot 2 compares the two nested models — covariates alone against
-        covariates plus the score — and every specification moves both of its axes, because
-        re-adjusting the covariates is all these specifications do. Flip the picker and watch
-        which plot responds.
-      </Alert>
 
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
         <Chip size="small" label={`${specRows.length} exposures at this specification`} />
@@ -540,10 +497,6 @@ export default function PesTracks() {
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 2 }}>
         1. The score itself — {spec.label}
       </Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-        Colored = proteome score, gray = covariate benchmark, bars = 95% bootstrap interval,
-        dashed line at 0 = no tracking. One exemplar is labeled per category.
-      </Typography>
       {strip && (
         <PlotPanel
           data={stripTraces}
@@ -570,28 +523,11 @@ export default function PesTracks() {
           }}
         />
       )}
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 3 }}>
-        {plotOneNote()} Every exposure drawn here is listed, with its interval, in the table
-        under plot 2 — one table serves both plots rather than printing the same 130 rows twice.
-      </Typography>
 
       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
         2. Covariates alone vs covariates + the score — {spec.label}
       </Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
-        {plotTwoNote}
-      </Typography>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-          <b>These points carry no interval, and that is deliberate.</b> Each model
-          has one &mdash; the covariate benchmark and the benchmark plus the score
-          both do, and plot 1 shows them &mdash; but this export carries no interval
-          for the <i>gap</i> between them, and a difference of two correlations
-          measured on the same people cannot be recovered from the two marginal
-          intervals, because their errors move together. So read the distance from
-          zero as how much the score adds, and do not read this plot as telling you
-          whether that gain is distinguishable from zero. It cannot.
-        </Alert>
 
         {strip && (
           <PlotPanel
@@ -638,14 +574,6 @@ export default function PesTracks() {
           emptyNote="No exposures at this specification."
         />
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        One table for both plots: it carries all three Δ-correlations with their intervals, and
-        the Gain column is the rise above the diagonal written out — it has no interval, for the
-        reason above. Faded points and the ⚠ in the last column mark exposures measured on fewer
-        than {MIN_CHANGE} visit pairs in which the exposure actually changed — their intervals
-        are wide and their point estimates should not be ranked. None are dropped unless you hide
-        them above.
-      </Typography>
     </SectionCard>
   );
 }

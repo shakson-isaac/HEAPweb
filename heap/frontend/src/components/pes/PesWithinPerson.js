@@ -137,19 +137,6 @@ export default function PesWithinPerson() {
   // each visit is the only way to show it. Every other exposure HAS a dose
   // axis, and drawing it as seven crossing lines throws that away to show
   // less: the delta plot answers "does the score follow" in one read.
-  // A transition always has four possible states; an ordinal band set runs
-  // -3..+3. Anything absent was suppressed by the five-person floor upstream,
-  // which is a fact about the data and belongs on the page.
-  const expected = isTransition ? 4 : (mode === 'sd' ? 5 : 7);
-  const missing = Math.max(0, expected - rows.length);
-  // Say WHICH state is absent, not just how many. "One state was suppressed"
-  // leaves the reader guessing why a line they expected is not there; naming
-  // it answers the question. The count itself stays unpublished -- it is a
-  // small cell in its own right.
-  const ALL_STATES = ['No → No', 'No → Yes', 'Yes → No', 'Yes → Yes'];
-  const absent = isTransition
-    ? ALL_STATES.filter((x) => !rows.some((r) => r.band === x))
-    : [];
 
   return (
     <Box>
@@ -157,11 +144,8 @@ export default function PesWithinPerson() {
         When this exposure changes, does the score follow?
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, maxWidth: 880 }}>
-        {isTransition
-          ? 'Each line is a group of people who made the same switch, drawn at its mean score on '
-            + 'each visit. A line that falls means the score came down as the exposure stopped.'
-          : 'Each point is a group of people whose exposure moved by the same amount, and its height '
-            + 'is their mean change in score. A rising line means the score followed the exposure.'}
+        Alcohol PES rose with alcohol dose, and smoking PES increased in people who started
+        smoking and decreased in those who quit.
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -288,24 +272,6 @@ export default function PesWithinPerson() {
         }}
       />
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, maxWidth: 880 }}>
-        {isTransition
-          ? 'A binary exposure has no dose, so what it has is a switch, read as a level on each visit. '
-          : ''}
-        {/* Do not promise four states, or any fixed count: a state holding
-            fewer than five people is dropped upstream, and the gap it leaves on
-            the axis has to be accounted for or it reads as a rendering fault.
-            Current smoking over ten years draws three of four -- No to Yes is
-            eight people. */}
-        {absent.length > 0
-          ? `${absent.join(' and ')} held fewer than five people and `
-            + `${absent.length === 1 ? 'is' : 'are'} not drawn. `
-          : missing > 0
-            ? `${missing} band${missing === 1 ? '' : 's'} held fewer than five people and `
-              + `${missing === 1 ? 'is' : 'are'} not drawn, leaving a gap on the axis. `
-            : `Every ${isTransition ? 'state' : 'band'} shown clears the five-person floor. `}
-        n is people, not visits: each span pairs two visits per person.
-      </Typography>
 
       {rows.length < 3 && (
         <Alert severity="info" sx={{ mt: 2, maxWidth: 880 }}>

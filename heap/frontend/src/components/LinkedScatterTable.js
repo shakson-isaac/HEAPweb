@@ -209,9 +209,6 @@ export default function LinkedScatterTable({
               </TableBody>
             </Table>
           </TableContainer>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            Click a point or a row to lock the highlight; the search box filters both.
-          </Typography>
         </>
       )}
     </Box>

@@ -326,52 +326,32 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/pes`
 
-16 passages of 20+ words; 60 shorter labels not listed.
+7 passages of 20+ words; 59 shorter labels not listed.
 
 **`src/components/pes/PesDisease.js`**
 
-- **PesDisease.js:337** (45 words, subtitle)
-  > One proteomic exposure score (PES) against all 170 incident diseases, with confidence intervals, under five covariate specifications. The hazard ratio...
-- **PesDisease.js:408** (28 words, text)
-  > The two HR views are comparable across all five specifications. Held-out ΔC was only ever computed under the primary specification, so it is offered t...
-- **PesDisease.js:421** (21 words, text)
-  > Reference specification, and the only one scored out of sample: hazard ratios, held-out C-indices and bootstrap intervals all come from here.
-- **PesDisease.js:440** (36 words, text)
+- **PesDisease.js:333** (20 words, title)
+  > Adding the PES improved held-out prediction for exposure–disease pairs including smoking and COPD, and physical activity and type 2 diabetes.
+- **PesDisease.js:405** (36 words, text)
   > This specification reports held-out &Delta;C but no bootstrap interval, so these points carry no error bars. Only the primary specification was bootst...
-- **PesDisease.js:494** (48 words, text)
-  > Color marks the direction and FDR significance of the hazard ratio and keeps that meaning in every view. &ldquo;Beyond self-report&rdquo; means the pa...
-**`src/components/pes/PesReadVsTrack.js`**
-
-- **PesReadVsTrack.js:252** (89 words, subtitle)
-  > Each point is one exposure, colored by its category. The x axis is how well a proteome-only score reads that exposure in held-out people; the y axis i...
 **`src/components/pes/PesReads.js`**
 
-- **PesReads.js:670** (23 words, title)
+- **PesReads.js:597** (23 words, title)
+  > Proteome-only scores predicted multiple continuous and binary exposures, performing best for alcohol, diet, exercise and smoking and worst for air and...
+- **PesReads.js:653** (23 words, title)
   > The axis is floored so one extreme value does not compress the rest. These exposures are still in the table under plot 2.
-- **PesReads.js:740** (50 words, text)
-  > Each dot is one exposure, jittered within its category row; the bar is its 95% bootstrap interval. The larger ringed point in each row is that categor...
-- **PesReads.js:826** (26 words, text)
-  > Faded points have an interval crossing zero. Continuous exposures are scored on held-out R², binary on AUC or AUPR, and are never on the same axis.
 **`src/components/pes/PesTracks.js`**
 
-- **PesTracks.js:470** (68 words, subtitle)
-  > Δ-correlation per exposure: how strongly the change in a person’s proteome score between visits moves with the change in their actual exposure, with a...
-- **PesTracks.js:543** (26 words, text)
-  > Colored = proteome score, gray = covariate benchmark, bars = 95% bootstrap interval, dashed line at 0 = no tracking. One exemplar is labeled per categ...
-- **PesTracks.js:586** (30 words, text)
-  > Each model has one &mdash; the covariate benchmark and the benchmark plus the score both do, and plot 1 shows them &mdash; but this export carries no ...
-- **PesTracks.js:641** (49 words, text)
-  > One table for both plots: it carries all three Δ-correlations with their intervals, and the Gain column is the rise above the diagonal written out — i...
-**`src/components/pes/PesTwoTimescales.js`**
+- **PesTracks.js:443** (23 words, title)
+  > Within-person correlation between change in PES and change in exposure, for each exposure against the covariate benchmark; error bars, 95% bootstrap c...
+**`src/components/pes/PesWithinPerson.js`**
 
-- **PesTwoTimescales.js:71** (27 words, text)
-  > Each point is one exposure. The dashed line is equal tracking at both intervals — above it the score tracks better over two years than over ten.
-- **PesTwoTimescales.js:145** (25 words, text)
-  > The two-year window is the stronger test: both of its timepoints are held-out follow-ups, so nothing in it was seen during training at either end.
+- **PesWithinPerson.js:146** (21 words, text)
+  > Alcohol PES rose with alcohol dose, and smoking PES increased in people who started smoking and decreased in those who quit.
 **`src/pages/subpages/PesGuide.js`**
 
-- **PesGuide.js:103** (24 words, text)
-  > A proteomic exposure score is trained to predict one lifestyle exposure from plasma proteins alone. The first question is whether that works at all.
+- **PesGuide.js:107** (23 words, text)
+  > IGLOO/.../exploratory/module6/fig_module6_schematic_compact.svg. NOT fig_module6_schematic.R, whose cohort counts are wrong. Re-copy if Fig 6a changes...
 
 ## `/results/gwas`
 

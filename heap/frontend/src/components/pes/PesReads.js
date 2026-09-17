@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
-  Box, Chip, Link as MuiLink, ToggleButton, ToggleButtonGroup, Typography,
+  Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
@@ -460,19 +459,6 @@ export default function PesReads() {
   const adds = (r) => (r[`${view.prefix}_increment_lo`] ?? -1) > 0;
   const nClear = incRows.filter(adds).length;
 
-  // Measured from these same rows, and the reason the sentence below is not
-  // pedantry: on the order of twenty exposures per view have endpoint intervals
-  // that overlap and a gain that is nonetheless reliably above zero.
-  const nOverlapReal = incRows.filter((r) => {
-    const p = view.prefix;
-    const aLo = r[`${p}_covariates_only_lo`];
-    const aHi = r[`${p}_covariates_only_hi`];
-    const bLo = r[`${p}_covariates_plus_pes_lo`];
-    const bHi = r[`${p}_covariates_plus_pes_hi`];
-    if ([aLo, aHi, bLo, bHi].some((v) => v == null)) return false;
-    return !(aHi < bLo || bHi < aLo) && adds(r);
-  }).length;
-
   const incPoints = useMemo(() => incRows.map((r) => {
     const p = view.prefix;
     const established = (r[`${p}_increment_lo`] ?? -1) > 0;
@@ -608,6 +594,7 @@ export default function PesReads() {
   return (
     <SectionCard
       title="Does the proteome read the exposure?"
+      subtitle="Proteome-only scores predicted multiple continuous and binary exposures, performing best for alcohol, diet, exercise and smoking and worst for air and noise pollution."
       loading={loading}
       error={error}
       empty={!loading && !error && !rows.length}
@@ -649,10 +636,6 @@ export default function PesReads() {
         {spec.note}
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 880 }}>
-        The picker changes the comparison, not the score — only <b>Healthy at baseline</b> refits
-        it. <MuiLink component={RouterLink} to="/documentation/methods">Methods</MuiLink>
-      </Typography>
 
       <PlotHeading
         index={1}
@@ -738,23 +721,16 @@ export default function PesReads() {
         {catLegend}
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, mb: 3 }}>
-        Each dot is one exposure, jittered within its category row; the bar is its 95%
-        bootstrap interval. The larger ringed point in each row is that category&rsquo;s
-        labeled exemplar, matching the printed figure. Every exposure drawn here also
-        appears in the table under plot 2, which carries the score-alone column.
+        Held-out R² for continuous and AUC for binary exposures; error bars, 95% bootstrap
+        confidence intervals.
       </Typography>
 
       <PlotHeading
         index={2}
         title="What the score adds beyond the covariates"
-        note='A point on zero is an exposure the proteome cannot read beyond the covariates.'
+        note='PES improved exposure prediction beyond covariates, and the gain held across covariate specifications.'
       />
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 880 }}>
-          The bar is the interval on the difference, not on either model — {nOverlapReal} exposures
-          here have overlapping model intervals but a difference clear of zero.{' '}
-          <MuiLink component={RouterLink} to="/documentation/methods">Methods</MuiLink>
-        </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
         <Chip size="small" label={`${incPoints.length} ${view.type} exposures`} />
@@ -823,10 +799,6 @@ export default function PesReads() {
         legend={catLegend}
       />
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        Faded points have an interval crossing zero. Continuous exposures are scored on held-out
-        R², binary on AUC or AUPR, and are never on the same axis.
-      </Typography>
     </SectionCard>
   );
 }

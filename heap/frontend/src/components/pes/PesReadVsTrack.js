@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Chip, ToggleButton, ToggleButtonGroup,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
@@ -249,14 +249,7 @@ export default function PesReadVsTrack() {
   return (
     <SectionCard
       title="How well the proteome reads an exposure, against how well the score tracks change"
-      subtitle={
-        'Each point is one exposure, colored by its category. The x axis is how well a '
-        + 'proteome-only score reads that exposure in held-out people; the y axis is the '
-        + 'within-person Δ-correlation — pair each person’s baseline visit with a repeat '
-        + 'visit and correlate the change in the score with the change in the exposure. Bars '
-        + 'are 95% bootstrap intervals on both axes. Reading the exposure well is the easier '
-        + 'of the two: a score can sit far to the right and still fall on the y = 0 line.'
-      }
+      subtitle="Held-out reading performance against within-person tracking for each exposure; error bars, 95% bootstrap confidence intervals."
       loading={reads.loading || tracks.loading}
       error={reads.error || tracks.error}
     >
@@ -289,12 +282,6 @@ export default function PesReadVsTrack() {
         </Alert>
       )}
 
-      {built && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-          {built.dropped.length} exposures are fixed at baseline or assigned from an address, so
-          they have no tracking estimate and are not plotted.
-        </Typography>
-      )}
 
       {view && (
         <LinkedScatterTable

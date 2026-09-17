@@ -69,8 +69,8 @@ export default function PesTwoTimescales() {
         The same score, over ten years and over two
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, maxWidth: 880 }}>
-        Each point is one exposure. The dashed line is equal tracking at both intervals — above it the
-        score tracks better over two years than over ten.
+        Tracking held over both the 10-year interval from baseline to imaging and the 2-year
+        interval between imaging visits.
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -142,10 +142,6 @@ export default function PesTwoTimescales() {
         </Alert>
       )}
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 2 }}>
-        The two-year window is the stronger test: both of its timepoints are held-out follow-ups, so
-        nothing in it was seen during training at either end.
-      </Typography>
 
       {/* The standing rule is that every scatter gets a linked lookup table.
           128 points is too many to find one by hovering, and the interesting
