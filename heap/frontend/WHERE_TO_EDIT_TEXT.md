@@ -195,7 +195,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/intervention`
 
-9 passages of 20+ words; 32 shorter labels not listed.
+7 passages of 20+ words; 27 shorter labels not listed.
 
 **`src/components/intervention/InterventionConcordance.js`**
 
@@ -203,24 +203,20 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > String(id) .split('_plus_').join(' + ') .replace(/_/g, ' ') .replace(/\bbmi\b/g, 'BMI'); // ----------------------------------------------------------...
 - **InterventionConcordance.js:297** (28 words, field)
   > The reliability that weights the published r. The shared scatter draws one marker size for every point, so reliability rides on color here rather than...
-- **InterventionConcordance.js:1001** (75 words, text)
+- **InterventionConcordance.js:784** (25 words, title)
+  > Directional concordance depended on the exposure: for example, strenuous sports showed positive concordance with GLP-1 receptor agonist protein shifts...
+- **InterventionConcordance.js:954** (75 words, text)
   > The controls have narrowed the set, so the headline r no longer describes what is drawn. The recomputed value applies the same weighted estimator to t...
-- **InterventionConcordance.js:1012** (21 words, text)
+- **InterventionConcordance.js:965** (21 words, text)
   > No correlation is published for this exposure, specification and trial — fewer than three proteins overlap, so no r is estimable.
 **`src/components/intervention/InterventionNetwork.js`**
 
-- **InterventionNetwork.js:597** (41 words, subtitle)
-  > Lifestyle exposures and trials move a shared set of plasma proteins, which split into a minority genetically causal for the disease and a majority tha...
-- **InterventionNetwork.js:1220** (22 words, text)
-  > Randomized intervention. Its protein shifts are measured, not associated — which is why trial lines are drawn bold and lifestyle lines thin.
+- **InterventionNetwork.js:581** (47 words, subtitle)
+  > Lifestyle exposures and randomized trials shifted a shared set of plasma proteins, which Mendelian randomization separated into putative causal interm...
 **`src/pages/subpages/Intervention.js`**
 
-- **Intervention.js:30** (40 words, text)
+- **Intervention.js:29** (40 words, text)
   > Do the proteins that track a lifestyle exposure actually move when the exposure is changed? HEAP&apos;s observational signatures are set against prote...
-- **Intervention.js:38** (25 words, text)
-  > The two axes are different estimands on different assay platforms, and the trial effects are significance-selected &mdash; so every correlation here i...
-- **Intervention.js:48** (51 words, text)
-  > UK Biobank protein levels are measured on Olink and the trial reports are SomaScan, so the comparison is restricted to proteins measured on both, and ...
 
 ## `/results/enrichment`
 
@@ -352,7 +348,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/documentation/methods`
 
-11 passages of 20+ words; 13 shorter labels not listed.
+12 passages of 20+ words; 13 shorter labels not listed.
 
 **`src/pages/subpages/DetailedMethods.js`**
 
@@ -372,11 +368,13 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > Exposure–protein associations are correlated against measured proteomic change (post-intervention minus baseline) in three interventional cohorts: HER...
 - **DetailedMethods.js:149** (32 words, text)
   > The comparison is restricted to proteins measured on both platforms and carries the Olink-to-SomaScan agreement for that protein set in the interface ...
-- **DetailedMethods.js:160** (60 words, text)
+- **DetailedMethods.js:154** (54 words, text)
+  > A between-person association and a within-person change under treatment are different quantities. Both trials are also significance-selected &mdash; H...
+- **DetailedMethods.js:167** (60 words, text)
   > A penalized proteomic score is trained per exposure on the baseline sample and evaluated on participants held out for a repeat visit. Three things are...
-- **DetailedMethods.js:167** (31 words, text)
+- **DetailedMethods.js:174** (31 words, text)
   > Incremental disease prediction is reported from held-out or bootstrapped estimates, because the apparent change in C-index computed in the training sa...
-- **DetailedMethods.js:206** (25 words, text)
+- **DetailedMethods.js:213** (25 words, text)
   > Earlier versions of this site displayed the maximally adjusted model by default and labeled the sets Type1–Type7. Both are retired: the primary model ...
 
 ## `/documentation/cite`

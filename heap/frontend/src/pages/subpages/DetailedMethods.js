@@ -151,6 +151,13 @@ export default function DetailedMethods() {
             Olink-to-SomaScan agreement for that protein set in the interface itself, because
             cross-platform concordance bounds what the comparison can show.
           </P>
+          <P>
+            A between-person association and a within-person change under treatment are different
+            quantities. Both trials are also significance-selected &mdash; HERITAGE published only
+            proteins at q &le; 0.01, and the GLP-1 effects are filtered to each trial&apos;s own
+            q &lt; 0.05 &mdash; so the correlations are an upper bound on concordance rather than an
+            unbiased estimate.
+          </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/intervention">Intervention</Link>.
           </Typography>

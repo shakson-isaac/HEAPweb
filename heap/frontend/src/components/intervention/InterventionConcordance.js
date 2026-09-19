@@ -309,7 +309,7 @@ const SCHEMES = {
       // platforms" must not be readable as a low value on a reliability scale.
       [NO_ASSAY_PAIR]: '#C9A227',
     },
-    names: { [NO_ASSAY_PAIR]: 'not measured on both platforms — unknown, not poor' },
+    names: { [NO_ASSAY_PAIR]: 'not measured on both platforms' },
   },
 };
 
@@ -781,13 +781,7 @@ export default function InterventionConcordance() {
   return (
     <SectionCard
       title="One scatter: the UK Biobank effect against the trial that moved the same protein"
-      subtitle={
-        // The estimand caveat is stated once, in the page-level warning, and in full
-        // behind the page's disclosure. A subtitle's job is to name the axes.
-        'x is the UK Biobank exposure→protein effect; y is what a randomized trial '
-        + 'reported for the same protein. Different estimands — which is why agreement '
-        + 'between them is informative rather than circular.'
-      }
+      subtitle="Directional concordance depended on the exposure: for example, strenuous sports showed positive concordance with GLP-1 receptor agonist protein shifts, whereas processed meat showed inverse concordance."
       loading={kLoading}
       error={kError}
     >
@@ -844,33 +838,10 @@ export default function InterventionConcordance() {
             />
           </Box>
 
-          {/*
-            THE CAVEAT THIS PICKER CANNOT SHIP WITHOUT.
-            An effect that shrinks under +BMI has NOT been shown to run through
-            BMI. Adjustment cannot separate mediation from confounding, and the
-            manuscript withdrew that claim outright
-            (project_bmi_adjustment_not_mediation). Every word below is about
-            attenuation and robustness; none of it licenses a mediation reading.
-          */}
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <b>This picker shows attenuation, not mediation.</b>
-            {' '}
-            It asks one question: whether the concordance survives a richer adjustment. If r
-            falls when BMI or the clinical block enters the model, that says the agreement is
-            not robust to that adjustment. It does <b>not</b> say the exposure acts through
-            BMI. Adjusting for a covariate cannot separate mediation from confounding, so a
-            shrinking estimate is equally consistent with either. Read a drop as “not robust to
-            this adjustment”, never as “this much of it is mediated by BMI”.
-            {spec.kind === 'sample' && (
-              <>
-                {' '}
-                <b>{specLabel(spec.id)}</b>
-                {' '}
-                is a different kind of change again — it restricts who is in the analysis
-                rather than what is adjusted for, so the sample moves along with the estimate.
-              </>
-            )}
-          </Alert>
+          {/* The attenuation-is-not-mediation caveat moved to the FAQ (2026-09-19), under
+              'Does the estimate shrinking under "+ BMI" mean the effect is mediated by BMI?'
+              Results pages carry no caveats. The manuscript withdrew that claim -- see
+              project_bmi_adjustment_not_mediation -- so never reintroduce it as copy. */}
 
           {/* ---- the annotation controls -------------------------------- */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -883,7 +854,6 @@ export default function InterventionConcordance() {
                 { id: 'nominal', label: 'p < 0.05' },
                 { id: 'replicated', label: 'replicated' },
               ]}
-              help="“Replicated” is the paper’s rule: Bonferroni in the discovery split and again in the held-out split."
             />
             <Picker
               label="TRIAL SIDE (y)"
@@ -893,7 +863,6 @@ export default function InterventionConcordance() {
                 { id: 'this', label: `reported by ${trial.label}` },
                 { id: 'multi', label: 'and by another trial' },
               ]}
-              help={`A point exists only where ${trial.label} reported the protein — ${trial.reportedNote}.`}
             />
             <Picker
               label="MR OVERLAP"
@@ -904,7 +873,6 @@ export default function InterventionConcordance() {
                 { id: 'edge', label: 'any MR edge' },
                 { id: 'causal', label: 'protein → disease' },
               ]}
-              help="“Any MR edge” uses this exposure’s strongest significant edge; “protein → disease” uses the protein’s Tier-1 record."
             />
             <Picker
               label="EDGE DIRECTION"
@@ -916,7 +884,6 @@ export default function InterventionConcordance() {
                 { id: 'reverse', label: 'disease → protein' },
                 { id: 'bothdir', label: 'both' },
               ]}
-              help="Not exclusive: a protein can carry a causal edge and a reverse edge at once, which is what “both” selects."
             />
             <Picker
               label="INSTRUMENT CLASS"
@@ -927,21 +894,18 @@ export default function InterventionConcordance() {
                 { id: 'cis', label: 'cis' },
                 { id: 'trans', label: 'trans' },
               ]}
-              help="Tier 2 is the LD-confounded cis tier the manuscript demotes on purpose, and does not count here as a causal cis edge."
             />
             <Picker
               label="PLATFORM REPLICATION"
               value={supportValue}
               onChange={setSupport}
               options={supportOptions.map((v) => ({ id: v, label: v === 'all' ? 'any' : v }))}
-              help="Which arm carried the MR edge. Olink is the UK Biobank arm, SomaScan the deCODE arm."
             />
             <Picker
-              label="COLOUR"
+              label="COLOR"
               value={colorBy}
               onChange={setColorBy}
               options={Object.keys(SCHEMES).map((k) => ({ id: k, label: SCHEMES[k].button }))}
-              help={scheme.note}
             />
           </Box>
 
@@ -955,17 +919,6 @@ export default function InterventionConcordance() {
                   {published.nprot != null && `   ·   ${published.nprot} proteins`}
                   {published.p != null && `   ·   p ${fp(published.p)}`}
                   {published.q != null && `   ·   q (BH) ${fp(published.q)}`}
-                </Typography>
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                  The paper's number: Pearson r weighted by assay reliability, over every
-                      protein
-                      {` ${trial.label} `}
-                      reported under
-                      {` ${specLabel(spec.id)}`}
-                      , before any filter here. Proteins with non-positive reliability drop
-                      out, so the count can sit below the
-                      {` ${published.npairs == null ? '—' : published.npairs} `}
-                      pairs available.
                 </Typography>
                 <Box sx={{ mt: 0.75, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip
@@ -1019,48 +972,18 @@ export default function InterventionConcordance() {
           {/* ---- what a BLANK means, and why it differs by trial --------- */}
           {panelKnown ? (
             <Alert severity="info" sx={{ mb: 2 }}>
-              <b>{trial.label}</b>
-              {` assayed ${coverage.assayed} of ${coverage.tested} and reported `}
-              {`${coverage.reported}`}
-              . Of the rest,
-              {` ${coverage.measuredNull} `}
-              were <b>measured and did not move</b> and
-              {` ${coverage.offPanel} `}
-              were <b>never on the panel</b> — a real distinction, taken from the
-              trial's own gene list, not inferred from absence.
+              {`${trial.label} assayed ${coverage.assayed} of ${coverage.tested} proteins and reported ${coverage.reported}; `}
+              {`${coverage.measuredNull} were measured without moving and ${coverage.offPanel} were not on the panel.`}
             </Alert>
           ) : (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <b>
-                {trial.label}
-                {' '}
-                is not symmetric with the GLP-1 trials and must not be read as if it were.
-              </b>
-              {' '}
-              Its published table contains only the proteins that reached q &lt; 0.01, so the
-              assayed panel is not in the file, and it was deliberately not back-filled from the
-              hit list. For
-              {` ${trial.label} `}
-              we can say <b>reported</b> —
-              {` ${coverage.reported} of ${coverage.tested} `}
-              proteins here — but we can <b>never</b> say “measured and null”. The
-              {` ${coverage.unknown} `}
-              proteins with no
-              {` ${trial.label} `}
-              value are <b>unknown</b>: some were assayed and null, some were never assayed, and
-              the published record cannot tell them apart. Absence here is not evidence of no
-              effect.
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {`${trial.label} reported ${coverage.reported} of ${coverage.tested} proteins.`}
             </Alert>
           )}
 
           {coverage.dropped > 0 && (
             <Alert severity="info" sx={{ mb: 2 }}>
-              {`${coverage.dropped} `}
-              {coverage.dropped === 1 ? 'pair is' : 'pairs are'}
-              {' not estimated under '}
-              {specLabel(spec.id)}
-              {' — that specification drops the people the estimate needed. They are withheld '}
-              from the plot rather than drawn at zero, which would invent a null effect.
+              {`${coverage.dropped} ${coverage.dropped === 1 ? 'pair' : 'pairs'} not estimated under ${specLabel(spec.id)}.`}
             </Alert>
           )}
 
@@ -1068,14 +991,9 @@ export default function InterventionConcordance() {
             variant="caption"
             sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
           >
-            <b>{`Color: ${scheme.label}.`}</b>
-            {' '}
-            Error bars are 95% intervals. <b>Marker area</b> is the Olink–SomaScan assay
-              correlation (Eldjarn et al.) — bigger means the platforms agree more closely
-              about that protein. The
-              {` ${coverage.tested - coverage.withRel} of ${coverage.tested} `}
-              with no assay pair are drawn <b>mid-size, not small</b>: unknown agreement,
-              not poor agreement.
+            <b>{`Color: ${scheme.label}.`}</b>{' '}
+            <b>Marker area</b>: Olink–SomaScan assay correlation (Eldjarn et al.); no assay pair,
+            mid-size.
             </Typography>
 
           {culprit && (

@@ -72,27 +72,22 @@ const CLASS_META = {
   causal: {
     color: '#B2182B',
     header: 'CAUSAL INTERMEDIATES',
-    note: 'protein → disease, Tier-1 colocalized cis-pQTL MR',
-    long: 'Genetically causal for this disease: a forward protein→disease MR edge whose '
-      + 'cis instrument clears the Tier-1 gate and colocalizes (PP.H4 ≥ 0.8). This is the '
-      + 'minority the figure exists to isolate.',
+    note: 'Tier-1 colocalized cis-pQTL MR',
+    long: 'A forward protein → disease MR edge whose cis instrument clears the Tier-1 gate '
+      + 'and colocalizes (PP.H4 ≥ 0.8).',
   },
   forward: {
     color: '#7B3FA0',
     header: 'FORWARD, BELOW THE CIS GATE',
-    note: 'protein → disease, but trans-instrumented or a cis edge demoted by LD confounding',
-    long: 'A forward protein→disease MR edge that does NOT clear the Tier-1 cis gate — '
-      + 'either trans-instrumented, or a cis edge demoted to Tier 2 by LD confounding. Not '
-      + 'called causal (that would readmit the cis edges the manuscript demotes) and not called '
-      + 'a reporter (the evidence points forward). Read it as unresolved, not as weak causation.',
+    note: 'trans-instrumented, or cis demoted by LD confounding',
+    long: 'A forward protein → disease MR edge below the Tier-1 cis gate: trans-instrumented, '
+      + 'or a cis edge demoted to Tier 2 by LD confounding.',
   },
   reporter: {
     color: '#546E7A',
     header: 'DISEASE REPORTERS',
-    note: 'disease → protein, reverse MR: the protein carries the record of the disease',
-    long: 'A reverse disease→protein MR edge only: disease liability moves the protein. '
-      + 'A downstream marker, not an intermediate — and the majority class for nearly every '
-      + 'disease in the payload.',
+    note: 'reverse MR, disease → protein',
+    long: 'A reverse disease → protein MR edge only: disease liability moves the protein.',
   },
 };
 
@@ -178,17 +173,6 @@ const truncate = (s, n) => (String(s).length > n ? `${String(s).slice(0, n - 1)}
 const DEFAULT_KEYS = [
   'finngen_R12_T2D', 'finngen_R12_E4_OBESITY', 'finngen_R12_T2D_WIDE',
 ];
-
-// The builder's own bar for "worth drawing" (MIN_PROTEINS / MIN_GENETIC_EDGES in
-// tools/build_intervention_network.py). Thin diseases stay in the payload on
-// purpose, so the panel says a network is thin instead of pretending it is not.
-const MIN_PROTEINS = 5;
-const MIN_GENETIC_EDGES = 8;
-
-// Above this many drawn lines the picture stops being a network and starts
-// being a texture. It is still drawn -- the reader asked for it -- but with a
-// nudge toward the filters that make it legible again.
-const HAIRBALL = 2500;
 
 const CAP_PROT = [20, 40, 80, 0];   // 0 = no cap
 const CAP_EXP = [6, 12, 24, 0];
@@ -595,9 +579,10 @@ export default function InterventionNetwork() {
     <SectionCard
       title="The shared language, for any disease"
       subtitle={
-        'Lifestyle exposures and trials move a shared set of plasma proteins, which split '
-            + 'into a minority genetically causal for the disease and a majority that merely '
-            + 'reports it. Any of the 44 diseases in the payload — Figure 5d shows four.'
+        'Lifestyle exposures and randomized trials shifted a shared set of plasma proteins, '
+          + 'which Mendelian randomization separated into putative causal intermediates and '
+          + 'downstream disease reporters. For example, ICAM1 was a putative causal intermediate '
+          + 'for type 2 diabetes, whereas GDF15 and CFH were disease reporters detected by reverse MR.'
       }
     >
       {/* --- controls ------------------------------------------------------ */}
@@ -738,49 +723,20 @@ export default function InterventionNetwork() {
         </Box>
       )}
 
-      {view && view.counts.proteins[1] < MIN_PROTEINS && (
-        <Alert severity="warning" sx={{ mb: 1.5 }}>
-          <b>{dzName}</b> carries only {view.counts.proteins[1]} protein
-          {view.counts.proteins[1] === 1 ? '' : 's'} and {view.nGenTotal} genetic edges — below the
-          bar the payload builder uses for a drawable network ({MIN_PROTEINS} proteins,{' '}
-          {MIN_GENETIC_EDGES} genetic edges). It is kept here rather than hidden, but read it as a
-          handful of edges, not as a network.
-        </Alert>
-      )}
-      {view && view.counts.proteins[1] >= MIN_PROTEINS && view.nGenTotal < MIN_GENETIC_EDGES && (
-        <Alert severity="info" sx={{ mb: 1.5 }}>
-          <b>{dzName}</b> has {view.nGenTotal} genetic edges in total, below the {MIN_GENETIC_EDGES}
-          {' '}the builder treats as drawable. The lifestyle half of the picture is complete; the
-          causal/reporter split rests on very little.
-        </Alert>
-      )}
       {view && view.cappedAway > 0 && (
         <Alert severity="info" sx={{ mb: 1.5 }}>
-          {view.cappedAway} further reporter{view.cappedAway === 1 ? ' is' : 's are'} not drawn: the
-          cap keeps the {view.counts.proteins[0]} proteins that respond to the most exposures. Causal
-          and forward proteins are never cut by the cap — raise &ldquo;reporters drawn&rdquo; to see the rest.
+          {`${view.cappedAway} further reporter${view.cappedAway === 1 ? '' : 's'} not drawn.`}
         </Alert>
       )}
       {view && view.hiddenMinority > 0 && (
         <Alert severity="warning" sx={{ mb: 1.5 }}>
-          The breadth floor is hiding {view.hiddenMinority} causal/forward protein
-          {view.hiddenMinority === 1 ? '' : 's'}. Those are the minority this panel exists to show —
-          lower the slider to bring them back.
+          {`${view.hiddenMinority} causal or forward protein${view.hiddenMinority === 1 ? '' : 's'} below the minimum breadth, not drawn.`}
         </Alert>
       )}
       {view && view.counts.proteins[0] === 0 && (
         <Alert severity="warning" sx={{ mb: 1.5 }}>
-          No protein survives the current filters, so only the disease hub is drawn.{' '}
-          <b>{dzName}</b> has {view.counts.proteins[1]} protein
-          {view.counts.proteins[1] === 1 ? '' : 's'} in the payload — lower the breadth floor or
-          widen the forward-evidence and platform filters.
-        </Alert>
-      )}
-      {drawnEdges > HAIRBALL && (
-        <Alert severity="info" sx={{ mb: 1.5 }}>
-          {drawnEdges.toLocaleString()} lines are drawn. Everything asked for is on screen, but at this
-          density the picture reads as texture rather than as a network — raise the breadth floor or
-          lower the exposure cap to get the argument back.
+          No protein passes the current filters; <b>{dzName}</b> has {view.counts.proteins[1]} protein
+          {view.counts.proteins[1] === 1 ? '' : 's'} in total.
         </Alert>
       )}
 
@@ -1168,7 +1124,7 @@ export default function InterventionNetwork() {
                     </Typography>
                     {fwd && !COLOC_TIERS.has(e.tier) && (
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: CLASS_META.forward.color }}>
-                        Below the Tier-1 cis gate — drawn dashed, and not counted as causal.
+                        Below the Tier-1 cis gate, so not counted as causal.
                       </Typography>
                     )}
                   </>
@@ -1196,9 +1152,6 @@ export default function InterventionNetwork() {
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     {`exposome R² = ${hover.protein.r2 === null ? '—' : hover.protein.r2.toFixed(3)}`}
                   </Typography>
-                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
-                    Click to hold the focus on this protein.
-                  </Typography>
                 </>
               )}
 
@@ -1218,8 +1171,7 @@ export default function InterventionNetwork() {
                 <>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{hover.rct.label}</Typography>
                   <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                    Randomized intervention. Its protein shifts are measured, not associated — which is
-                    why trial lines are drawn bold and lifestyle lines thin.
+                    Randomized intervention.
                   </Typography>
                 </>
               )}
@@ -1231,7 +1183,7 @@ export default function InterventionNetwork() {
                     {disease}{parsed?.icd ? ` · ICD-10 ${parsed.icd}` : ''}
                   </Typography>
                   <Typography variant="caption" sx={{ display: 'block' }}>
-                    {`${view.counts.gen_fwd[1]} forward and ${view.counts.gen_rev[1]} reverse genetic edges in the payload`}
+                    {`${view.counts.gen_fwd[1]} forward and ${view.counts.gen_rev[1]} reverse genetic edges in total`}
                   </Typography>
                 </>
               )}
@@ -1253,7 +1205,6 @@ export default function InterventionNetwork() {
                 />
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   <b style={{ color: CLASS_META[c].color }}>{CLASS_META[c].header.toLowerCase()}</b>
-                  {` — ${CLASS_META[c].note}`}
                 </Typography>
               </Box>
             ))}
@@ -1361,18 +1312,12 @@ export default function InterventionNetwork() {
             ))}
             {!fwd.length && !rev.length && (
               <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                No genetic edge survives the current forward-evidence and platform filters.
+                No genetic edge passes the current filters.
               </Typography>
             )}
           </Paper>
         );
       })()}
-
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-        Read left to right: <i>exposure → protein → disease</i>. Proteins are ordered by
-        class, then by how many exposures they respond to. Counts are stated as
-        <i>shown of existing</i> — nothing is trimmed silently.
-      </Typography>
     </SectionCard>
   );
 }
