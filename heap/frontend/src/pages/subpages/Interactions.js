@@ -334,7 +334,7 @@ function NoiseFloorSection({ onStats }) {
   return (
     <SectionCard
       title="How the interaction component reproduces"
-      subtitle="Gene-by-environment explained variation was consistently small and not reproducible by both methods."
+      subtitle="Gene-by-environment explained variation was consistently small."
       loading={loading}
       error={error}
     >
