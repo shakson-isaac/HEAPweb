@@ -265,24 +265,16 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/causal`
 
-12 passages of 20+ words; 32 shorter labels not listed.
+7 passages of 20+ words; 29 shorter labels not listed.
 
 **`src/components/ColocRegional.js`**
 
 - **ColocRegional.js:94** (39 words, text)
   > No per-variant data retained for this locus yet, so only the posterior above can be shown. The pipeline writes the harmonized variant table it used, b...
-- **ColocRegional.js:262** (30 words, text)
-  > Variants are the harmonized set colocalization actually used, so the plot and the posterior describe the same data; r² is to the lead variant in the 1...
-**`src/components/PDEffects.js`**
-
-- **PDEffects.js:169** (54 words, subtitle)
-  > The same diseases, plotted twice. Left: the Mendelian randomization estimate, graded by evidence tier. Right: the observational Cox hazard ratio with ...
 **`src/components/TriadBuilder.js`**
 
 - **TriadBuilder.js:16** (217 words, text)
   > Disease -- and the browser // used to let you fill exactly ONE. Anyone after "smoking-related triads // involving FURIN" had to pick one, travel to th...
-- **TriadBuilder.js:143** (20 words, text)
-  > Fill any combination of the three. Each list only offers values that actually occur with what you have already chosen.
 **`src/components/TriadDAG.js`**
 
 - **TriadDAG.js:215** (31 words, text)
@@ -291,15 +283,11 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > E. The motif stays // UK Biobank-anchored, which is what the Tier 1+ rung already encodes. const DECODE_EDGES = new Set(['EP', 'PD', 'PE', 'DP']); // ...
 - **TriadDAG.js:540** (23 words, text)
   > Tier-1 membership is held by the direction, not by this instrument set — the estimate shown does not itself clear q &lt; 0.05.
-- **TriadDAG.js:582** (82 words, text)
-  > Stars mark the FDR-adjusted p on the edge label (*** q &lt; 0.001, ** q &lt; 0.01, * q &lt; 0.05), the same rule the manuscript figure uses. Solid ver...
-- **TriadDAG.js:716** (34 words, text)
-  > Tier-1 membership is recorded per direction, and the protein&rarr;disease and protein&rarr;exposure directions pool cis- and trans-pQTL instruments — ...
 **`src/pages/subpages/CausalGuide.js`**
 
-- **CausalGuide.js:136** (47 words, text)
+- **CausalGuide.js:131** (47 words, text)
   > A protein that tracks a lifestyle exposure may cause a disease, may merely record it, or may do neither. Mendelian randomization adjudicates that, one...
-- **CausalGuide.js:226** (47 words, text)
+- **CausalGuide.js:217** (47 words, text)
   > A triad therefore draws on all three sources, and only edges involving the protein can differ between the two panels. Tier 1 requires a Steiger test t...
 
 ## `/results/pes`

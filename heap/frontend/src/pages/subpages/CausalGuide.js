@@ -25,7 +25,6 @@ import {
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import ArmNotice from '../../components/ArmNotice';
 import MotifKey from '../../components/MotifKey';
 import TriadBuilder from '../../components/TriadBuilder';
 import PDEffects from '../../components/PDEffects';
@@ -43,25 +42,21 @@ const VIEWS = [
     slug: 'entities',
     title: 'Build a triad',
     question: 'Which triads involve the exposure, protein or disease I care about?',
-    payoff: 'The matching triads and how they split across the five patterns.',
   },
   {
     slug: 'triads',
     title: 'Explore one triad',
     question: 'What are its three edges, and why was it classified that way?',
-    payoff: 'The evidence behind a single classification, edge by edge.',
   },
   {
     slug: 'effects',
     title: 'Protein → disease effects',
     question: 'Does the MR estimate agree with the observational one?',
-    payoff: 'Where genetics and epidemiology agree, and where they part.',
   },
   {
     slug: 'coloc',
     title: 'Colocalization',
     question: 'One shared causal variant, or two distinct variants in LD?',
-    payoff: 'Whether a cis signal survives the hard tier gate (PP.H4 ≥ 0.8).',
   },
 ];
 
@@ -140,7 +135,6 @@ function Landing() {
         they combine into, with the number of triads carrying each.
       </Typography>
 
-      <ArmNotice />
 
       {/* The key is the navigation. Clicking a motif writes ?motif= and every
           viewpoint below opens filtered to it. */}
@@ -187,9 +181,6 @@ function Landing() {
               </Typography>
               <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
                 {v.question}
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1.5 }}>
-                {v.payoff}
               </Typography>
               <Button
                 component={RouterLink}

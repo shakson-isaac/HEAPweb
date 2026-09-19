@@ -580,11 +580,7 @@ export default function TriadDAG({
       </Box>
 
       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
-        Stars mark the FDR-adjusted p on the edge label (*** q &lt; 0.001, ** q &lt; 0.01,
-        * q &lt; 0.05), the same rule the manuscript figure uses. Solid versus faint is the
-        Tier-1 edge set, which is stricter than q &lt; 0.05 — it also requires a Steiger test
-        that is significant and forward-oriented, so an edge can clear q &lt; 0.05 and still be
-        absent from the motif. Hover any edge or label for β, SE, 95% CI and q.
+        *** q &lt; 0.001 · ** q &lt; 0.01 · * q &lt; 0.05
       </Typography>
 
       {/* every estimate behind the diagram, including the instrument set not on show.
@@ -713,11 +709,6 @@ export default function TriadDAG({
         </TableBody>
       </Table>
       </Box>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
-        Tier-1 membership is recorded per direction, and the protein&rarr;disease and
-        protein&rarr;exposure directions pool cis- and trans-pQTL instruments — so both rows of
-        such a pair carry the same evidence label while their estimates differ.
-      </Typography>
     </Box>
   );
 }

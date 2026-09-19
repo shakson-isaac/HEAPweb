@@ -141,10 +141,7 @@ export default function MotifKey({ edges, motifs, selected, onSelect }) {
         How to read a triad
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Every exposure–protein–disease triad is tested in all six directions. Which
-        of them are supported — and, just as much, which are <em>absent</em> — is
-        what names the pattern. Hover an edge to see where it lands in the table;
-        click a pattern to filter the page.
+        Two-sample MR tests six directed edges among each exposure, protein and disease.
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-start' }}>
@@ -277,10 +274,8 @@ export default function MotifKey({ edges, motifs, selected, onSelect }) {
           </Box>
           <Typography variant="caption" color="text.secondary"
                       sx={{ display: 'block', mt: 1 }}>
-            Filled = the relationship must be supported · × = it must be
-            <em> absent</em> · open = either way. Bars are on a log scale. Counts are
-            at the Tier-1 evidence bar; because the patterns turn on absences,
-            raising the bar does not simply shrink every count.
+                      Filled = supported · open = either direction · × = absent. Bars count the Tier 1
+                      triads matching each motif (log scale).
           </Typography>
         </Box>
       </Box>

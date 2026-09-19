@@ -93,16 +93,12 @@ export default function MotifTrace({ triad, tiers, tierTable }) {
       <Collapse in={open}>
         <Box sx={{ mt: 2 }}>
           <Step n={1} title="Estimate every directed edge">
-            Inverse-variance-weighted (or Wald ratio for a single instrument), in
-            each pQTL panel that can produce that edge. Six directions; the two
-            with no protein are identical across panels.
+            Inverse-variance weighted (Wald ratio for one instrument), in each pQTL panel.
           </Step>
 
           <Step n={2} title="Adjust, then tier">
-            p-values are BH-adjusted <i>within</i> edge direction, then each edge is
-            placed on the ladder. Tier&nbsp;1 additionally requires a Steiger test
-            that is significant <i>and</i> forward-oriented; Tier&nbsp;1+ requires
-            cis-anchoring, colocalization and replication across both panels.
+            BH-adjusted within direction. Tier&nbsp;1 adds a significant, forward Steiger test;
+            Tier&nbsp;1+ adds cis-anchoring, colocalization and replication across both panels.
             {tierTable && (
               <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {Object.entries(tierTable)
@@ -119,12 +115,6 @@ export default function MotifTrace({ triad, tiers, tierTable }) {
                     );
                   })}
               </Box>
-            )}
-            {tierTable && Object.values(tierTable).some((v) => v === 'Tier1plus') && (
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: '#1b7837' }}>
-                Tier&nbsp;1+ edges here are cis-anchored, colocalized <b>and</b> replicated
-                across both pQTL panels &mdash; the strongest rung HEAP assigns.
-              </Typography>
             )}
           </Step>
 
@@ -144,40 +134,29 @@ export default function MotifTrace({ triad, tiers, tierTable }) {
           <Step n={4} title="Match the motif rules — absences count">
             <Box sx={{ mt: 0.5 }}>
               {verdicts.map((v) => (
-                <Box key={v.id} sx={{
-                  py: 0.75, borderTop: '1px solid', borderColor: 'divider',
-                  opacity: v.matched ? 1 : 0.72,
+                <Typography key={v.id} variant="body2" component="div" sx={{
+                  py: 0.5, borderTop: '1px solid', borderColor: 'divider',
+                  // The matched motif is the answer, so it reads at full strength; the
+                  // others are the reasons it is not something else.
+                  color: v.matched ? 'text.primary' : 'text.secondary',
                 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                    <b>{v.matched ? '✓' : '✗'} motif {v.id}</b>
-                    <span>{v.name}</span>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {v.reading}
-                    </Typography>
-                  </Box>
-                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', ml: 2 }}>
-                    needs {v.need.join(', ')}
-                    {v.forbid.length ? ` · requires ${v.forbid.join(', ')} absent` : ''}
-                  </Typography>
-                  {!v.matched && (
-                    <Typography variant="caption" sx={{ display: 'block', ml: 2, color: '#b2182b' }}>
-                      fails because
-                      {v.missing.length ? ` ${v.missing.join(', ')} did not reach Tier 1` : ''}
-                      {v.missing.length && v.present.length ? ', and' : ''}
-                      {v.present.length ? ` ${v.present.join(', ')} reached Tier 1 but must be absent` : ''}
-                    </Typography>
+                  <b>{v.matched ? '✓' : '✗'} {v.id} · {v.name}</b>
+                  {v.matched ? (
+                    <> — {v.reading}. Needs {v.need.join(', ')}
+                      {v.forbid.length ? `; ${v.forbid.join(', ')} absent` : ''}.</>
+                  ) : (
+                    <Box component="span" sx={{ color: '#b2182b' }}>
+                      {' — '}{[
+                        v.missing.length ? `${v.missing.join(', ')} below Tier 1` : null,
+                        v.present.length ? `${v.present.join(', ')} present but must be absent` : null,
+                      ].filter(Boolean).join('; ')}
+                    </Box>
                   )}
-                </Box>
+                </Typography>
               ))}
             </Box>
           </Step>
 
-          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
-            Rules transcribed from <code>summarize_mr_triads.R</code>, which is the
-            same code path that builds supplementary sheet <code>S_mr_triads</code>.
-            Because the rules turn on absences, motif counts are <b>recomputed</b> at
-            each evidence bar rather than filtered — they are not monotonic across tiers.
-          </Typography>
         </Box>
       </Collapse>
     </Paper>

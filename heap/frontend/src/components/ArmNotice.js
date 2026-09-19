@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Chip, Tooltip } from '@mui/material';
+import { Chip, Tooltip } from '@mui/material';
 import { useSectionMeta } from '../lib/useSection';
 
 // The MR analysis runs against TWO pQTL INSTRUMENT PANELS -- UK Biobank (Olink)
@@ -21,6 +21,10 @@ import { useSectionMeta } from '../lib/useSection';
 //
 // The paper's own Tier 1+ rung REQUIRES replication across both panels, so
 // "which arm" is not a footnote here; it changes what a tier means.
+//
+// This used to render on the /results/causal landing page as an Alert saying
+// the same thing to visitors. It was removed (2026-09-19): it is methods, and it
+// met a reader before any result. The explanation lives here and in Methods.
 const LABEL = { UKB: 'UK Biobank (Olink) pQTL instruments', DECODE: 'deCODE (SomaScan) pQTL instruments' };
 
 export function ArmChip({ sectionId }) {
@@ -38,23 +42,5 @@ export function ArmChip({ sectionId }) {
     <Tooltip title={`Protein instruments from ${LABEL[arm] || arm}. The other panel was analyzed but is not shown in this section. Same participants either way \u2014 only the protein instruments differ.`}>
       <Chip size="small" color="warning" variant="outlined" label={`${arm} pQTL instruments`} />
     </Tooltip>
-  );
-}
-
-/** Page-level statement. Rendered once, near the top, not per section. */
-export default function ArmNotice() {
-  return (
-    <Alert severity="info" sx={{ mb: 3 }}>
-      Motifs are assigned from the <b>UK Biobank</b> pQTL panel. A second panel,{' '}
-      <b>deCODE</b> (SomaScan), supplies independent pQTL instruments and so
-      corroborates the <i>protein arm</i> of a triad &mdash; the
-      protein&rarr;disease and protein&rarr;exposure edges. It cannot produce an
-      exposure&rarr;protein edge, which needs exposure instruments, so a deCODE
-      triad can never satisfy the mediator motif on its own; the motif is
-      UK&nbsp;Biobank&ndash;anchored by construction. Where deCODE estimates
-      exist they are shown alongside, and agreement on the protein arm is what
-      the <b>Tier&nbsp;1+</b> rung encodes: cis-anchored, colocalized{' '}
-      <i>and replicated across both panels</i>.
-    </Alert>
   );
 }

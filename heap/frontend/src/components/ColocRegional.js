@@ -226,6 +226,16 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
           </Box>
         </Box>
 
+        {/* An outbound lookup for THIS locus's lead variant -- a source, like the
+            platform-concordance citation, so it stays when the reading guide went. */}
+        {finngenUrl && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
+            <Link href={finngenUrl} target="_blank" rel="noopener noreferrer">
+              View {pts.lead.snp} in FinnGen
+            </Link>
+          </Typography>
+        )}
+
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
           <PlotPanel
             data={[{
@@ -259,22 +269,6 @@ export default function ColocRegional({ locusId, protein, target, pph4, pph3 }) 
         </Box>
       </Box>
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        Variants are the harmonized set colocalization actually used, so the plot
-        and the posterior describe the same data; r² is to the lead variant in the
-        1000 Genomes European panel{anchorInfo && !anchorInfo.isLead
-          ? `, anchored on ${anchorInfo.anchor} because the lead variant `
-            + `${anchorInfo.lead} is not in that panel`
-          : ''}. On the right, red points climbing together
-        means one shared causal variant (PP.H4); red points high on one axis and
-        flat on the other means two distinct variants in LD (PP.H3).
-        {' '}
-        {finngenUrl && (
-          <Link href={finngenUrl} target="_blank" rel="noopener noreferrer">
-            View {pts.lead.snp} in FinnGen
-          </Link>
-        )}
-      </Typography>
     </Box>
   );
 }

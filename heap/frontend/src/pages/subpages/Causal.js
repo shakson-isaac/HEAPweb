@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Select from 'react-select';
 import {
-  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
 import ColumnarTable from '../../components/ColumnarTable';
@@ -322,11 +322,6 @@ export function TriadExplorer({
   return (
     <SectionCard
       title="Triad explorer — the six directed relationships"
-      subtitle={
-        'Pick any exposure → protein → disease triad and read its whole Mendelian randomization '
-        + 'edge set at once. The three reverse edges are drawn alongside the forward ones because '
-        + 'the motif rules are defined by which reverse edges are absent.'
-      }
       loading={loading}
       error={error}
     >
@@ -335,8 +330,7 @@ export function TriadExplorer({
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap', mb: 1.5 }}>
             <Box sx={{ flex: '1 1 460px', minWidth: 320 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Triad — type to search {data.Exposure.length.toLocaleString()} of them by exposure,
-                protein or disease
+                Triad
               </Typography>
               <Select
                 options={options}
@@ -351,7 +345,7 @@ export function TriadExplorer({
               />
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 {nMatch.toLocaleString()} triad{nMatch === 1 ? '' : 's'} match
-                {nMatch > OPTION_CAP ? ` — first ${OPTION_CAP} listed; keep typing to narrow` : ''}
+                {nMatch > OPTION_CAP ? ` — first ${OPTION_CAP} listed` : ''}
               </Typography>
             </Box>
             <Box>
@@ -448,13 +442,6 @@ export function TriadExplorer({
             </Typography>
           </Box>
 
-          <Alert severity="info" sx={{ mt: 2 }}>
-            The <b>protein → disease</b> and <b>protein → exposure</b> directions are instrumented
-            twice, by cis- and by trans-pQTLs; the toggle above chooses which estimate the diagram
-            labels, and the table under it always shows both. Tier-1 membership is recorded once per
-            direction over the pooled instruments. Absent edges are shown, not hidden — an edge that
-            was never tested is drawn differently from one that was tested and missed the threshold.
-          </Alert>
         </>
       )}
     </SectionCard>
@@ -498,7 +485,7 @@ export function Coloc() {
   return (
     <SectionCard
       title={<>Colocalization of cis-pQTL and outcome signals <ArmChip sectionId="mr_coloc" /></>}
-      subtitle="PP.H4 &ge; 0.8 is the hard tier gate: one shared causal variant rather than two distinct variants in LD."
+      subtitle="Evidence for mediation was confined to a small set of cis-anchored, colocalized proteins."
       loading={loading}
       error={error}
     >

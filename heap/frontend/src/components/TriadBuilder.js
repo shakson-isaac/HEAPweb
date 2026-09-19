@@ -140,10 +140,6 @@ export default function TriadBuilder({ triadsPath }) {
       {/* No heading here: the viewpoint above already says "Build a triad",
           and saying it twice on one screen is the duplication this redesign
           keeps removing. The component is used inside a titled page. */}
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Fill any combination of the three. Each list only offers values that
-        actually occur with what you have already chosen.
-      </Typography>
 
       <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
         {slot('Exposure', e, setE, matches.forE, prettyExposure)}
@@ -212,7 +208,7 @@ export default function TriadBuilder({ triadsPath }) {
         <>
           {shown.n > CAP && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-              {`Showing the first ${CAP} of ${shown.n.toLocaleString()}. Narrow a slot to see the rest.`}
+              {`Showing the first ${CAP} of ${shown.n.toLocaleString()}.`}
             </Typography>
           )}
           <ColumnarTable data={shown.table} initialRowsPerPage={10} />

@@ -166,12 +166,7 @@ export default function PDEffects() {
   return (
     <SectionCard
       title={<>Protein &rarr; disease: causal estimate beside observational association</>}
-      subtitle={
-        'The same diseases, plotted twice. Left: the Mendelian randomization estimate, '
-        + 'graded by evidence tier. Right: the observational Cox hazard ratio with its '
-        + '95% confidence interval. A disease can sit far from 1 on the right and flat on the left — '
-        + 'that is a protein that tracks the disease without evidence of causing it.'
-      }
+      subtitle="Protein→disease effects were rare: eight proteins carried one at Tier 1, each acting on a single disease except ADM."
     >
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
         <Box sx={{ minWidth: 260, flex: '1 1 260px', maxWidth: 420 }}>
