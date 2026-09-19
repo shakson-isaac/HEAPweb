@@ -3,7 +3,6 @@ import {
   Alert, Box, Chip, FormControlLabel, Switch, Typography,
 } from '@mui/material';
 import PlotPanel from '../PlotPanel';
-import Disclosure from '../Disclosure';
 import { useShard } from '../../lib/useSection';
 import { getShard } from '../../lib/heapdata';
 import { assocSectionFor } from '../../lib/covariateSpecs';
@@ -114,19 +113,11 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
         The proteins that carried this enrichment, ranked by effect size
       </Typography>
-      <Typography variant="body2" sx={{ mb: 1 }}>
-        Held-out β with a 95% interval.
-        {byPathway
-          ? ' Filled = also carried an enriched pathway.'
-          : ' Filled = replicated in both splits.'}
-        {' '}
-        <b>Click a protein</b> for where it is expressed.
-      </Typography>
       <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap', alignItems: 'center' }}>
         <Chip size="small" label={`${ok.length} of ${rows.total} leading-edge proteins`} />
         {rows.missing.length > 0 && (
           <Chip size="small" variant="outlined" color="warning"
-                label={`${rows.missing.length} with no association row — missing, not zero`} />
+                label={`${rows.missing.length} with no association row`} />
         )}
         {pathwayNames.length > 0 && (
           <FormControlLabel
@@ -193,18 +184,6 @@ export default function LeadingEdgeEffects({ exposure, tissue, spec = 'base', on
           yaxis: { automargin: true },
         }}
       />
-      <Disclosure title="how these were estimated and chosen" count={1}>
-        <Typography variant="body2" sx={{ maxWidth: 900 }}>
-          Held-out β with a 95% Wald interval (β ± 1.96 × SE), from the test split — the same
-          estimate the rest of the site plots, never the discovery-split β. The leading edge is
-          stored in GSEA ranked-list order, so the first {SHORTLIST} are fetched and then re-ranked
-          by the β actually returned; that proxy has a median |ρ| of about 0.85 against |β|, so a
-          protein just outside the shortlist can outrank one inside it. Adjusting for BMI or the
-          clinical covariates attenuates many adiposity-linked effects; attenuation under
-          adjustment cannot on its own separate mediation from confounding, so read the
-          specification buttons as a sensitivity check rather than a mechanism.
-        </Typography>
-      </Disclosure>
     </Box>
   );
 }

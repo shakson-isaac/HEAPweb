@@ -55,13 +55,11 @@ const VIEWS = [
     slug: 'tissue',
     title: 'Start from a protein or an organ',
     question: 'Where is this protein expressed, or what reaches this organ?',
-    payoff: 'The same question from the other end. Two modes, one vocabulary.',
   },
   {
     slug: 'programs',
     title: 'Programs and tissues',
     question: 'Which biological programs carry an exposure into which tissues?',
-    payoff: 'Main Figure 2d, for all 114 exposures rather than the ten in print.',
   },
 ];
 
@@ -141,16 +139,6 @@ function Landing() {
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
         Tissues &amp; pathways
       </Typography>
-      {/* No lede. ExposureBodyMap opens with its own heading -- "What does this
-          exposure touch, and which proteins carry it?" -- and its own
-          description of picking an exposure and clicking an organ. A page-level
-          paragraph saying the same thing put the same sentence on screen twice,
-          thirty pixels apart. The NES convention stays because the component
-          prints NES values on the body and never defines the sign. */}
-      <Typography variant="body2" sx={{ mb: 3, maxWidth: 820, color: 'text.secondary' }}>
-        Positive NES means the set is enriched among proteins associated with that
-        exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
-      </Typography>
 
       {/* The body map IS the front page.
           A first pass landed on a compact organ-system heatmap with the
@@ -181,7 +169,6 @@ function Landing() {
               <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
                 {v.question}
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1.5 }}>{v.payoff}</Typography>
               <Button
                 component={RouterLink}
                 to={`${BASE}/${v.slug}${search}`}

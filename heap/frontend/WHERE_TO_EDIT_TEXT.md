@@ -224,66 +224,44 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/enrichment`
 
-24 passages of 20+ words; 71 shorter labels not listed.
+15 passages of 20+ words; 61 shorter labels not listed.
 
 **`src/components/enrichment/EnrichTripartite.js`**
 
-- **EnrichTripartite.js:325** (32 words, text)
+- **EnrichTripartite.js:322** (32 words, text)
   > PROGRAM_LEVELS.includes(p)); const inCol = new Set(programs); // Selection order is the reader's order (the exemplar preset keeps the // figure's harm...
-- **EnrichTripartite.js:467** (57 words, subtitle)
-  > Main Figure 2d routes ten curated exemplar exposures through the biological program clusters to organ systems. The enrichment behind it was never narr...
-- **EnrichTripartite.js:562** (40 words, text)
+- **EnrichTripartite.js:464** (42 words, title)
+  > Putative harmful exposures, such as smoking, air pollution, deprivation and red or processed meat, and hypothesized protective exposures, including ph...
+- **EnrichTripartite.js:554** (40 words, text)
   > No exposure selected — the left column is empty and the colored edges are gone, but the gray backbone is unchanged. That is the point: it is a global ...
-- **EnrichTripartite.js:927** (32 words, text)
-  > The gray backbone is a study-wide count across all 114 exposures, so it does not change with the picker. The selected exposure&apos;s own tissue signa...
 **`src/components/enrichment/ExposureBodyMap.js`**
 
 - **ExposureBodyMap.js:57** (66 words, text)
   > TISSUE LINK IS COMPUTED HERE, AND IT IS NOT THE BACKBONE // Choosing a pathway lights only the tissues whose leading edge shares at // least `minShare...
-- **ExposureBodyMap.js:268** (20 words, text)
+- **ExposureBodyMap.js:264** (20 words, text)
   > TINT_FLOOR + (1 - TINT_FLOOR) * clamp((Math.abs(nes) - NES_LO) / (NES_HI - NES_LO), 0, 1); const fmtQ = (v) =
-- **ExposureBodyMap.js:875** (63 words, text)
+- **ExposureBodyMap.js:859** (63 words, text)
   > Set of region ids the drawing actually carries. Measured from the // injected DOM rather than assumed, because the two body drawings are not // mirror...
-- **ExposureBodyMap.js:1488** (25 words, text)
+- **ExposureBodyMap.js:1472** (25 words, text)
   > Not itself a tested tissue: GTEx scores the subregions, never a whole brain, so this shape is a pointer and carries no direction or NES.
-- **ExposureBodyMap.js:1531** (22 words, text)
+- **ExposureBodyMap.js:1515** (22 words, text)
   > The tissues on this shape point in opposite directions, so the shape is drawn in the mixed color rather than picking one.
-- **ExposureBodyMap.js:1537** (20 words, text)
+- **ExposureBodyMap.js:1521** (20 words, text)
   > Indicative placement, not anatomical: the anatomogram has no tibial artery, so this result is shown on the nearest arterial shape.
-- **ExposureBodyMap.js:1681** (46 words, text)
+- **ExposureBodyMap.js:1662** (46 words, text)
   > The gray program&rarr;tissue backbone in the tripartite panel is a different quantity: &ge; 3 shared leading-edge genes with the same NES sign, comput...
-- **ExposureBodyMap.js:1730** (23 words, text)
-  > GTEx scores 13 brain subregions separately. The slate wash on the body is only a pointer to this panel, never a brain-level result.
-- **ExposureBodyMap.js:1755** (58 words, text)
-  > Whole blood and the two cell lines are not places and never will be. Anything else here is a real anatomical result that the drawing on screen cannot ...
-- **ExposureBodyMap.js:1807** (38 words, text)
-  > Anatomogram shapes from EBI Expression Atlas (Apache-2.0). Several GTEx tissues share one shape — both adipose depots, both skin sites, both colon seg...
-- **ExposureBodyMap.js:1820** (45 words, text)
-  > Click any labeled box beside the figure — or the organ itself, or any lit row in the side panel — for the proteins that carried its enrichment, their ...
-- **ExposureBodyMap.js:1933** (42 words, text)
+- **ExposureBodyMap.js:1893** (42 words, text)
   > GTEx v10 transcript expression, which is a different measurement from everything above it: no exposure, no plasma and no result of this study enters i...
-- **ExposureBodyMap.js:2040** (29 words, text)
+- **ExposureBodyMap.js:2000** (29 words, text)
   > Dot area scales with the number of GTEx donors behind that tissue&rsquo;s median; a median over a dozen donors is a far softer number than one over se...
-- **ExposureBodyMap.js:2106** (30 words, text)
+- **ExposureBodyMap.js:2066** (30 words, text)
   > Held-out β with a 95% Wald interval (β ± 1.96 × SE), from the test split — the same estimate the rest of the site plots, never the discovery-split β.
-- **ExposureBodyMap.js:2216** (73 words, text)
+- **ExposureBodyMap.js:2176** (73 words, text)
   > GSEA scores the whole ranked list of tested proteins, so a protein reaches the leading edge by sitting near the top of the ranking together with the r...
-**`src/components/enrichment/LeadingEdgeEffects.js`**
-
-- **LeadingEdgeEffects.js:197** (42 words, text)
-  > Held-out β with a 95% Wald interval (β ± 1.96 × SE), from the test split — the same estimate the rest of the site plots, never the discovery-split β. ...
 **`src/components/enrichment/TissueExplorer.js`**
 
-- **TissueExplorer.js:147** (43 words, text)
-  > Neither answers the other. A protein at the top of the liver profile does not make liver enrich for the exposures that protein responds to, and a tiss...
-- **TissueExplorer.js:667** (68 words, text)
+- **TissueExplorer.js:619** (68 words, text)
   > Every pair shown is already FDR q &lt; 0.05, so the question is not whether these exposures enrich but how strongly and in which direction. Direction ...
-- **TissueExplorer.js:730** (46 words, subtitle)
-  > The rest of this page runs one way: pick an exposure and see which tissues light up. These two views run the other way — from a protein to where its g...
-**`src/pages/subpages/EnrichmentGuide.js`**
-
-- **EnrichmentGuide.js:150** (23 words, text)
-  > Positive NES means the set is enriched among proteins associated with that exposure; negative means depleted. Everything shown is FDR q &lt; 0.05.
 
 ## `/results/causal`
 

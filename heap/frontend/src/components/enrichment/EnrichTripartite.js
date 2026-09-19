@@ -192,9 +192,6 @@ function WidthKey({ color, max, unit }) {
       <svg width="54" height="14" aria-hidden="true">
         <polygon points="1,7.5 1,6.5 52,2 52,12" fill={color} />
       </svg>
-      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-        {`1 → ${max} ${unit}`}
-      </Typography>
     </Box>
   );
 }
@@ -464,12 +461,7 @@ export default function EnrichTripartite() {
   return (
     <SectionCard
       title="Exposure → biological program → tissue, for any exposure"
-      subtitle={
-        'Main Figure 2d routes ten curated exemplar exposures through the biological program '
-        + 'clusters to organ systems. The enrichment behind it was never narrowed to those ten — '
-        + 'this is the same panel, drawn for any of the 114 exposures, so the reader can ask why '
-        + 'the exemplars were the exemplars. All edges are FDR q < 0.05.'
-      }
+      subtitle="Putative harmful exposures, such as smoking, air pollution, deprivation and red or processed meat, and hypothesized protective exposures, including physical activity, oily fish, cereal fiber and dried fruit, were associated with overlapping immune, extracellular-matrix, growth-factor, glycan/lipid and vascular–hemostatic programs in opposite directions."
       loading={loading}
       error={error}
       empty={!loading && !error && !view}
@@ -480,7 +472,7 @@ export default function EnrichTripartite() {
           <SpecPicker
             value={specId}
             onChange={(v) => { setSpecId(v); setOpenEdge(null); }}
-            label="Covariate specification — the model the exposure→protein associations were fitted under before the enrichment was run"
+            label="Covariate specification"
           />
           {specId !== 'base' && (
             <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 1.5, maxWidth: 900 }}>
@@ -895,14 +887,11 @@ export default function EnrichTripartite() {
                   <rect x="14" y="7" width="11" height="6" fill={BLU} opacity="0.9" />
                 </svg>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  badge = that exposure&apos;s own GTEx tissue enrichment (split = both directions)
+                  badge = the exposure&apos;s own tissue enrichment
                 </Typography>
               </Box>
             </Box>
 
-            {/* The two widths encode DIFFERENT counts. Saying so is not
-                pedantry: a reader who assumes one scale will compare a 9-pathway
-                edge with an 84-exposure edge and conclude the wrong thing. */}
             <Paper variant="outlined" sx={{ p: 1.25, bgcolor: '#FAFAFA' }}>
               <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, mb: 0.75 }}>
                 Two width scales, two different counts — they are not comparable
@@ -910,42 +899,15 @@ export default function EnrichTripartite() {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WidthKey color="#7A2430" max={view.maxNpath} unit="enriched pathways" />
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    <b>left half</b> — width = pathways behind that exposure→program edge
-                  </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WidthKey color="#9E9E9E" max={view.maxNexp} unit="supporting exposures" />
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    <b>right half</b> — width = exposures supporting that program→tissue link
-                  </Typography>
                 </Box>
               </Box>
             </Paper>
           </Box>
 
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, maxWidth: 880 }}>
-              The gray backbone is a study-wide count across all 114 exposures, so it does not
-              change with the picker. The selected exposure&apos;s own tissue signal is the badge
-              grid on the right.
-              {view.outside > 0 && (
-                <>
-                  {' '}{view.outside} further tissue enrichment{view.outside === 1 ? '' : 's'} fall
-                  outside the eight organ groups and carry no badge.
-                </>
-              )}
-            </Typography>
 
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}>
-            Read left to right. Columns are hand-placed rather than force-directed: the order{' '}
-            <i>exposure → program → tissue</i> is the argument, and programs and organs keep the
-            manuscript&apos;s display order (<code>HEAP_PROGRAM_LEVELS</code>,{' '}
-            <code>HEAP_TISSUE_LEVELS</code>), not an alphabetical one. Every program and organ stays
-            on screen whatever is selected, so the colored half of the picture can be seen changing
-            against a backbone that does not. Hover a program to hold its edges on both sides, hover
-            an exposure to hold its edges and its badges, and click any colored edge for the
-            Reactome pathways behind it.
-          </Typography>
         </>
       )}
     </SectionCard>

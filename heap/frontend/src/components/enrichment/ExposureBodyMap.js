@@ -160,22 +160,18 @@ const PAINT_STATES = [
   {
     id: 'lit',
     label: 'enriched (FDR q < 0.05)',
-    note: 'red up, blue down; color depth is |NES| on a fixed 1.2–3.0 scale',
   },
   {
     id: 'unlinked',
     label: 'enriched, but not linked to the chosen pathway',
-    note: 'shares fewer leading-edge proteins with it than the threshold; outlined in its own direction',
   },
   {
     id: 'null',
     label: 'tested, nothing at q < 0.05',
-    note: 'in the GTEx panel this exposure was scored against, and it came back null',
   },
   {
     id: 'untested',
     label: 'not in the tested panel',
-    note: 'left unpainted — the GSEA never scored this piece of anatomy, so nothing is claimed about it',
   },
 ];
 
@@ -634,7 +630,6 @@ function Anatomogram({
 
   const tip = hover ? renderTooltip(hover.region) : null;
   const gutter = labels && labels.length ? LABEL_GUTTER : 0;
-  const nLabels = labels ? labels.length : 0;
 
   return (
     <Box sx={{ minHeight, display: 'flex', flexDirection: 'column' }}>
@@ -767,14 +762,6 @@ function Anatomogram({
       {/* Fixed height on purpose: this caption sits below the measured frame,
           so a one-line/two-line change here would resize the frame and move
           every anchor it just reported. */}
-      {nLabels > 0 && (
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, lineHeight: 1.3, minHeight: 32 }}>
-          {placed.length === nLabels
-            ? `All ${nLabels} lit region${nLabels === 1 ? '' : 's'} labeled — click a box or the organ itself.`
-            : `${placed.length} of ${nLabels} lit regions labeled, strongest |NES| first — the gutters hold no more. `
-              + 'Every lit region is still clickable on the figure and named on hover.'}
-        </Typography>
-      )}
     </Box>
   );
 }
@@ -833,9 +820,6 @@ function SideRow({ entry, onClick, active }) {
           {entry.state === 'null'
             ? 'tested, nothing at q < 0.05'
             : `NES ${fmtNes(entry.nes)} · q = ${fmtQ(entry.q)} · ${entry.nLead} leading-edge proteins`}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3, fontStyle: 'italic' }}>
-          {entry.why}
         </Typography>
       </Box>
     </Box>
@@ -1556,10 +1540,7 @@ export default function ExposureBodyMap({
     <SectionCard
         title={detailFor ? 'The leading edge'
           : "Which tissues is this exposure's signature enriched in?"}
-        subtitle={detailFor ? null : (
-          "The body shows tissues whose expression signature this exposure's proteins are "
-          + 'enriched for. Click an organ for the leading-edge proteins behind it.'
-        )}
+        subtitle={detailFor ? null : 'Exposures converged on a similar set of target tissues, including blood, lung, liver and brain.'}
       loading={loading}
       error={error}
       empty={!loading && !error && !parsed}
@@ -1579,7 +1560,7 @@ export default function ExposureBodyMap({
           <SpecPicker
             value={spec}
             onChange={(v) => { setSpec(v); setOpenTissue(null); setGene(null); }}
-            label="Covariate specification — applies to the enrichment, the leading edge and the effect sizes"
+            label="Covariate specification"
           />
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end', mb: 1.5 }}>
             <Box sx={{ flex: '1 1 360px', minWidth: 0 }}>
@@ -1727,17 +1708,13 @@ export default function ExposureBodyMap({
                 onResolved={(ids) => handleResolved('brain', ids)}
                 renderTooltip={(region) => renderTooltip('brain', region)}
               />
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
-                GTEx scores 13 brain subregions separately. The slate wash on the body is only a
-                pointer to this panel, never a brain-level result.
-              </Typography>
             </Paper>
 
             {/* --- side panel + legend ---------------------------------- */}
             <Box sx={{ flex: '1 1 320px', minWidth: 280, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Paper variant="outlined" sx={{ p: 1.25 }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.75 }}>
-                  Nowhere to sit on a body — lit the same way
+                  Tissues not on the figure
                 </Typography>
                 {view.panel.length === 0 && (
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -1752,18 +1729,11 @@ export default function ExposureBodyMap({
                     onClick={() => openTissueAt(entry.term)}
                   />
                 ))}
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
-                  Whole blood and the two cell lines are not places and never will be. Anything else
-                  here is a real anatomical result that the drawing on screen cannot carry — sex-specific
-                  tissue on the other body, or a shape this anatomogram does not have. Switch the body
-                  toggle and watch it move onto the figure rather than vanish.
-                  {view.hiddenNull > 0 && ` A further ${view.hiddenNull} tested tissue${view.hiddenNull === 1 ? '' : 's'} of the other sex ${view.hiddenNull === 1 ? 'is' : 'are'} null for this exposure and not listed.`}
-                </Typography>
               </Paper>
 
               <Paper variant="outlined" sx={{ p: 1.25 }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.75 }}>
-                  Two channels: direction, and strength
+                  Direction and strength
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1.5, mb: 1 }}>
                   {['up', 'down'].map((d) => (
@@ -1800,14 +1770,11 @@ export default function ExposureBodyMap({
                     </Box>
                     <Typography variant="caption" sx={{ lineHeight: 1.3 }}>
                       <b>{s.label}</b>
-                      {` — ${s.note}`}
                     </Typography>
                   </Box>
                 ))}
                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.75 }}>
-                  Anatomogram shapes from EBI Expression Atlas (Apache-2.0). Several GTEx tissues share
-                  one shape — both adipose depots, both skin sites, both colon segments, both esophagus
-                  layers — and the hover names every tissue behind a shape it lights.
+                  Anatomogram shapes: EBI Expression Atlas (Apache-2.0).
                 </Typography>
               </Paper>
             </Box>
@@ -1816,13 +1783,6 @@ export default function ExposureBodyMap({
 
           {/* --- drill-in --------------------------------------------------- */}
           <Box sx={{ mt: 2 }}>
-            {!drill && (
-              <Alert severity="info">
-                Click any labeled box beside the figure — or the organ itself, or any lit row in the
-                side panel — for the proteins that carried its enrichment, their effect sizes for this
-                exposure, and where each one is expressed across the 54 GTEx tissues.
-              </Alert>
-            )}
             {drill && (
               <Paper variant="outlined" sx={{ p: 1.5 }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 0.5 }}>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, AlertTitle, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import Select from 'react-select';
 import SectionCard from '../SectionCard';
@@ -126,32 +126,6 @@ const DIR_COLOR = { up: '#B2182B', down: '#2166AC' };
 // The line every point in mode 2 already sits above. Drawn because a volcano
 // with no visible threshold invites the reader to supply their own.
 const Q_LINE = -Math.log10(0.05);
-
-// ---------------------------------------------------------------------------
-// The note that keeps the two modes apart. Shown in both, always.
-// ---------------------------------------------------------------------------
-function ModeContrast() {
-  return (
-    <Alert severity="info" icon={false} sx={{ mb: 2 }}>
-      <AlertTitle sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
-        The two views ask different questions of the same tissue names
-      </AlertTitle>
-      <Typography variant="body2" component="div">
-        <b>From a protein</b> is GTEx v10 transcript expression: is this gene transcribed in
-        donor samples of that tissue? No exposure, no plasma, and no result of this study
-        enters it.
-        <br />
-        <b>From a tissue</b> is gene-set enrichment: do the plasma proteins associated with an
-        exposure concentrate in that tissue&rsquo;s expression signature? It is computed across
-        the whole panel, never for one protein.
-        <br />
-        Neither answers the other. A protein at the top of the liver profile does not make liver
-        enrich for the exposures that protein responds to, and a tissue that enriches for smoking
-        need not contain the protein you looked up a moment ago.
-      </Typography>
-    </Alert>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // MODE 1 -- pick a protein, see where its gene is transcribed.
@@ -425,17 +399,6 @@ function ProteinMode() {
             )}
           </Box>
 
-          {band && (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              τ is tissue specificity across the 54 GTEx tissues, from 0 (the same everywhere)
-              to 1 (confined to one tissue). It is a property of the gene, so it is one number
-              per protein and not a column of 54. <b>{gene}</b> is {band.word}: {band.gloss}.
-              The distinction matters to how a plasma measurement should be read — a ubiquitous
-              protein is the kind of broadly secreted product that reports on exposure from
-              everywhere at once, whereas a tissue-restricted one carries a plasma signal that is
-              closer to a readout of that particular organ.
-            </Typography>
-          )}
 
           <Typography variant="body2" sx={{ mt: 1 }}>
             <b>Subcellular location (Human Protein Atlas):</b>{' '}
@@ -484,17 +447,6 @@ function ProteinMode() {
               legend: { orientation: 'h', yanchor: 'bottom', y: 1.002, x: 0, font: { size: 10 } },
             }}
           />
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
-            Dot area scales with the number of GTEx donors behind that tissue&rsquo;s median
-            {summary?.donorLo != null
-              ? ` (${summary.donorLo} to ${summary.donorHi.toLocaleString()} across the ${rows.length} tissues)`
-              : ''}
-            . A median taken over a dozen donors is a far softer number than one taken over
-            several hundred, and the rank order should be read with that in mind.
-            {plot.hasZero && scale === 'tpm' && ' A median of exactly 0 cannot be placed on a '
-              + 'log axis; those tissues are drawn as their own series on the tick labeled 0, '
-              + 'one decade below the smallest measured value, and are not a small measurement.'}
-          </Typography>
         </>
       )}
 
@@ -727,11 +679,6 @@ export default function TissueExplorer() {
   return (
     <SectionCard
       title="Start from a protein, or start from a tissue"
-      subtitle={
-        'The rest of this page runs one way: pick an exposure and see which tissues light up. '
-        + 'These two views run the other way — from a protein to where its gene is transcribed, '
-        + 'and from a tissue to the exposures whose proteins concentrate in it.'
-      }
     >
       <ToggleButtonGroup
         size="small"
@@ -748,7 +695,6 @@ export default function TissueExplorer() {
         </ToggleButton>
       </ToggleButtonGroup>
 
-      <ModeContrast />
 
       {mode === 'protein' ? <ProteinMode /> : <TissueMode />}
     </SectionCard>
