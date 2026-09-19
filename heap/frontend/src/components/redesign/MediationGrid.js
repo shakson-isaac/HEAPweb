@@ -100,8 +100,8 @@ export default function MediationGrid() {
     <SectionCard
       title="Which exposures mediate into which diseases?"
       subtitle={
-        'Each cell is the number of proteins carrying a significant mediated effect from that '
-        + 'exposure category into that disease. Click a cell for the proteins.'
+        'Hundreds of exposure-responsive proteins mediated exposure–disease associations, most '
+        + 'densely in cardiometabolic, hepatic, renal, digestive and respiratory disease.'
       }
       loading={loading}
       error={error}
@@ -179,12 +179,6 @@ export default function MediationGrid() {
                   && ` … and ${detail.n - detail.proteins.length} more`}
               </Typography>
             </Alert>
-          )}
-
-          {!cell && (
-            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1 }}>
-              Click any cell to list the proteins mediating that exposure into that disease.
-            </Typography>
           )}
         </>
       )}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, Autocomplete, Box, Chip, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Autocomplete, Box, Chip, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
@@ -159,11 +159,6 @@ export default function VarianceStack() {
   return (
     <SectionCard
       title="What is a protein's variance made of?"
-      subtitle={
-        'The partition as a composition — covariates, genetics, exposome and interaction, '
-        + 'against the share no model accounts for. Open the exposome into its 13 categories '
-        + 'with the scale switch.'
-      }
       loading={loading}
       error={error}
     >
@@ -220,15 +215,6 @@ export default function VarianceStack() {
               />
             </Box>
           </Box>
-
-          {scale === 'fine' && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <b>The 13 categories do not add up to the exposome bar above.</b> Each category R²
-              comes from its own fit rather than from splitting the joint exposomic component, so
-              exposures shared between categories are counted more than once. Read the fine scale
-              as which categories carry signal, not as a partition of the exposome.
-            </Alert>
-          )}
 
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
             <Chip size="small" variant="outlined"

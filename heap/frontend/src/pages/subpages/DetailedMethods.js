@@ -66,6 +66,21 @@ export default function DetailedMethods() {
             Ridge and elastic-net variants of the penalized fit are deposited alongside the
             primary estimator, as is a coarse and a fine partition of the same components.
           </P>
+          <P>
+            Each component&apos;s reach is its unique contribution &mdash; what it explains that the
+            other three do not &mdash; so the four components are disjoint. R² is scored on held-out
+            folds, so a component that fits only noise scores at or below zero. Each exposure
+            category&apos;s contribution is its leave-one-category-out predictive R², the variance lost
+            when that category&apos;s poly-exposure score is dropped from the full model. Because each
+            comes from its own fit rather than from splitting the joint exposomic component, the 13
+            category values do not sum to the exposome component.
+          </P>
+          <P>
+            GREML was fitted once, as a multi-kernel model at a GRM cutoff of 0.025, so covariate
+            specifications apply to the predictive decomposition only. The two estimators disagree on
+            the absolute number of exposure-responsive proteins, as expected of different estimators
+            of the same component; the comparison rests on their selecting overlapping proteins.
+          </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/main">Main results</Link> and{' '}
             <Link to="/results/summary">Lifestyle categories</Link>.
@@ -104,6 +119,19 @@ export default function DetailedMethods() {
             (genetic → protein → disease and exposure → protein → disease) and the corresponding
             direct effects. GEM summarizes, per protein, how modifiable that protein is under
             lifestyle exposures across the analyzed diseases.
+          </P>
+          <P>
+            Pleiotropy is the number of diseases a protein mediates through its dominant exposure
+            category: at most 3 is disease-specific, at least 20 a pleiotropic shared reporter.
+            Distributions of mediated effect are drawn over significant links only, so each is
+            conditioned on its own driver clearing FDR; their counts differ, and their shapes do not
+            say which driver is stronger overall. No principled cut on the proportion mediated
+            separates a reporter from an intermediate.
+          </P>
+          <P>
+            Attenuation under + BMI or + clinical adjustment is a sensitivity result, not evidence of
+            what mediates. A variable can be a confounder, a mediator or both, and adjusting for it
+            moves the estimate the same way in each case, so attenuation cannot tell them apart.
           </P>
           <Alert severity="info" sx={{ my: 1.5 }}>
             Observational mediation estimates are descriptive and may reflect confounding, reverse

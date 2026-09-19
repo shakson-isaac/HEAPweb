@@ -92,8 +92,8 @@ export default function CategoryReach() {
     <SectionCard
       title="Which parts of life leave the widest mark on the proteome?"
       subtitle={
-        'Each bar is the number of proteins for which that exposure category explains at '
-        + 'least the chosen share of variance. Click a bar to see the proteins behind it.'
+        'Exposure-responsive variance was concentrated in major lifestyle domains: exercise, '
+        + 'diet, alcohol and smoking explained the largest number of proteins.'
       }
       loading={loading}
       error={error}

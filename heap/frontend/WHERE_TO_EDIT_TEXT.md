@@ -46,117 +46,41 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/main`
 
-16 passages of 20+ words; 45 shorter labels not listed.
+3 passages of 20+ words; 42 shorter labels not listed.
 
-**`src/components/redesign/CategoryProfile.js`**
-
-- **CategoryProfile.js:95** (29 words, subtitle)
-  > Thirteen categories could be thirteen signals or one signal counted thirteen times. Breadth counts how many categories reach each protein; profile sho...
-- **CategoryProfile.js:162** (91 words, text)
-  > Proteins reached by no category at all are counted on the chip above rather than drawn, because that bar is large enough to flatten the rest — and a c...
-**`src/components/redesign/CategoryReach.js`**
-
-- **CategoryReach.js:94** (29 words, subtitle)
-  > Each bar is the number of proteins for which that exposure category explains at least the chosen share of variance. Click a bar to see the proteins be...
-**`src/components/redesign/DriverComparison.js`**
-
-- **DriverComparison.js:118** (24 words, subtitle)
-  > The same protein–disease link scored under the exposome score and under genetic drivers split into cis (the protein’s own locus) and trans (everywhere...
-- **DriverComparison.js:164** (77 words, text)
-  > Significant links only, so each distribution is conditioned on its own driver clearing FDR — the counts differ, and the shapes are not a statement abo...
-- **DriverComparison.js:191** (31 words, text)
-  > Filled markers cleared FDR for that driver; hollow ones did not and are drawn anyway, because a driver that was tested and did not reach significance ...
 **`src/components/redesign/ExposomicGradient.js`**
 
-- **ExposomicGradient.js:159** (32 words, subtitle)
-  > Each protein placed by its genetic contribution against its exposomic one. Green marks the proteins whose exposomic component reaches 1% of variance. ...
-**`src/components/redesign/MediationGrid.js`**
-
-- **MediationGrid.js:102** (25 words, subtitle)
-  > Each cell is the number of proteins carrying a significant mediated effect from that exposure category into that disease. Click a cell for the protein...
+- **ExposomicGradient.js:159** (23 words, subtitle)
+  > A subset of proteins carried reproducible exposure-responsive signal (exposomic R² ≥ 1%), and an independent GREML analysis gave concordant estimates ...
 **`src/components/redesign/MediationLandscape.js`**
 
-- **MediationLandscape.js:126** (32 words, subtitle)
-  > The proportion mediated is the share of an exposure’s effect on disease that travels through the protein. Pick a disease to see the proteins carrying ...
-- **MediationLandscape.js:163** (30 words, text)
-  > There is no principled place to split a reporter from an intermediate on this axis, so the line is yours to move. It is a reading aid, not a classific...
-- **MediationLandscape.js:188** (50 words, text)
-  > A variable can be a confounder, a mediator, or both at once, and adjusting for it moves the estimate in the same direction in every one of those cases...
+- **MediationLandscape.js:119** (24 words, subtitle)
+  > Individual proteins explained only small fractions of a single exposure–disease association, suggestive of lifestyle influencing disease through share...
 **`src/components/redesign/PleiotropySpectrum.js`**
 
-- **PleiotropySpectrum.js:116** (27 words, subtitle)
-  > Each mediator protein by how many diseases it mediates and how strong its strongest mediated effect is. Point size is the number of exposure categorie...
-**`src/components/redesign/VarianceReach.js`**
-
-- **VarianceReach.js:112** (39 words, subtitle)
-  > For a given share of variance on the x axis, the curve gives the number of proteins for which that component explains at least that much. Higher and f...
-**`src/components/redesign/VarianceStack.js`**
-
-- **VarianceStack.js:162** (29 words, subtitle)
-  > The partition as a composition — covariates, genetics, exposome and interaction, against the share no model accounts for. Open the exposome into its 1...
-- **VarianceStack.js:226** (42 words, text)
-  > Each category R² comes from its own fit rather than from splitting the joint exposomic component, so exposures shared between categories are counted m...
-**`src/pages/subpages/MainResults.js`**
-
-- **MainResults.js:12** (54 words, text)
-  > How much of each plasma protein’s variation is accounted for by demographic covariates, by common genetic variation, by the measured exposome and by t...
+- **PleiotropySpectrum.js:116** (46 words, subtitle)
+  > Ranking proteins by disease pleiotropy revealed a spectrum from disease-specific mediators, confined to one or a few outcomes, to pleiotropic proteins...
 
 ## `/results/summary`
 
-16 passages of 20+ words; 45 shorter labels not listed.
+4 passages of 20+ words; 41 shorter labels not listed.
 
-**`src/components/redesign/CategoryProfile.js`**
-
-- **CategoryProfile.js:95** (29 words, subtitle)
-  > Thirteen categories could be thirteen signals or one signal counted thirteen times. Breadth counts how many categories reach each protein; profile sho...
-- **CategoryProfile.js:162** (91 words, text)
-  > Proteins reached by no category at all are counted on the chip above rather than drawn, because that bar is large enough to flatten the rest — and a c...
-**`src/components/redesign/CategoryReach.js`**
-
-- **CategoryReach.js:94** (29 words, subtitle)
-  > Each bar is the number of proteins for which that exposure category explains at least the chosen share of variance. Click a bar to see the proteins be...
-**`src/components/redesign/DriverComparison.js`**
-
-- **DriverComparison.js:118** (24 words, subtitle)
-  > The same protein–disease link scored under the exposome score and under genetic drivers split into cis (the protein’s own locus) and trans (everywhere...
-- **DriverComparison.js:164** (77 words, text)
-  > Significant links only, so each distribution is conditioned on its own driver clearing FDR — the counts differ, and the shapes are not a statement abo...
-- **DriverComparison.js:191** (31 words, text)
-  > Filled markers cleared FDR for that driver; hollow ones did not and are drawn anyway, because a driver that was tested and did not reach significance ...
 **`src/components/redesign/ExposomicGradient.js`**
 
-- **ExposomicGradient.js:159** (32 words, subtitle)
-  > Each protein placed by its genetic contribution against its exposomic one. Green marks the proteins whose exposomic component reaches 1% of variance. ...
-**`src/components/redesign/MediationGrid.js`**
-
-- **MediationGrid.js:102** (25 words, subtitle)
-  > Each cell is the number of proteins carrying a significant mediated effect from that exposure category into that disease. Click a cell for the protein...
+- **ExposomicGradient.js:159** (23 words, subtitle)
+  > A subset of proteins carried reproducible exposure-responsive signal (exposomic R² ≥ 1%), and an independent GREML analysis gave concordant estimates ...
 **`src/components/redesign/MediationLandscape.js`**
 
-- **MediationLandscape.js:126** (32 words, subtitle)
-  > The proportion mediated is the share of an exposure’s effect on disease that travels through the protein. Pick a disease to see the proteins carrying ...
-- **MediationLandscape.js:163** (30 words, text)
-  > There is no principled place to split a reporter from an intermediate on this axis, so the line is yours to move. It is a reading aid, not a classific...
-- **MediationLandscape.js:188** (50 words, text)
-  > A variable can be a confounder, a mediator, or both at once, and adjusting for it moves the estimate in the same direction in every one of those cases...
+- **MediationLandscape.js:119** (24 words, subtitle)
+  > Individual proteins explained only small fractions of a single exposure–disease association, suggestive of lifestyle influencing disease through share...
 **`src/components/redesign/PleiotropySpectrum.js`**
 
-- **PleiotropySpectrum.js:116** (27 words, subtitle)
-  > Each mediator protein by how many diseases it mediates and how strong its strongest mediated effect is. Point size is the number of exposure categorie...
-**`src/components/redesign/VarianceReach.js`**
-
-- **VarianceReach.js:112** (39 words, subtitle)
-  > For a given share of variance on the x axis, the curve gives the number of proteins for which that component explains at least that much. Higher and f...
-**`src/components/redesign/VarianceStack.js`**
-
-- **VarianceStack.js:162** (29 words, subtitle)
-  > The partition as a composition — covariates, genetics, exposome and interaction, against the share no model accounts for. Open the exposome into its 1...
-- **VarianceStack.js:226** (42 words, text)
-  > Each category R² comes from its own fit rather than from splitting the joint exposomic component, so exposures shared between categories are counted m...
+- **PleiotropySpectrum.js:116** (46 words, subtitle)
+  > Ranking proteins by disease pleiotropy revealed a spectrum from disease-specific mediators, confined to one or a few outcomes, to pleiotropic proteins...
 **`src/pages/subpages/HeapSummary.js`**
 
-- **HeapSummary.js:11** (51 words, text)
-  > The exposome split into lifestyle categories — alcohol, smoking, diet, exercise, sleep, vitamins, sun, pollution, deprivation and the rest — and score...
+- **HeapSummary.js:11** (24 words, text)
+  > Which parts of the exposome account for the proteome’s exposure-responsive variation? The exposome was grouped into 13 categories spanning lifestyle, ...
 
 ## `/results/associations`
 
@@ -165,7 +89,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 **`src/pages/subpages/Associations.js`**
 
 - **Associations.js:94** (34 words, text)
-  > Every lifestyle exposure tested against the selected protein. Points above zero are positive associations, below zero negative; solid points replicate...
+  > Which exposures is each protein associated with? Exercise frequency, weekly diet and smoking contributed the largest number of replicated exposure–pro...
 
 ## `/results/architecture`
 
@@ -184,14 +108,12 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/mediation`
 
-2 passages of 20+ words; 1 shorter labels not listed.
+1 passages of 20+ words; 0 shorter labels not listed.
 
 **`src/pages/subpages/Mediation.js`**
 
-- **Mediation.js:14** (24 words, const)
-  > Observational mediation estimates are descriptive and may reflect confounding, reverse causation, or shared upstream causes. Causal support is evaluat...
-- **Mediation.js:37** (66 words, text)
-  > Each protein → disease link estimated by the mediation analysis: how much of an exposure&apos;s effect on disease is carried by the protein, how that ...
+- **Mediation.js:19** (31 words, text)
+  > Do exposure-responsive proteins connect lifestyle exposures to disease risk? Genetic and Exposomic Mediation (GEM) splits each exposure–disease associ...
 
 ## `/results/intervention`
 
@@ -348,7 +270,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/documentation/methods`
 
-12 passages of 20+ words; 13 shorter labels not listed.
+16 passages of 20+ words; 13 shorter labels not listed.
 
 **`src/pages/subpages/DetailedMethods.js`**
 
@@ -356,25 +278,33 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > For each protein, the variance in abundance is partitioned into what covariates, genetics, the exposome and gene-by-environment interaction each expla...
 - **DetailedMethods.js:65** (26 words, text)
   > Ridge and elastic-net variants of the penalized fit are deposited alongside the primary estimator, as is a coarse and a fine partition of the same com...
-- **DetailedMethods.js:76** (37 words, text)
+- **DetailedMethods.js:69** (91 words, text)
+  > Each component&apos;s reach is its unique contribution &mdash; what it explains that the other three do not &mdash; so the four components are disjoin...
+- **DetailedMethods.js:78** (51 words, text)
+  > GREML was fitted once, as a multi-kernel model at a GRM cutoff of 0.025, so covariate specifications apply to the predictive decomposition only. The t...
+- **DetailedMethods.js:91** (37 words, text)
   > Every exposure is regressed against every protein under the primary covariate set, separately in the training and test splits. An association counts a...
-- **DetailedMethods.js:108** (24 words, text)
+- **DetailedMethods.js:123** (73 words, text)
+  > Pleiotropy is the number of diseases a protein mediates through its dominant exposure category: at most 3 is disease-specific, at least 20 a pleiotrop...
+- **DetailedMethods.js:131** (46 words, text)
+  > Attenuation under + BMI or + clinical adjustment is a sensitivity result, not evidence of what mediates. A variable can be a confounder, a mediator or...
+- **DetailedMethods.js:136** (24 words, text)
   > Observational mediation estimates are descriptive and may reflect confounding, reverse causation, or shared upstream causes. Causal support is evaluat...
-- **DetailedMethods.js:119** (71 words, text)
+- **DetailedMethods.js:147** (71 words, text)
   > Two-sample bidirectional MR over each exposure–protein–disease triad, testing all six directed edges: exposure → protein, protein → exposure, protein ...
-- **DetailedMethods.js:127** (36 words, text)
+- **DetailedMethods.js:155** (36 words, text)
   > Each surviving edge is graded on a stringency ladder that folds in instrument strength, Steiger orientation, heterogeneity, directional pleiotropy, MR...
-- **DetailedMethods.js:143** (33 words, text)
+- **DetailedMethods.js:171** (33 words, text)
   > Exposure–protein associations are correlated against measured proteomic change (post-intervention minus baseline) in three interventional cohorts: HER...
-- **DetailedMethods.js:149** (32 words, text)
+- **DetailedMethods.js:177** (32 words, text)
   > The comparison is restricted to proteins measured on both platforms and carries the Olink-to-SomaScan agreement for that protein set in the interface ...
-- **DetailedMethods.js:154** (54 words, text)
+- **DetailedMethods.js:182** (54 words, text)
   > A between-person association and a within-person change under treatment are different quantities. Both trials are also significance-selected &mdash; H...
-- **DetailedMethods.js:167** (60 words, text)
+- **DetailedMethods.js:195** (60 words, text)
   > A penalized proteomic score is trained per exposure on the baseline sample and evaluated on participants held out for a repeat visit. Three things are...
-- **DetailedMethods.js:174** (31 words, text)
+- **DetailedMethods.js:202** (31 words, text)
   > Incremental disease prediction is reported from held-out or bootstrapped estimates, because the apparent change in C-index computed in the training sa...
-- **DetailedMethods.js:213** (25 words, text)
+- **DetailedMethods.js:241** (25 words, text)
   > Earlier versions of this site displayed the maximally adjusted model by default and labeled the sets Type1–Type7. Both are retired: the primary model ...
 
 ## `/documentation/cite`

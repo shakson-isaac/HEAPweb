@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Alert, Autocomplete, Box, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Autocomplete, Box, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
@@ -115,10 +115,6 @@ export default function DriverComparison() {
   return (
     <SectionCard
       title="How large is an exposure-mediated effect, next to a genetic one?"
-      subtitle={
-        'The same protein–disease link scored under the exposome score and under genetic '
-        + 'drivers split into cis (the protein’s own locus) and trans (everywhere else).'
-      }
       loading={loading}
       error={error}
     >
@@ -161,14 +157,6 @@ export default function DriverComparison() {
                   margin: { l: 80, r: 30, t: 45, b: 60 },
                 }}
               />
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, maxWidth: 900 }}>
-Significant links only, so each distribution is conditioned on its own driver
-                clearing FDR — the counts differ, and the shapes are not a statement about which
-                driver is stronger overall. What they show is the size of effect each driver
-                delivers when it delivers one, which is the number to hold an exposomic effect
-                against. Binned at 0.25%, with everything above 30% in the last bar; the axis is
-                clipped at 12% where the mass is.
-              </Typography>
             </>
           )}
 
@@ -189,15 +177,9 @@ Significant links only, so each distribution is conditioned on its own driver
                 }}
               />
               <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, maxWidth: 900 }}>
-                Filled markers cleared FDR for that driver; hollow ones did not and are drawn
-                anyway, because a driver that was tested and did not reach significance is
-                information, not an absence.
+                Filled markers cleared FDR for that driver; hollow ones did not.
               </Typography>
             </>
-          )}
-
-          {mode === 'protein' && !protein && (
-            <Alert severity="info">Pick a protein to compare its drivers disease by disease.</Alert>
           )}
         </>
       )}

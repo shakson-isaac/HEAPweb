@@ -92,11 +92,6 @@ export default function CategoryProfile() {
   return (
     <SectionCard
       title="Do the categories reach the same proteins, or different ones?"
-      subtitle={
-        'Thirteen categories could be thirteen signals or one signal counted thirteen times. '
-        + 'Breadth counts how many categories reach each protein; profile shows which ones '
-        + 'reach a protein you choose.'
-      }
       loading={loading}
       error={error}
     >
@@ -159,15 +154,6 @@ export default function CategoryProfile() {
                   showlegend: false,
                 }}
               />
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, maxWidth: 900 }}>
-                Proteins reached by no category at all are counted on the chip above rather than
-                drawn, because that bar is large enough to flatten the rest — and a category is a
-                subset of the exposome, so a protein the full exposome reaches can still be reached
-                by no single category. Among the rest: a distribution concentrated at one or two
-                categories is modular, different exposures marking different proteins. One pushed
-                to the right is diffuse, and would mean the categories largely re-measure a shared
-                signal rather than contributing independent information.
-              </Typography>
             </>
           )}
 
@@ -195,11 +181,8 @@ export default function CategoryProfile() {
               {profile && profile.empty && (
                 <Alert severity="info">
                   No exposure category explains any measurable variance in {protein} under this
-                  specification. That is a result about the protein, not a gap in the data.
+                  specification.
                 </Alert>
-              )}
-              {!protein && (
-                <Alert severity="info">Pick a protein to see which categories mark it.</Alert>
               )}
             </>
           )}

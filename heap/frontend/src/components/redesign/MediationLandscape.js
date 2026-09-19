@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, AlertTitle, Autocomplete, Box, Chip, TextField, ToggleButton,
+  Autocomplete, Box, Chip, TextField, ToggleButton,
   ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
@@ -25,9 +25,10 @@ import {
 // + BMI and 9,754 under + clinical. It is very tempting to read that collapse as
 // "BMI was the mediator all along". It does not license that: adjusting for a
 // variable that may be a confounder, a mediator, or both cannot separate those
-// cases, and this manuscript withdrew exactly that claim. So the drop is stated
-// as a sensitivity result and the reading is named and refused on screen rather
-// than left for the visitor to reach on their own.
+// cases, and this manuscript withdrew exactly that claim. The on-screen warning
+// that refused this reading moved to the FAQ ("Does the estimate shrinking under
+// "+ BMI" mean the effect is mediated by BMI?") and Methods on 2026-09-19 --
+// results pages carry no caveats. Never reintroduce the claim as copy.
 // ---------------------------------------------------------------------------
 
 // Movable, because no principled cut exists here. The default is a round number,
@@ -84,14 +85,6 @@ export default function MediationLandscape() {
 
   const diseases = useMemo(() => (dzKeys?.keys ? Object.keys(dzKeys.keys).sort() : []), [dzKeys]);
 
-  // The primary model's link count, for the sensitivity note. Summed from the
-  // same bins rather than a link table -- the links are no longer held in
-  // memory, only the selected disease's shard.
-  const baseN = useMemo(() => {
-    const b = pm.base?.all;
-    return b ? b.y.reduce((a, c) => a + c, 0) : null;
-  }, [pm]);
-
   // One disease's mediators, strongest indirect effect first, coloured by the
   // exposure category the link starts from.
   const forest = useMemo(() => {
@@ -124,9 +117,9 @@ export default function MediationLandscape() {
     <SectionCard
       title="Reporter or intermediate?"
       subtitle={
-        'The proportion mediated is the share of an exposure’s effect on disease that '
-        + 'travels through the protein. Pick a disease to see the proteins carrying it, '
-        + 'with the interval on every estimate.'
+        'Individual proteins explained only small fractions of a single exposure–disease '
+        + 'association, suggestive of lifestyle influencing disease through shared proteomic '
+        + 'responses rather than singular mediators.'
       }
       loading={loading}
       error={error}
@@ -160,10 +153,6 @@ export default function MediationLandscape() {
                 <ToggleButton key={v} value={v} sx={{ textTransform: 'none' }}>{v}</ToggleButton>
               ))}
             </ToggleButtonGroup>
-            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5, maxWidth: 780 }}>
-              There is no principled place to split a reporter from an intermediate on this
-              axis, so the line is yours to move. It is a reading aid, not a classification.
-            </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
@@ -176,21 +165,6 @@ export default function MediationLandscape() {
             />
             <Chip size="small" variant="outlined" label={`${dist.pct.toFixed(0)}% below the marked cut`} />
           </Box>
-
-          {spec !== 'base' && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <AlertTitle sx={{ fontSize: '0.85rem' }}>
-                Fewer links here is a sensitivity result, not evidence of what mediates
-              </AlertTitle>
-              This specification leaves {dist.n.toLocaleString()} significant links against{' '}
-              {baseN ? baseN.toLocaleString() : '—'} under the primary model. It is tempting
-              to read a drop under adjustment as showing that the adjusted-for variable was the
-              real mediator. <b>It does not show that.</b> A variable can be a confounder, a
-              mediator, or both at once, and adjusting for it moves the estimate in the same
-              direction in every one of those cases — so attenuation cannot tell them apart.
-              Read this as how much the finding depends on the model, and nothing more.
-            </Alert>
-          )}
 
           <PlotPanel
             data={dist.trace}

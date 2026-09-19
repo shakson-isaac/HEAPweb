@@ -110,9 +110,8 @@ export default function VarianceReach() {
     <SectionCard
       title="How far does each component reach across the proteome?"
       subtitle={
-        'For a given share of variance on the x axis, the curve gives the number of proteins '
-        + 'for which that component explains at least that much. Higher and further right is '
-        + 'a component that reaches more of the proteome.'
+        'Across the proteome, demographic covariates explained most protein variation, followed '
+        + 'by genetics, whereas gene-by-environment variation was consistently small.'
       }
       loading={loading}
       error={error}
@@ -137,12 +136,6 @@ export default function VarianceReach() {
             <Chip size="small" variant="outlined" label={`${nProt.toLocaleString()} proteins`} />
           </Box>
 
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Each curve is the component&apos;s <b>unique</b> contribution — what it explains that
-            the other three do not — so the four are disjoint and can be read against each other
-            directly.
-          </Alert>
-
           <PlotPanel
             data={curves}
             height={430}
@@ -160,7 +153,7 @@ export default function VarianceReach() {
 
           <Box sx={{ mt: 3, maxWidth: 620 }}>
             <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
-              One protein&apos;s decomposition, with 95% intervals
+              One protein&apos;s decomposition
             </Typography>
             <Autocomplete
               size="small"

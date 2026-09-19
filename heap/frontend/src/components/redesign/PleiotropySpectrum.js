@@ -114,8 +114,10 @@ export default function PleiotropySpectrum() {
     <SectionCard
       title="From disease-specific intermediary to shared reporter"
       subtitle={
-        'Each mediator protein by how many diseases it mediates and how strong its strongest '
-        + 'mediated effect is. Point size is the number of exposure categories driving it.'
+        'Ranking proteins by disease pleiotropy revealed a spectrum from disease-specific '
+        + 'mediators, confined to one or a few outcomes, to pleiotropic proteins acting across '
+        + 'over 20 diseases. For example, LEP, ADM and FABP4 linked exposure categories such as '
+        + 'physical activity to multiple metabolic, renal and circulatory outcomes.'
       }
       loading={loading}
       error={error}
@@ -137,18 +139,6 @@ export default function PleiotropySpectrum() {
               </ToggleButtonGroup>
             </Box>
           </Box>
-
-          <Alert severity={spec === 'base' ? 'success' : 'info'} sx={{ mb: 2 }}>
-            {spec === 'base'
-              ? `As printed in Figure 3c: pleiotropy is the number of diseases a protein mediates
-                 through its dominant exposure category, and point size is how many categories
-                 drive it. This is the published view — ${view.nSpec} disease-specific and
-                 ${view.nHub} pleiotropic.`
-              : `The same count under a different adjustment: ${view.nSpec} disease-specific and
-                 ${view.nHub} pleiotropic, against the 325 and 303 printed in Figure 3c. Fewer
-                 links clear significance under this specification, so proteins move left as
-                 well as out of the plot entirely.`}
-          </Alert>
 
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1.5 }}>
             <Chip size="small" label={`${view.nSpec} disease-specific`}
@@ -214,14 +204,6 @@ export default function PleiotropySpectrum() {
               )}
             </Alert>
           )}
-
-          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1.5, maxWidth: 900 }}>
-            The claim this panel carries is about <b>breadth</b>, not about how much of an
-            exposure&apos;s effect a protein conducts. A protein mediating thirty diseases is
-            reporting something general that tracks many outcomes; one mediating two is a candidate
-            for a specific mechanism. The proportion mediated does not separate those — its median
-            is 0.13 across the significant links regardless of how many diseases a protein touches.
-          </Typography>
         </>
       )}
     </SectionCard>

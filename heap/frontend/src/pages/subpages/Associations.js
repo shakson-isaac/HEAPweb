@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import Select from 'react-select';
-import { Box, Typography, ToggleButton, ToggleButtonGroup, Chip, Alert } from '@mui/material';
+import { Box, Typography, ToggleButton, ToggleButtonGroup, Chip } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
 import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
@@ -18,9 +18,9 @@ const isTrue = (v) => v === true || String(v).toUpperCase() === 'TRUE';
 // the exposome, and the site used to serve it unlabelled as "Type6".
 const SPECS = [
   { id: 'assoc_base', label: 'Primary', note: 'base: age, age², sex, their interactions, assessment center, 20 genetic PCs' },
-  { id: 'assoc_base_plus_bmi', label: '+ BMI', note: 'base + BMI. A sensitivity layer, NOT a mediation test — attenuation here cannot separate mediation from confounding' },
+  { id: 'assoc_base_plus_bmi', label: '+ BMI', note: 'base + BMI' },
   { id: 'assoc_base_plus_blood_draw', label: '+ blood draw', note: 'base + fasting time and assessment season' },
-  { id: 'assoc_base_plus_clinical', label: '+ clinical', note: 'base + BMI, fasting, season and 5 medication classes (maximal explicit adjustment)' },
+  { id: 'assoc_base_plus_clinical', label: '+ clinical', note: 'base + BMI, fasting, season and 5 medication classes' },
   { id: 'assoc_exclude_prevalent_disease', label: 'Healthy at baseline', note: 'base, restricted to participants without prevalent major disease' },
 ];
 
@@ -92,9 +92,9 @@ export default function Associations() {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="body1" sx={{ mb: 2, maxWidth: 900 }}>
-        Every lifestyle exposure tested against the selected protein. Points above zero are
-        positive associations, below zero negative; solid points replicated across the
-        train/test split. Hover for effect size, standard error, p-value and sample size.
+        Which exposures is each protein associated with? Exercise frequency, weekly diet and smoking
+        contributed the largest number of replicated exposure–protein associations; for example,
+        physical activity was associated with the adiposity-related proteins LEP and FABP4.
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap', mb: 1 }}>
@@ -160,11 +160,6 @@ export default function Associations() {
                 margin: { b: 110 },
               }}
             />
-            <Alert severity="info" sx={{ my: 2 }}>
-              These are <b>per-term</b> tests (one row per model term × protein). The abstract's
-              headline of 22,240 replicated associations counts <b>exposure–protein pairs</b> via a
-              block F-test, which is a different test — the two counts are not interconvertible.
-            </Alert>
             <ColumnarTable data={data} initialRowsPerPage={25} />
           </>
         )}

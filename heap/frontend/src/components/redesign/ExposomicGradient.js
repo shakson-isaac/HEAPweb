@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert, Autocomplete, Box, Chip, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Autocomplete, Box, Chip, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import SectionCard from '../SectionCard';
 import PlotPanel from '../PlotPanel';
@@ -157,9 +157,9 @@ export default function ExposomicGradient() {
     <SectionCard
       title="The exposure-responsive spectrum"
       subtitle={
-        'Each protein placed by its genetic contribution against its exposomic one. Green marks '
-        + 'the proteins whose exposomic component reaches 1% of variance. Two independent '
-        + 'methods, shown separately so their agreement stays visible.'
+        'A subset of proteins carried reproducible exposure-responsive signal (exposomic '
+        + 'R² ≥ 1%), and an independent GREML analysis gave concordant estimates of '
+        + 'exposure-associated variance.'
       }
       loading={loading}
       error={error}
@@ -203,34 +203,14 @@ export default function ExposomicGradient() {
             </Box>
           </Box>
 
-          {exp === 'M1_base_lasso' && scope === 'greml' && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              This is the published view: {heap.nResp} exposure-responsive proteins by HEAP and{' '}
-              {greml.nResp} by GREML, over the same {greml.n.toLocaleString()} proteins — the counts
-              printed in Figure 1b.
-            </Alert>
-          )}
-
           {panel(heap.pts, heap.labels, 'HEAP — cross-validated prediction R²',
             'PGS predictive R²', 'PXS predictive R²', heap.nResp)}
 
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1, mb: 0.5 }}>
             <Chip size="small" variant="outlined" label="base specification only" />
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              GREML was fitted once, multi-kernel, at GRM cutoff 0.025 — the specification picker
-              above does not move this panel.
-            </Typography>
           </Box>
           {panel(greml.pts, heap.labels, 'GREML — variance components',
             'genetics: SNP-h²', 'exposome: σ²E', greml.nResp)}
-
-          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1.5, maxWidth: 900 }}>
-            The same {N_LABEL} proteins are labeled in both panels — the strongest exposomic signal
-            under the specification on screen — so a protein can be followed from one method to the
-            other. The two disagree on the absolute count, which is expected: they estimate the
-            same component by different means, and the argument rests on them selecting overlapping
-            proteins rather than identical numbers.
-          </Typography>
         </>
       )}
     </SectionCard>

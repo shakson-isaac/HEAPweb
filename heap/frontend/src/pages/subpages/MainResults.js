@@ -10,10 +10,8 @@ export default function MainResults() {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="body1" sx={{ mb: 1.5, maxWidth: 900 }}>
-        How much of each plasma protein’s variation is accounted for by demographic covariates,
-        by common genetic variation, by the measured exposome and by their interaction. Every
-        panel on this page is cross-validated: R² is scored on held-out folds, so a component
-        that only fits noise scores at or below zero rather than above it.
+        How much of each plasma protein’s variation do demographic covariates, genetics, the
+        exposome and gene-by-environment interaction explain?
       </Typography>
       {/* The specification sentence was here. It named 'base' and listed its
           covariates, directly above a Specification dropdown that changes both --
