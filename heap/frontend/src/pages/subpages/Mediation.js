@@ -1,34 +1,35 @@
 import React from 'react';
-import TableComponent from '../../components/TableComponent';
 
-function Mediation() {
+import { Box, Typography } from '@mui/material';
+import PleiotropySpectrum from '../../components/redesign/PleiotropySpectrum';
+import MediationGrid from '../../components/redesign/MediationGrid';
+import DriverComparison from '../../components/redesign/DriverComparison';
+import MediationLandscape from '../../components/redesign/MediationLandscape';
+
+
+// The observational-mediation caveat that sat under the lede, with its link to
+// /results/causal, moved to Methods (Module 3) and the FAQ on 2026-09-19.
+// Results pages carry no caveats. The manuscript's wording is kept verbatim in
+// pages/subpages/DetailedMethods.js -- do not reword it there either.
+
+export default function Mediation() {
   return (
-    <div>
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Mediation</h3>
-        <p>Mediation analysis utilizing PXS and PGS of each protein across 270 disease codes.</p>
-        {/* Add more content for the Mediation page */}
-      </div>
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Disease links</Typography>
+      <Typography variant="body1" sx={{ mb: 3, maxWidth: 900 }}>
+        Do exposure-responsive proteins connect lifestyle exposures to disease risk? Genetic and
+        Exposomic Mediation (GEM) splits each exposure–disease association into an indirect effect
+        through a measured protein and a remaining direct effect.
+      </Typography>
 
-      <div className="interactive-plot">
-        <iframe
-          title="Interactive Plot"
-          src={`${process.env.REACT_APP_BACKEND_URL}/data/generic/GEMplot.html`} // Use relative URL
-          width="1200px"
-          height="600px"
-          frameBorder="0"
-        />
-      </div>
-
-      {/* Interactive Table of GvE table */}
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Mediation Results for the Proteome</h3>
-        <TableComponent
-          csvFilePath={`${process.env.REACT_APP_BACKEND_URL}/fetch_data/MediationResults.csv`} // Use relative URL
-        />
-      </div>
-    </div>
+      {/* Four lead visuals, left all visible while the remaining partitioned
+          specifications finish. Which one deserves to lead depends on how they
+          read across five specifications rather than one, so the order here is
+          provisional. */}
+      <PleiotropySpectrum />
+      <MediationGrid />
+      <DriverComparison />
+      <MediationLandscape />
+    </Box>
   );
 }
-
-export default Mediation;

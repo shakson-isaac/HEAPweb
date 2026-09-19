@@ -1,15 +1,22 @@
 import React from 'react';
-import TableComponent from '../../components/TableComponent';
+import { Box, Typography } from '@mui/material';
 
-function HeapSummary() {
+import CategoryReachPanel from '../../components/redesign/CategoryReach';
+import CategoryProfile from '../../components/redesign/CategoryProfile';
+
+
+export default function HeapSummary() {
   return (
-    <div className="mt-8">
-      <h3 className="text-xl font-semibold">Lifestyle Categories</h3>
-      <TableComponent
-        csvFilePath={`${process.env.REACT_APP_BACKEND_URL}/fetch_data/GxE_Cat_R2table.csv`} // Use relative URL
-      />
-    </div>
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="body1" sx={{ mb: 3, maxWidth: 900 }}>
+        Which parts of the exposome account for the proteome’s exposure-responsive variation?
+        The exposome was grouped into 13 categories spanning lifestyle, physical-environment and
+        socioeconomic domains.
+      </Typography>
+
+      {/* The two lead visuals, both specification-aware. */}
+      <CategoryReachPanel />
+      <CategoryProfile />
+    </Box>
   );
 }
-
-export default HeapSummary;

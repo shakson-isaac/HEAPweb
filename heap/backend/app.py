@@ -1,10 +1,10 @@
 import os
+import hmac
 from google.cloud import storage
 from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import psycopg2
 import pandas as pd
-from io import StringIO
 import logging
 import io
 from sqlalchemy import create_engine, or_, Table, MetaData, inspect, func
@@ -332,26 +332,36 @@ def create_or_refresh_table_with_sqlalchemy(table_name, csv_file_path):
         app.logger.debug(f"Creating or refreshing table '{table_name}' from CSV file: {csv_file_path}")
         engine = get_sqlalchemy_engine()
 
-        # Read the CSV file in chunks to avoid loading the entire file into memory
-        csv_data = fetch_csv_from_gcs(GCS_BUCKET, csv_file_path)
+        # Stream the object rather than downloading it whole: download_as_text()
+        # would hold the entire CSV in memory (62 MB for MediationResults) on a
+        # container capped at 1 Gi. With blob.open() peak memory is one chunk.
+        bucket = storage_client.get_bucket(GCS_BUCKET)
+        blob = bucket.blob(csv_file_path)
+        if not blob.exists():
+            raise FileNotFoundError(f"File not found: {csv_file_path}")
+
         chunk_size = 10000  # Process 10,000 rows at a time
         first_chunk = True  # Track whether this is the first chunk
+        rows_loaded = 0
 
-        for chunk in pd.read_csv(StringIO(csv_data), chunksize=chunk_size):
-            # Use 'replace' for the first chunk to clear the table, then 'append' for subsequent chunks
-            if first_chunk:
-                chunk.to_sql(table_name, engine, if_exists='replace', index=False)
-                first_chunk = False
-                app.logger.debug(f"Replaced table '{table_name}' with the first chunk of {len(chunk)} rows.")
-            else:
-                chunk.to_sql(table_name, engine, if_exists='append', index=False)
-                app.logger.debug(f"Appended a chunk of {len(chunk)} rows to table '{table_name}'.")
+        with blob.open("rt") as handle:
+            reader = pd.read_csv(handle, chunksize=chunk_size)
+            for chunk in reader:
+                # 'replace' on the first chunk clears the table, then 'append'
+                if first_chunk:
+                    chunk.to_sql(table_name, engine, if_exists='replace', index=False)
+                    first_chunk = False
+                    app.logger.debug(f"Replaced table '{table_name}' with the first chunk of {len(chunk)} rows.")
+                else:
+                    chunk.to_sql(table_name, engine, if_exists='append', index=False)
+                    app.logger.debug(f"Appended a chunk of {len(chunk)} rows to table '{table_name}'.")
 
-            # Explicitly delete the chunk and invoke garbage collection after processing each chunk
-            del chunk
-            gc.collect()
+                rows_loaded += len(chunk)
+                del chunk
+                gc.collect()
 
-        app.logger.info(f"Table '{table_name}' created or refreshed successfully.")
+        app.logger.info(f"Table '{table_name}' refreshed with {rows_loaded} rows.")
+        return rows_loaded
     except Exception as e:
         app.logger.error(f"Error creating or refreshing table with SQLAlchemy: {e}")
         raise
@@ -430,6 +440,62 @@ def test_db_connection():
     except Exception as e:
         app.logger.error(f"Database connection test failed: {e}")
         return jsonify({"error": str(e)}), 500
+
+# Tables the refresh endpoint is allowed to (re)build, mapped to their source
+# CSV in GCS. An allowlist, so a caller cannot name an arbitrary table or path.
+REFRESHABLE_TABLES = {
+    "GxE_R2table": "data/download/GxE_R2table.csv",
+    "GxE_Cat_R2table": "data/download/GxE_Cat_R2table.csv",
+    "MediationResults": "data/download/MediationResults.csv",
+    "GEMdownload": "data/download/GEMdownload.csv",
+}
+
+
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route('/admin/refresh-table', methods=['POST'])
+def refresh_table():
+    """Rebuild one Postgres table from its CSV in GCS.
+
+    This is the one part of the data pipeline that has to run inside GCP: Cloud
+    SQL is reached over the /cloudsql socket that Cloud Run mounts, which does
+    not exist on O2. Everything else (packing and publishing the sharded
+    payloads) happens on O2, where the source data lives.
+
+    The service is deployed --allow-unauthenticated, so this endpoint is inert
+    unless REFRESH_TOKEN is set in the environment, and requires that token on
+    every call. It fails closed: no token configured means no refresh.
+    """
+    expected = os.getenv("REFRESH_TOKEN")
+    if not expected:
+        app.logger.warning("refresh-table called but REFRESH_TOKEN is not configured")
+        return jsonify({"error": "refresh endpoint is not enabled"}), 503
+
+    presented = request.headers.get("X-Refresh-Token", "")
+    if not hmac.compare_digest(presented, expected):
+        return jsonify({"error": "forbidden"}), 403
+
+    payload = request.get_json(silent=True) or {}
+    table = payload.get("table")
+    if table not in REFRESHABLE_TABLES:
+        return jsonify({
+            "error": "unknown table",
+            "allowed": sorted(REFRESHABLE_TABLES),
+        }), 400
+
+    try:
+        rows = create_or_refresh_table_with_sqlalchemy(table, REFRESHABLE_TABLES[table])
+        cache.clear()  # paginated reads of this table are cached for 5 minutes
+        return jsonify({"table": table, "rows": rows, "status": "refreshed"}), 200
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        app.logger.error(f"refresh of '{table}' failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 # Custom 404 error handler
 @app.errorhandler(404)
