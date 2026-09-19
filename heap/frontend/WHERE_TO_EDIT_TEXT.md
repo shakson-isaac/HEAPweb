@@ -93,18 +93,12 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/architecture`
 
-4 passages of 20+ words; 18 shorter labels not listed.
+1 passages of 20+ words; 17 shorter labels not listed.
 
 **`src/pages/subpages/Interactions.js`**
 
-- **Interactions.js:187** (44 words, title)
-  > Every protein tested against the selected exposure for a gene-by-environment interaction. Points are colored by which genetic block reaches the Bonfer...
-- **Interactions.js:486** (29 words, title)
-  > Interaction pairs that clear the Bonferroni threshold in both the training and the held-out split, broken down by which genetic block carries them, by...
-- **Interactions.js:574** (36 words, title)
-  > The 25 proteins with the highest unique interaction R², with the exposure category that dominates each. These are the right-hand tail of the same per-...
-- **Interactions.js:603** (76 words, text)
-  > HEAP tests every exposure–protein pair for a polygenic gene-by-environment interaction, and reports the result as a supplementary analysis rather than...
+- **Interactions.js:599** (23 words, text)
+  > Does genetics modify how exposures shape the proteome? Polygenic gene-by-environment effects were detectable but sparse, and less extensive than the e...
 
 ## `/results/mediation`
 
@@ -270,7 +264,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/documentation/methods`
 
-16 passages of 20+ words; 13 shorter labels not listed.
+17 passages of 20+ words; 13 shorter labels not listed.
 
 **`src/pages/subpages/DetailedMethods.js`**
 
@@ -284,27 +278,29 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
   > GREML was fitted once, as a multi-kernel model at a GRM cutoff of 0.025, so covariate specifications apply to the predictive decomposition only. The t...
 - **DetailedMethods.js:91** (37 words, text)
   > Every exposure is regressed against every protein under the primary covariate set, separately in the training and test splits. An association counts a...
-- **DetailedMethods.js:123** (73 words, text)
+- **DetailedMethods.js:108** (62 words, text)
+  > Polygenic G×E is tested per exposure–protein pair with a joint F-test over the cis and trans genetic blocks. Two thresholds are used: the per-pair vie...
+- **DetailedMethods.js:130** (73 words, text)
   > Pleiotropy is the number of diseases a protein mediates through its dominant exposure category: at most 3 is disease-specific, at least 20 a pleiotrop...
-- **DetailedMethods.js:131** (46 words, text)
+- **DetailedMethods.js:138** (46 words, text)
   > Attenuation under + BMI or + clinical adjustment is a sensitivity result, not evidence of what mediates. A variable can be a confounder, a mediator or...
-- **DetailedMethods.js:136** (24 words, text)
+- **DetailedMethods.js:143** (24 words, text)
   > Observational mediation estimates are descriptive and may reflect confounding, reverse causation, or shared upstream causes. Causal support is evaluat...
-- **DetailedMethods.js:147** (71 words, text)
+- **DetailedMethods.js:154** (71 words, text)
   > Two-sample bidirectional MR over each exposure–protein–disease triad, testing all six directed edges: exposure → protein, protein → exposure, protein ...
-- **DetailedMethods.js:155** (36 words, text)
+- **DetailedMethods.js:162** (36 words, text)
   > Each surviving edge is graded on a stringency ladder that folds in instrument strength, Steiger orientation, heterogeneity, directional pleiotropy, MR...
-- **DetailedMethods.js:171** (33 words, text)
+- **DetailedMethods.js:178** (33 words, text)
   > Exposure–protein associations are correlated against measured proteomic change (post-intervention minus baseline) in three interventional cohorts: HER...
-- **DetailedMethods.js:177** (32 words, text)
+- **DetailedMethods.js:184** (32 words, text)
   > The comparison is restricted to proteins measured on both platforms and carries the Olink-to-SomaScan agreement for that protein set in the interface ...
-- **DetailedMethods.js:182** (54 words, text)
+- **DetailedMethods.js:189** (54 words, text)
   > A between-person association and a within-person change under treatment are different quantities. Both trials are also significance-selected &mdash; H...
-- **DetailedMethods.js:195** (60 words, text)
+- **DetailedMethods.js:202** (60 words, text)
   > A penalized proteomic score is trained per exposure on the baseline sample and evaluated on participants held out for a repeat visit. Three things are...
-- **DetailedMethods.js:202** (31 words, text)
+- **DetailedMethods.js:209** (31 words, text)
   > Incremental disease prediction is reported from held-out or bootstrapped estimates, because the apparent change in C-index computed in the training sa...
-- **DetailedMethods.js:241** (25 words, text)
+- **DetailedMethods.js:248** (25 words, text)
   > Earlier versions of this site displayed the maximally adjusted model by default and labeled the sets Type1–Type7. Both are retired: the primary model ...
 
 ## `/documentation/cite`

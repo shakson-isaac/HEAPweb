@@ -105,6 +105,13 @@ export default function DetailedMethods() {
             replicated association. Gene-by-environment interaction terms are fitted in the same
             framework and reported separately, in the supplement.
           </P>
+          <P>
+            Polygenic G×E is tested per exposure–protein pair with a joint F-test over the cis and
+            trans genetic blocks. Two thresholds are used: the per-pair view applies a Bonferroni
+            threshold over all exposure–protein pairs in one split, while a replicated pair must clear
+            that threshold in the training split and again in held-out data, so replicated counts are
+            far smaller than per-split counts.
+          </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/associations">Associations</Link>; G×E on{' '}
             <Link to="/results/architecture">Genetic and exposomic architecture</Link>.

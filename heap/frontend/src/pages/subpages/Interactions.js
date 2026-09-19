@@ -184,7 +184,6 @@ function AssocSection({ nPairs }) {
   return (
     <SectionCard
       title="Interaction p-values across the proteome, one exposure at a time"
-      subtitle="Every protein tested against the selected exposure for a gene-by-environment interaction. Points are colored by which genetic block reaches the Bonferroni threshold — cis, trans, both, or neither — and the dashed line is that threshold, set over all exposure-protein pairs in the section."
       loading={kLoading || loading}
       error={kError || error}
     >
@@ -229,15 +228,14 @@ function AssocSection({ nPairs }) {
               <Chip key={a} size="small" variant="outlined" label={`${a}: ${view.counts[a]}`} />
             ))}
             {view.nCensored > 0 && (
-              <Chip size="small" variant="outlined" label={`${view.nCensored} p-values below export precision, not plotted`} />
+              <Chip size="small" variant="outlined" label={`${view.nCensored} p-values too small to plot`} />
             )}
           </Box>
 
           {view.nSig === 0 && (
             <Alert severity="info" sx={{ mb: 2 }}>
               All {view.n} proteins were tested against this exposure and none reached the joint
-              Bonferroni threshold. That is a <b>tested, threshold not met</b> result — distinct from
-              an exposure that carries no test at all, which would not appear in the selector.
+              Bonferroni threshold.
             </Alert>
           )}
 
@@ -336,7 +334,7 @@ function NoiseFloorSection({ onStats }) {
   return (
     <SectionCard
       title="How the interaction component reproduces"
-      subtitle="Each protein's unique drop-one R² in the training split against the same quantity out of fold, one panel per variance component, with the dashed line at y = x. The bar chart repeats the interaction estimate under models that add age- and sex-interaction terms."
+      subtitle="Gene-by-environment explained variation was consistently small and not reproducible by both methods."
       loading={loading}
       error={error}
     >
@@ -387,8 +385,8 @@ function NoiseFloorSection({ onStats }) {
             />
           </Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1 }}>
-            Spearman correlation of the per-protein interaction estimate against the base model:{' '}
-            {view.rho.map((r) => `${r.key} ρ = ${num(r.rho, 2)}`).join(' · ')}.
+            {`Spearman ρ against base: ${view.rho.filter((r) => r.key !== 'base')
+              .map((r) => `${r.key} ${num(r.rho, 2)}`).join(' · ')}.`}
           </Typography>
         </>
       )}
@@ -483,7 +481,7 @@ function ArchitectureSection({ onCounts }) {
   return (
     <SectionCard
       title="What the replicated interactions consist of"
-      subtitle="Interaction pairs that clear the Bonferroni threshold in both the training and the held-out split, broken down by which genetic block carries them, by exposure category, and by protein."
+      subtitle="Replicated interactions were largely cis-dominated and concentrated at a few loci, such as FOLR3."
       loading={loading}
       error={error}
     >
@@ -525,7 +523,7 @@ function ArchitectureSection({ onCounts }) {
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-              By protein ({view.nHub} proteins carry the interactions shown)
+              By protein ({view.nHub} proteins)
             </Typography>
             <PlotPanel
               data={view.hubBar}
@@ -542,8 +540,7 @@ function ArchitectureSection({ onCounts }) {
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-              Strongest cis interaction pairs ({view.nLociShown} of {view.nLoci} shown; the rest are
-              in the table below)
+              Strongest cis interaction pairs ({view.nLociShown} of {view.nLoci} shown)
             </Typography>
             <PlotPanel
               data={view.lociBar}
@@ -571,7 +568,6 @@ function ProteinsSection() {
   return (
     <SectionCard
       title="Proteins with the largest interaction R²"
-      subtitle="The 25 proteins with the highest unique interaction R², with the exposure category that dominates each. These are the right-hand tail of the same per-protein distribution plotted against its held-out estimate above; read the two together."
       loading={loading}
       error={error}
     >
@@ -598,15 +594,11 @@ export default function Interactions() {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-        Gene-by-environment interactions — a supplementary analysis
+        Gene-by-environment interactions
       </Typography>
       <Typography variant="body1" sx={{ mb: 2, maxWidth: 900 }}>
-        HEAP tests every exposure–protein pair for a polygenic gene-by-environment interaction, and
-        reports the result as a supplementary analysis rather than a headline. The two measurements
-        behind that placement are on this page: the size of the interaction variance component
-        relative to the genetic and exposomic components, and how the same component behaves out of
-        fold. Both are plotted below from the published payload; what they mean for the biology is
-        argued in the manuscript, not here.
+        Does genetics modify how exposures shape the proteome? Polygenic gene-by-environment effects
+        were detectable but sparse, and less extensive than the exposomic main effects.
       </Typography>
 
       <Box sx={{ mb: 3, display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -631,13 +623,6 @@ export default function Interactions() {
             sx={{ borderColor: COMPONENT_COLORS[s.component] }} />
         ))}
       </Box>
-
-      <Alert severity="info" sx={{ mb: 3, maxWidth: 1000 }}>
-        Two thresholds are in play and they are not the same. The <b>per-pair</b> plot uses a
-        Bonferroni threshold over all exposure–protein pairs in one split. The <b>replicated</b>{' '}
-        counts require a pair to clear that threshold in the training split and again in held-out
-        data, which is why they are far smaller than the per-split counts.
-      </Alert>
 
       <AssocSection nPairs={nPairs} />
       <NoiseFloorSection onStats={setFloor} />
