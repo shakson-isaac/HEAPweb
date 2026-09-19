@@ -678,7 +678,6 @@ export default function TissueExplorer() {
 
   return (
     <SectionCard
-      title="Start from a protein, or start from a tissue"
     >
       <ToggleButtonGroup
         size="small"

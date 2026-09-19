@@ -224,7 +224,7 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/results/enrichment`
 
-15 passages of 20+ words; 61 shorter labels not listed.
+15 passages of 20+ words; 60 shorter labels not listed.
 
 **`src/components/enrichment/EnrichTripartite.js`**
 
