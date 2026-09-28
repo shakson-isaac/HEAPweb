@@ -1,3 +1,360 @@
+/* src/pages/Home.css
+ *
+ * Two blocks live here.
+ *
+ * 1. `.home-*` -- the rebuilt landing page. Namespaced so nothing else can pick
+ *    these rules up by accident.
+ *
+ * 2. The legacy generic classes (.container, .heading, .paragraph, .list,
+ *    .list-item, .section, .image). CRA imports CSS globally, and this file is
+ *    the only place those rules are defined, so the documentation subpages that
+ *    still use them -- subpages/AboutHeap.js, subpages/FAQs.js,
+ *    subpages/DetailedMethods.js -- render through this stylesheet even though
+ *    they never import it. They are kept verbatim; deleting them would silently
+ *    unstyle three other pages.
+ */
+
+/* --------------------------------------------------------------------------
+ * 1. Landing page
+ * -------------------------------------------------------------------------- */
+
+.home {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 8px 16px 48px;
+  font-family: 'Inter', sans-serif;
+  color: #1a202c;
+  line-height: 1.6;
+}
+
+/* Hero ------------------------------------------------------------------- */
+
+.home-hero {
+  background: linear-gradient(135deg, #124533 0%, #1d6b4f 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 36px 32px 32px;
+  margin: 16px 0 28px;
+}
+
+.home-eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bfe3d2;
+}
+
+.home-title {
+  margin: 0 0 14px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.home-title-expansion {
+  display: block;
+  margin-top: 6px;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #dbf0e5;
+}
+
+.home-title-expansion strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.home-lede {
+  margin: 0 0 10px;
+  max-width: 68ch;
+  font-size: 1.15rem;
+}
+
+.home-framing {
+  margin: 0;
+  max-width: 74ch;
+  font-size: 0.98rem;
+  color: #d5ece0;
+}
+
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.home-cta {
+  display: inline-block;
+  padding: 11px 22px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #124533;
+  font-weight: 700;
+  font-size: 0.98rem;
+  text-decoration: none;
+  border: 2px solid #ffffff;
+}
+
+.home-cta:hover {
+  background: #eafaf1;
+  color: #0d3325;
+}
+
+.home-cta--ghost {
+  background: transparent;
+  color: #ffffff;
+}
+
+.home-cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* Stat bar --------------------------------------------------------------- */
+
+.home-stats {
+  margin-bottom: 34px;
+}
+
+.home-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.home-stat {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.home-stat-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #124533;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-stat-value--pending {
+  color: #a0aec0;
+}
+
+.home-stat-label {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.home-stat-note {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: #718096;
+}
+
+.home-stat-note--flag {
+  margin-top: 6px;
+  padding-left: 8px;
+  border-left: 3px solid #d69e2e;
+  color: #8a6116;
+}
+
+.home-provenance {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.home-provenance code {
+  font-size: 0.78rem;
+  background: #edf2f7;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Blocks ----------------------------------------------------------------- */
+
+.home-block {
+  margin-bottom: 34px;
+  scroll-margin-top: 24px;
+}
+
+.home-h2 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.home-block-sub {
+  margin: 0 0 16px;
+  max-width: 78ch;
+  font-size: 0.95rem;
+  color: #4a5568;
+}
+
+/* Entry cards ------------------------------------------------------------ */
+
+.home-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #1d6b4f;
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.home-card:hover {
+  box-shadow: 0 6px 16px rgba(18, 69, 51, 0.14);
+  transform: translateY(-1px);
+  color: inherit;
+}
+
+.home-card-title {
+  font-size: 1.03rem;
+  font-weight: 700;
+  color: #124533;
+}
+
+.home-card-body {
+  font-size: 0.88rem;
+  color: #4a5568;
+}
+
+.home-card-go {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 0.76rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #718096;
+}
+
+/* Start here ------------------------------------------------------------- */
+
+.home-usecases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.home-usecase {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: minmax(200px, 250px) 1fr auto;
+  gap: 8px 20px;
+  align-items: center;
+}
+
+.home-usecase-lead {
+  font-weight: 700;
+  color: #124533;
+  font-size: 0.97rem;
+}
+
+.home-usecase-body {
+  font-size: 0.88rem;
+  color: #4a5568;
+}
+
+.home-usecase-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.home-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #c6d9cf;
+  background: #f1f8f4;
+  color: #124533;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-pill:hover {
+  background: #dcefe4;
+  color: #0d3325;
+}
+
+/* Cite and reuse --------------------------------------------------------- */
+
+.home-legal {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.home-legal-line {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #2d3748;
+  overflow-wrap: anywhere;
+}
+
+.home-legal-line:last-child {
+  margin-bottom: 0;
+}
+
+.home-legal-fine {
+  font-size: 0.82rem;
+  color: #718096;
+}
+
+/* Narrow screens --------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .home-title {
+    font-size: 2rem;
+  }
+
+  .home-hero {
+    padding: 26px 20px;
+  }
+
+  .home-usecase {
+    grid-template-columns: 1fr;
+  }
+
+  .home-usecase-links {
+    justify-content: flex-start;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * 2. Legacy generic classes -- still consumed by the documentation subpages.
+ *    Do not delete without updating AboutHeap.js, FAQs.js and DetailedMethods.js.
+ * -------------------------------------------------------------------------- */
+
 .container {
   padding: 16px;
   line-height: 1.6;
