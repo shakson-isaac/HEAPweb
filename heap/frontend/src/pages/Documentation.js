@@ -205,14 +205,14 @@ export function macroNote(headline, name) {
   return m ? m.note : '';
 }
 
-/** Degraded-but-explained state. Deliberately not severity="error": the page
- *  itself is fine, only the live numbers are missing. */
+/** The page itself is fine when this shows; only the live numbers are missing,
+ *  which is why it is severity="warning" rather than "error". */
 export function HeadlineFallback({ error }) {
   if (!error) return null;
   return (
     <Alert severity="warning" sx={{ mb: 2, maxWidth: 820 }}>
-      Live headline numbers could not be read from the payload ({String(error.message || error)}).
-      The figures below render as em dashes rather than as stale hand-typed values.
+      Live numbers could not be read from the payload ({String(error.message || error)}).
+      The figures below show em dashes.
     </Alert>
   );
 }

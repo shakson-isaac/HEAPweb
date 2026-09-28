@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, Box, Chip, Paper, Typography } from '@mui/material';
 import {
-  AuthorNote, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable, SourceNote,
+  AuthorNote, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable,
   macro, useHeadline,
 } from '../Documentation';
 import ColumnarTable from '../../components/ColumnarTable';
@@ -18,49 +18,49 @@ const RUNGS = [
     tier: 'Observational',
     kind: 'association',
     adds: 'An estimate exists',
-    detail: 'The exposure–protein (or protein–disease) model was fitted and returned a coefficient. Says nothing about replication or direction.',
+    detail: 'The exposure–protein or protein–disease model was fitted and returned a coefficient.',
   },
   {
     tier: 'Replicated',
     kind: 'association',
     adds: 'Holds in both splits',
-    detail: 'The association reaches significance in the training split and again in the held-out test split, with the same sign.',
+    detail: 'The association is significant in the training split and again in the held-out split, with the same sign.',
   },
   {
     tier: 'MR Suggestive',
     kind: 'causal',
-    adds: 'MR run, not resolved',
-    detail: 'An FDR-significant MR estimate that is weakly instrumented, fails a sensitivity check, or has an unresolved causal direction. Flagged only.',
+    adds: 'MR run, unresolved',
+    detail: 'An FDR-significant MR estimate with a weak instrument, a failed sensitivity check, or an unresolved causal direction. Flagged for review.',
   },
   {
     tier: 'MR Tier 2',
     kind: 'causal',
     adds: 'FDR-significant',
-    detail: 'The two-sample MR estimate survives multiple-testing correction across the tested edges. This is where trans-instrumented evidence lives, and where most of it stays.',
+    detail: 'The two-sample MR estimate survives multiple-testing correction across the tested edges. Trans-instrumented evidence enters here.',
   },
   {
     tier: 'MR Tier 1',
     kind: 'causal',
     adds: '+ sensitivity robustness + established direction',
-    detail: 'Adds heterogeneity (Cochran Q), directional-pleiotropy (MR-Egger, MR-PRESSO) and causal-direction checks. The direction rule is symmetric: Steiger must be significant AND forward — reading the sign alone was biased by instrument strength and was replaced.',
+    detail: 'Adds heterogeneity (Cochran Q), directional pleiotropy (MR-Egger, MR-PRESSO) and causal-direction checks. Steiger must be significant and forward.',
   },
   {
     tier: 'MR Tier 1+',
     kind: 'causal',
     adds: '+ cis-anchored, colocalized, cross-platform',
-    detail: 'Cis-anchored, colocalized, and replicated across both the UK Biobank Olink and the deCODE SomaScan pQTL panels. The strictest rung in the MR ladder.',
+    detail: 'Cis-anchored, colocalized, and replicated across the UK Biobank Olink and deCODE SomaScan pQTL panels. The strictest rung.',
   },
   {
     tier: 'Colocalized',
     kind: 'causal',
     adds: 'PP.H4 ≥ 0.8',
-    detail: 'The pQTL and the outcome signal at the locus are consistent with one shared causal variant rather than two variants in linkage disequilibrium, evaluated for cis instruments only.',
+    detail: 'The pQTL and the outcome signal at the locus are consistent with one shared causal variant. Evaluated for cis instruments only.',
   },
   {
     tier: 'Intervention concordant',
     kind: 'external',
     adds: 'External perturbation agrees',
-    detail: 'The direction of the proteomic response in HERITAGE, STEP 1 or STEP 2 agrees with the observational exposure association. Restricted to proteins measured on both platforms.',
+    detail: 'The proteomic response in HERITAGE, STEP 1 or STEP 2 agrees in direction with the observational association. Restricted to proteins measured on both platforms.',
   },
 ];
 
@@ -99,9 +99,9 @@ function MotifCounts() {
   if (error || !data) {
     return (
       <Alert severity="info" sx={{ maxWidth: 820 }}>
-        The published motif-count table could not be read from the payload
-        {error ? ` (${String(error.message || error)})` : ''}. The two bars it carries are the
-        Tier-1 bar and the nominal-significance bar; they are described below.
+        The motif-count table could not be read from the payload
+        {error ? ` (${String(error.message || error)})` : ''}. It carries the Tier-1 bar and the
+        nominal-significance bar, described below.
       </Alert>
     );
   }
@@ -115,7 +115,7 @@ export default function EvidenceTiers() {
   return (
     <DocPage
       title="Evidence tiers"
-      lead="Every relationship on this site carries an explicit evidence level. There is no generic green “significant” badge, and association is never styled as causation. This page defines each badge and states, plainly, what it does and does not require."
+      lead="Every relationship on this site carries an evidence badge. This page defines each badge and the evidence it requires."
     >
       <HeadlineFallback error={error} />
 
@@ -135,26 +135,20 @@ export default function EvidenceTiers() {
             r.detail,
           ])}
         />
-        <SourceNote>
-          <Mono>HEAP_manuscript/sections/results_m5_mr.tex</Mono> (Fig. 4a caption, the ladder) and{' '}
-          <Mono>sections/extended_data.tex</Mono> (tier construction). Colocalization gate and
-          locus count from <Mono>S_coloc_summary</Mono>.
-        </SourceNote>
       </Section>
 
       <Section
         title="How a relationship reads"
-        subtitle="Filled nodes are the evidence that exists for that relationship; open nodes are evidence that was not obtained. An open node never means “refuted”."
+        subtitle="Filled nodes are the evidence obtained for that relationship. An open node records evidence that was not obtained."
       >
         <Rail />
-        <SourceNote>rendering specified in <Mono>docs/WEBSITE_PLAN.md</Mono> §5.</SourceNote>
       </Section>
 
-      <Section title="The ladder is also a cis → cis+trans axis">
+      <Section title="Cis and trans instruments">
         <P>
-          This is the least obvious property of the ladder, and it changes how the top rungs
-          should be read. <b>Tier 1 and Tier 1+ are cis-only in practice.</b> No trans-instrumented
-          edge reaches either rung.
+          Tier 1 and Tier 1+ are cis-only in practice. Both rungs require cis anchoring and
+          colocalization, which a trans instrument cannot satisfy. A protein with trans support
+          alone is ineligible for them.
         </P>
         <SimpleTable
           head={['Rung', 'Cis-instrumented edges', 'Trans-instrumented edges']}
@@ -165,79 +159,51 @@ export default function EvidenceTiers() {
           ]}
         />
         <P>
-          Trans evidence enters at Tier 2, where it outnumbers cis evidence more than two to one,
-          and then disappears entirely above it. The reason is structural rather than statistical:
-          the Tier-1 and Tier-1+ definitions require cis anchoring and colocalization, which a
-          trans instrument cannot satisfy. So a protein with only trans support is not a weaker
-          version of a Tier-1 protein — it was never eligible for that rung.
+          Trans evidence enters at Tier 2, where it outnumbers cis evidence more than two to one.
         </P>
-        <SourceNote>
-          counted from the MR edge table during the site build and recorded in{' '}
-          <Mono>docs/WEBSITE_PLAN.md</Mono> §5. The per-rung cis/trans split is not yet emitted as
-          a column by <Mono>summarize_mr_triads.R</Mono>.
-        </SourceNote>
       </Section>
 
-      <Section title="Motif counts are recomputed at each rung, not filtered">
+      <Section title="Motif counts by rung">
         <P>
-          The five MR motifs are ✓/✗/○ signatures over the six directed edges of a triad, and the
-          signatures contain negations — motif A requires exposure → protein and protein → disease
-          to be supported <i>and</i> other edges to be absent. Absence is evaluated against the
-          rung being drawn, so moving up the ladder can create a motif match that did not exist
-          below it.
+          The five MR motifs are signatures over the six directed edges of a triad, and each
+          signature requires some edges to be absent. Absence is evaluated at the rung being drawn,
+          so a motif can match at one rung and not at another.
         </P>
         <P>
-          <b>Counts are therefore not monotonic across rungs.</b> Motif A (mediator) is 6 triads at
-          Tier 1 and 69 at Tier 2, while motifs B and C shrink over the same step. A bar chart of
-          motifs at one rung is not a filtered subset of the bar chart at a looser rung, and the
-          two cannot be differenced.
+          Counts are therefore not monotonic across rungs. Motif A (mediator) covers 6 triads at
+          Tier 1 and 69 at Tier 2, while motifs B and C shrink over the same step. Counts from two
+          rungs cannot be differenced.
         </P>
         <P>
-          Because of this, the two published bars must never be mixed. The Tier-1 bar (
-          {n('nMotifTierOne')} triads across {n('nMotifTierOneProt')} proteins) is the headline;
-          the nominal-significance bar ({n('nMotifTriads')} triads) is a diagnostic and is not
-          nested inside it.
+          The Tier-1 bar ({n('nMotifTierOne')} triads across {n('nMotifTierOneProt')} proteins) is
+          the published headline. The nominal-significance bar ({n('nMotifTriads')} triads) is a
+          diagnostic, and the two sets are separate.
         </P>
         <Box sx={{ mb: 2 }}>
           <MotifCounts />
         </Box>
-        <SourceNote>
-          live from <Mono>s/mr_motif_counts.json.gz</Mono> (supplementary sheet{' '}
-          <Mono>S_mr_motifs</Mono>, generated from{' '}
-          <Mono>HEAP/docs/manuscript_stats/module5/mr_motif_counts.tsv</Mono>). The Tier-2 bar is
-          not one of the published columns; the 6 → 69 figure was measured during the site build
-          and is logged as <Mono>docs/TASKS.md</Mono> item B4.
-        </SourceNote>
       </Section>
 
       <Section title="Colocalization">
         <P>
-          Colocalization is a gate, not a score: an edge is colocalized when the posterior
-          probability of a single shared causal variant is at least 0.8 (PP.H4 ≥ 0.8).{' '}
-          {n('nColoc')} cis-pQTL loci clear it. Cis edges that fail the gate because the pQTL and the outcome
-          signal sit on distinct variants in linkage disequilibrium are demoted rather than
-          dropped, and they are labeled LD-confounded wherever they appear.
-        </P>
-        <SourceNote>
-          <Mono>S_coloc_summary</Mono>; the same tier gate is applied in{' '}
+          Colocalization is a gate at PP.H4 ≥ 0.8, the posterior probability that the pQTL and the
+          outcome share one causal variant. {n('nColoc')} cis-pQTL loci clear it. A cis edge whose
+          pQTL and outcome signals sit on distinct variants in linkage disequilibrium is demoted
+          and labeled LD-confounded wherever it appears. The same gate is applied in{' '}
           <Link to="/results/causal">Causal evidence</Link>.
-        </SourceNote>
+        </P>
       </Section>
 
-      <Section title="Observational mediation sits outside the ladder">
+      <Section title="Observational mediation">
         <Alert severity="info" sx={{ maxWidth: 820, mb: 1 }}>
           Observational mediation estimates are descriptive and may reflect confounding, reverse
           causation, or shared upstream causes. Causal support is evaluated separately using MR
           and colocalization.
         </Alert>
         <P>
-          That sentence is shown verbatim next to every mediated-fraction figure on the site. A
-          mediated fraction is not a rung and never upgrades one: a relationship can have a large
-          observational mediated fraction and no MR support at all.
+          A mediated fraction sits outside the ladder and does not raise a badge. A relationship
+          can carry a large mediated fraction with no MR support.
         </P>
-        <SourceNote>
-          verbatim caveat text from <Mono>docs/WEBSITE_PLAN.md</Mono> §5 (standing decision S11).
-        </SourceNote>
       </Section>
 
       <AuthorNote what="Two different definitions of Tier 1 exist in the manuscript source.">
@@ -249,16 +215,15 @@ export default function EvidenceTiers() {
         second wording, but the two should be reconciled before the ED figure is restored.
       </AuthorNote>
 
-      <Section title="What no badge on this site means">
+      <Section title="Badges the site does not use">
         <SimpleTable
-          head={['Not shown', 'Why']}
+          head={['Not used', 'What the site shows instead']}
           rows={[
-            ['A generic "significant" badge', 'It collapses replication, MR support and colocalization into one green dot, which is the exact conflation this resource exists to prevent.'],
-            ['A single causal label per protein', <span>Classification is a motif profile per (protein, disease) pair, because the motif rule is per-triad by construction. Applied protein-wide it contradicts the manuscript for its own mediators.</span>],
-            ['An empty cell', <span>A relationship that was never tested and one that was tested without reaching significance are shown differently, everywhere.</span>],
+            ['A generic "significant" badge', 'Replication, MR support and colocalization are badged separately.'],
+            ['A single causal label per protein', 'A motif profile per protein–disease pair, because the motif rule is defined per triad.'],
+            ['An empty cell', 'Untested relationships and tested relationships below significance are drawn differently.'],
           ]}
         />
-        <SourceNote><Mono>docs/TASKS.md</Mono> standing decisions S3, S4 and S7.</SourceNote>
       </Section>
     </DocPage>
   );
