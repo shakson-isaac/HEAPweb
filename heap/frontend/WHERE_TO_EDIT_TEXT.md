@@ -244,64 +244,62 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 ## `/documentation/about`
 
-2 passages of 20+ words; 16 shorter labels not listed.
+2 passages of 20+ words; 14 shorter labels not listed.
 
 **`src/pages/subpages/AboutHeap.js`**
 
 - **AboutHeap.js:25** (28 words, text)
   > Only a minority of exposure-responsive proteins were consistent with causal intermediates, whereas many appeared to function as biological reporters o...
-- **AboutHeap.js:129** (27 words, text)
-  > Everything the pages draw is served as static, gzipped JSON from a public bucket with no authentication and no rate limit. One line pulls a whole resu...
+- **AboutHeap.js:114** (24 words, text)
+  > Every page draws from static gzipped JSON in a public bucket, with no key and no rate limit. One line pulls a whole result:
 
 ## `/documentation/quickstart`
 
-1 passages of 20+ words; 25 shorter labels not listed.
+0 passages of 20+ words; 26 shorter labels not listed.
 
-**`src/pages/subpages/QuickStart.js`**
-
-- **QuickStart.js:157** (20 words, text)
-  > Datasets carry a version and a build date but no separate DOI — the citation is always the paper. See
 
 ## `/documentation/methods`
 
-17 passages of 20+ words; 13 shorter labels not listed.
+18 passages of 20+ words; 11 shorter labels not listed.
 
 **`src/pages/subpages/DetailedMethods.js`**
 
-- **DetailedMethods.js:57** (68 words, text)
+- **DetailedMethods.js:50** (22 words, title)
+  > Module numbers follow the manuscript. The code directories use their own numbering, so a path such as module5_mr/ holds manuscript Module 4.
+- **DetailedMethods.js:53** (56 words, text)
   > For each protein, the variance in abundance is partitioned into what covariates, genetics, the exposome and gene-by-environment interaction each expla...
-- **DetailedMethods.js:65** (26 words, text)
+- **DetailedMethods.js:60** (26 words, text)
   > Ridge and elastic-net variants of the penalized fit are deposited alongside the primary estimator, as is a coarse and a fine partition of the same com...
-- **DetailedMethods.js:69** (91 words, text)
-  > Each component&apos;s reach is its unique contribution &mdash; what it explains that the other three do not &mdash; so the four components are disjoin...
-- **DetailedMethods.js:78** (51 words, text)
+- **DetailedMethods.js:64** (73 words, text)
+  > Each component&apos;s reach is its unique contribution, so the four components are disjoint. R² is scored on held-out folds, so a component that fits ...
+- **DetailedMethods.js:72** (51 words, text)
   > GREML was fitted once, as a multi-kernel model at a GRM cutoff of 0.025, so covariate specifications apply to the predictive decomposition only. The t...
-- **DetailedMethods.js:91** (37 words, text)
+- **DetailedMethods.js:85** (37 words, text)
   > Every exposure is regressed against every protein under the primary covariate set, separately in the training and test splits. An association counts a...
-- **DetailedMethods.js:108** (62 words, text)
-  > Polygenic G×E is tested per exposure–protein pair with a joint F-test over the cis and trans genetic blocks. Two thresholds are used: the per-pair vie...
-- **DetailedMethods.js:130** (73 words, text)
+- **DetailedMethods.js:101** (58 words, text)
+  > Polygenic G×E is tested per exposure–protein pair with a joint F-test over the cis and trans genetic blocks. Two thresholds are used. The per-pair vie...
+- **DetailedMethods.js:123** (73 words, text)
   > Pleiotropy is the number of diseases a protein mediates through its dominant exposure category: at most 3 is disease-specific, at least 20 a pleiotrop...
-- **DetailedMethods.js:138** (46 words, text)
-  > Attenuation under + BMI or + clinical adjustment is a sensitivity result, not evidence of what mediates. A variable can be a confounder, a mediator or...
-- **DetailedMethods.js:143** (24 words, text)
+- **DetailedMethods.js:131** (42 words, text)
+  > Attenuation under + BMI or + clinical adjustment is a sensitivity result. A variable can be a confounder, a mediator, or both at once. Adjusting for i...
+- **DetailedMethods.js:136** (24 words, text)
   > Observational mediation estimates are descriptive and may reflect confounding, reverse causation, or shared upstream causes. Causal support is evaluat...
-- **DetailedMethods.js:154** (71 words, text)
-  > Two-sample bidirectional MR over each exposure–protein–disease triad, testing all six directed edges: exposure → protein, protein → exposure, protein ...
-- **DetailedMethods.js:162** (36 words, text)
+- **DetailedMethods.js:147** (74 words, text)
+  > Two-sample bidirectional MR is run over each exposure–protein–disease triad. All six directed edges are tested: exposure → protein, protein → exposure...
+- **DetailedMethods.js:155** (36 words, text)
   > Each surviving edge is graded on a stringency ladder that folds in instrument strength, Steiger orientation, heterogeneity, directional pleiotropy, MR...
-- **DetailedMethods.js:178** (33 words, text)
-  > Exposure–protein associations are correlated against measured proteomic change (post-intervention minus baseline) in three interventional cohorts: HER...
-- **DetailedMethods.js:184** (32 words, text)
-  > The comparison is restricted to proteins measured on both platforms and carries the Olink-to-SomaScan agreement for that protein set in the interface ...
-- **DetailedMethods.js:189** (54 words, text)
+- **DetailedMethods.js:171** (34 words, text)
+  > Exposure–protein associations are correlated against measured proteomic change (post-intervention minus baseline) in three interventional cohorts. HER...
+- **DetailedMethods.js:177** (28 words, text)
+  > The comparison is restricted to proteins measured on both platforms. The interface carries the Olink-to-SomaScan agreement for that protein set, which...
+- **DetailedMethods.js:182** (48 words, text)
   > A between-person association and a within-person change under treatment are different quantities. Both trials are also significance-selected &mdash; H...
-- **DetailedMethods.js:202** (60 words, text)
-  > A penalized proteomic score is trained per exposure on the baseline sample and evaluated on participants held out for a repeat visit. Three things are...
-- **DetailedMethods.js:209** (31 words, text)
-  > Incremental disease prediction is reported from held-out or bootstrapped estimates, because the apparent change in C-index computed in the training sa...
-- **DetailedMethods.js:248** (25 words, text)
-  > Earlier versions of this site displayed the maximally adjusted model by default and labeled the sets Type1–Type7. Both are retired: the primary model ...
+- **DetailedMethods.js:194** (60 words, text)
+  > A penalized proteomic score is trained per exposure on the baseline sample and evaluated on participants held out for a repeat visit. Three quantities...
+- **DetailedMethods.js:201** (24 words, text)
+  > Incremental disease prediction is reported from held-out or bootstrapped estimates. The apparent change in C-index computed in the training sample is ...
+- **DetailedMethods.js:238** (24 words, text)
+  > Earlier versions of this site displayed the maximally adjusted model by default and labeled the sets Type1–Type7. Both are retired. The primary model ...
 
 ## `/documentation/cite`
 
@@ -309,19 +307,19 @@ to find one: `grep -rn "the words you see" --include=*.js src/`
 
 **`src/pages/subpages/Cite.js`**
 
-- **Cite.js:95** (33 words, text)
+- **Cite.js:92** (33 words, text)
   > There are no dataset DOIs, by decision. Each dataset carries a version string and a build date so that a reader can state which build they used; the c...
-- **Cite.js:144** (42 words, text)
-  > If you are citing a single relationship rather than the resource, cite the paper and name the evidence level, because the level is the claim. “Tier 1+...
-- **Cite.js:154** (26 words, text)
-  > Published figures are shown as printed. Under the preprint license they may be redistributed with attribution but not modified, which includes recolor...
+- **Cite.js:136** (29 words, text)
+  > To cite a single relationship, cite the paper and name its evidence level. “Tier 1+, colocalized” and “observational, replicated” are different statem...
+- **Cite.js:145** (24 words, text)
+  > Published figures are shown as printed. The preprint license allows redistribution with attribution, and no modification. Recoloring or recropping a p...
 
 ## `/documentation/api`
 
-1 passages of 20+ words; 8 shorter labels not listed.
+1 passages of 20+ words; 7 shorter labels not listed.
 
 **`src/pages/subpages/ApiDocs.js`**
 
-- **ApiDocs.js:255** (73 words, text)
+- **ApiDocs.js:241** (73 words, text)
   > A second prefix on the same bucket stages the full supplementary deposit as gzipped TSVs (all five association specifications, the MR edge table, the ...
 

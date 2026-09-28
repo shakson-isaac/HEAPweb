@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, Box, Paper, Typography } from '@mui/material';
 import {
-  AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable, SourceNote,
+  AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable,
 } from '../Documentation';
 import { WEB_DATA_BASE } from '../../lib/heapdata';
 
@@ -40,7 +40,7 @@ export default function Cite() {
   return (
     <DocPage
       title="How to cite"
-      lead="Cite the paper. The datasets published here carry a version and a build date so you can state exactly which release you used, but they do not carry separate DOIs of their own."
+      lead="Cite the paper. The datasets published here carry a version and a build date, so you can state which release you used."
     >
       <Section title="The paper">
         <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820, borderLeft: '4px solid #124533' }}>
@@ -62,9 +62,6 @@ export default function Cite() {
   url     = {${DOI_URL}}
 }`}
         </Code>
-        <SourceNote>
-          title and author list read from <Mono>HEAP_manuscript/main.tex</Mono>; DOI as posted.
-        </SourceNote>
       </Section>
 
       <AuthorNote what="Confirm the author list before this page goes public.">
@@ -98,8 +95,7 @@ export default function Cite() {
           paper.
         </Alert>
         <P>
-          Three things identify a build, and all three are readable from the payload rather than
-          from this page:
+          Three identifiers fix a build, and the payload carries all three:
         </P>
         <SimpleTable
           head={['Identifier', 'Where it lives', 'Current value']}
@@ -134,27 +130,22 @@ export default function Cite() {
 dataset build ${latest || '<see catalog.json.gz>'} (accessed <date>), described in
 ${AUTHORS[0].split(' ').slice(-1)[0]} et al., doi:${DOI}.`}
         </Code>
-        <SourceNote>
-          decision D10 / S12 in <Mono>docs/WEBSITE_PLAN.md</Mono>; version axes in §15. Values
-          above are read live from <Mono>catalog.json.gz</Mono>.
-        </SourceNote>
       </Section>
 
       <Section title="Citing one result">
         <P>
-          If you are citing a single relationship rather than the resource, cite the paper and
-          name the evidence level, because the level is the claim. “Tier 1+, colocalized” and
-          “observational, replicated” are different statements about the same pair of entities —
-          see <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
+          To cite a single relationship, cite the paper and name its evidence level. “Tier 1+,
+          colocalized” and “observational, replicated” are different statements about the same pair
+          of entities. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
         </P>
       </Section>
 
       <Section title="Reusing figures">
         <Box sx={{ maxWidth: 820 }}>
           <P>
-            Published figures are shown as printed. Under the preprint license they may be
-            redistributed with attribution but not modified, which includes recoloring or
-            recropping a panel.
+            Published figures are shown as printed. The preprint license allows redistribution
+            with attribution, and no modification. Recoloring or recropping a panel counts as
+            modification.
           </P>
         </Box>
       </Section>

@@ -67,15 +67,6 @@ export function P({ children, ...rest }) {
   );
 }
 
-/** Where a rendered fact comes from. Every page carries at least one (S8). */
-export function SourceNote({ children }) {
-  return (
-    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1 }}>
-      Source: {children}
-    </Typography>
-  );
-}
-
 /**
  * A gap left deliberately. Standing decision S13: structural copy is drafted
  * here, interpretive copy belongs to the author, so anything that would assert
@@ -268,7 +259,7 @@ function Overview() {
   return (
     <DocPage
       title="Documentation"
-      lead="Reference material for the HEAP resource: what is in it, how each number was produced, what the evidence badges mean, and how to pull the data without a browser."
+      lead="Reference material for the HEAP resource. What is in it, how each number was produced, what the evidence badges mean, and how to pull the data without a browser."
     >
       {DOC_PAGES.map((p) => (
         <Paper key={p.path} variant="outlined" sx={{ p: 2, mb: 1.5, maxWidth: 820 }}>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, Chip, Paper, Typography, Box } from '@mui/material';
 import {
-  DocPage, HeadlineFallback, Mono, P, Section, SimpleTable, SourceNote, macro, useHeadline,
+  DocPage, HeadlineFallback, Mono, P, Section, SimpleTable, macro, useHeadline,
 } from '../Documentation';
 
 // Structural description of each module: what it estimates, from what, and where
@@ -27,7 +27,7 @@ export default function DetailedMethods() {
   return (
     <DocPage
       title="Detailed methods"
-      lead="How each result on this site was produced: the sample, the six analysis modules, and the two supporting analyses. This is a structural summary — the full methods are in the paper."
+      lead="How each result on this site was produced: the sample, the six analysis modules, and the two supporting analyses. The full methods are in the paper."
     >
       <HeadlineFallback error={error} />
 
@@ -43,37 +43,31 @@ export default function DetailedMethods() {
             ['Design', 'a training / held-out test split; associations are reported as replicated only when they hold in both'],
           ]}
         />
-        <SourceNote>
-          counts read live from <Mono>meta/headline.json.gz</Mono>; the disease threshold from the{' '}
-          <Mono>disease_list</Mono> supplementary table.
-        </SourceNote>
       </Section>
 
       <Section
         title="The six modules"
-        subtitle="Module numbers are the manuscript's. The code directories use a different numbering on purpose, so a path such as module5_mr/ holds manuscript Module 4."
+        subtitle="Module numbers follow the manuscript. The code directories use their own numbering, so a path such as module5_mr/ holds manuscript Module 4."
       >
         <ModuleCard number="Module 1" name="Variance decomposition">
           <P>
             For each protein, the variance in abundance is partitioned into what covariates,
             genetics, the exposome and gene-by-environment interaction each explain. Two
-            estimators are run side by side: a predictive decomposition, where a polygenic score
-            and a penalized poly-exposure score are fitted and scored out of fold, and GREML,
-            which fits the genetic, exposomic and G×E kernels jointly in one multi-kernel model
-            rather than one component at a time.
+            estimators are run side by side. The predictive decomposition fits a polygenic score
+            and a penalized poly-exposure score, scored out of fold. GREML fits the genetic,
+            exposomic and G×E kernels jointly, in one multi-kernel model.
           </P>
           <P>
             Ridge and elastic-net variants of the penalized fit are deposited alongside the
             primary estimator, as is a coarse and a fine partition of the same components.
           </P>
           <P>
-            Each component&apos;s reach is its unique contribution &mdash; what it explains that the
-            other three do not &mdash; so the four components are disjoint. R² is scored on held-out
-            folds, so a component that fits only noise scores at or below zero. Each exposure
-            category&apos;s contribution is its leave-one-category-out predictive R², the variance lost
-            when that category&apos;s poly-exposure score is dropped from the full model. Because each
-            comes from its own fit rather than from splitting the joint exposomic component, the 13
-            category values do not sum to the exposome component.
+            Each component&apos;s reach is its unique contribution, so the four components are
+            disjoint. R² is scored on held-out folds, so a component that fits only noise scores at
+            or below zero. Each exposure category&apos;s contribution is its leave-one-category-out
+            predictive R², the variance lost when that category&apos;s poly-exposure score is dropped
+            from the full model. Each category comes from its own fit, so the 13 category values do
+            not sum to the exposome component.
           </P>
           <P>
             GREML was fitted once, as a multi-kernel model at a GRM cutoff of 0.025, so covariate
@@ -94,11 +88,10 @@ export default function DetailedMethods() {
             it clears the significance threshold in both splits with a consistent sign.
           </P>
           <Alert severity="info" sx={{ my: 1.5 }}>
-            Two different counts exist and are not interconvertible. The headline of{' '}
-            {n('nReplAssoc')} replicated associations counts <b>exposure × protein pairs</b>, tested
-            with a block F-test over all terms belonging to that exposure. The association tables
-            and plots are <b>per model term</b>, so a categorical exposure contributes one row per
-            level. A term count will never sum to the pair count.
+            Two counts are in use. The headline of {n('nReplAssoc')} replicated associations counts{' '}
+            <b>exposure × protein pairs</b>, tested with a block F-test over all terms belonging to
+            that exposure. The association tables and plots are <b>per model term</b>, so a
+            categorical exposure contributes one row per level. The two counts are separate.
           </Alert>
           <P>
             {n('nExposuresAssoc')} exposures and {n('nProteinsAssoc')} proteins carry at least one
@@ -107,10 +100,10 @@ export default function DetailedMethods() {
           </P>
           <P>
             Polygenic G×E is tested per exposure–protein pair with a joint F-test over the cis and
-            trans genetic blocks. Two thresholds are used: the per-pair view applies a Bonferroni
-            threshold over all exposure–protein pairs in one split, while a replicated pair must clear
-            that threshold in the training split and again in held-out data, so replicated counts are
-            far smaller than per-split counts.
+            trans genetic blocks. Two thresholds are used. The per-pair view applies a Bonferroni
+            threshold over all exposure–protein pairs in one split. A replicated pair must clear that
+            threshold in the training split and again in held-out data, so replicated counts are
+            much smaller.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/associations">Associations</Link>; G×E on{' '}
@@ -120,12 +113,12 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 3" name="Observational mediation (GEM)">
           <P>
-            G-computation over two fitted models — a mediator model,{' '}
+            Two models are fitted per link: a mediator model,{' '}
             <Mono>protein ~ PGS + PXS + covariates</Mono>, and an outcome model,{' '}
-            <Mono>disease ~ protein + PGS + PXS + covariates</Mono> — yields indirect effects
-            (genetic → protein → disease and exposure → protein → disease) and the corresponding
-            direct effects. GEM summarizes, per protein, how modifiable that protein is under
-            lifestyle exposures across the analyzed diseases.
+            <Mono>disease ~ protein + PGS + PXS + covariates</Mono>. G-computation over the two
+            yields the indirect effects, genetic → protein → disease and exposure → protein →
+            disease, with the matching direct effects. GEM summarizes, per protein, how modifiable
+            that protein is under lifestyle exposures.
           </P>
           <P>
             Pleiotropy is the number of diseases a protein mediates through its dominant exposure
@@ -136,9 +129,9 @@ export default function DetailedMethods() {
             separates a reporter from an intermediate.
           </P>
           <P>
-            Attenuation under + BMI or + clinical adjustment is a sensitivity result, not evidence of
-            what mediates. A variable can be a confounder, a mediator or both, and adjusting for it
-            moves the estimate the same way in each case, so attenuation cannot tell them apart.
+            Attenuation under + BMI or + clinical adjustment is a sensitivity result. A variable can
+            be a confounder, a mediator, or both at once. Adjusting for it moves the estimate the
+            same way in each case, so attenuation alone cannot separate them.
           </P>
           <Alert severity="info" sx={{ my: 1.5 }}>
             Observational mediation estimates are descriptive and may reflect confounding, reverse
@@ -152,9 +145,9 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 4" name="Mendelian randomization and colocalization">
           <P>
-            Two-sample bidirectional MR over each exposure–protein–disease triad, testing all six
-            directed edges: exposure → protein, protein → exposure, protein → disease, disease →
-            protein, exposure → disease and disease → exposure. Exposure instruments come from
+            Two-sample bidirectional MR is run over each exposure–protein–disease triad. All six
+            directed edges are tested: exposure → protein, protein → exposure, protein → disease,
+            disease → protein, exposure → disease and disease → exposure. Exposure instruments come from
             GWAS in UK Biobank participants independent of the pQTL discovery sample; protein
             instruments come from two pQTL arms, UK Biobank Olink and deCODE SomaScan, which share
             one edge set so the two can be compared directly.
@@ -163,9 +156,9 @@ export default function DetailedMethods() {
             Each surviving edge is graded on a stringency ladder that folds in instrument strength,
             Steiger orientation, heterogeneity, directional pleiotropy, MR-PRESSO correction and
             cross-platform replication. Colocalization is run for cis instruments and gated at
-            PP.H4 ≥ 0.8; {n('nColoc')} loci clear it. Exposures that map few or no genome-wide
-            loci — much of the deprivation and pollution set — cannot be instrumented at all, and
-            that is reported rather than left as an empty cell.
+            PP.H4 ≥ 0.8; {n('nColoc')} loci clear it. Exposures that map few or no genome-wide loci,
+            including much of the deprivation and pollution set, cannot be instrumented, and the
+            site reports them as such.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Definitions of every rung are on <Link to="/documentation/evidence-tiers">Evidence tiers</Link>;
@@ -177,21 +170,20 @@ export default function DetailedMethods() {
         <ModuleCard number="Module 5" name="Interventional comparison">
           <P>
             Exposure–protein associations are correlated against measured proteomic change
-            (post-intervention minus baseline) in three interventional cohorts: HERITAGE, a
-            20-week endurance-training intervention, and STEP 1 and STEP 2, 68-week GLP-1 receptor
+            (post-intervention minus baseline) in three interventional cohorts. HERITAGE is a
+            20-week endurance-training intervention. STEP 1 and STEP 2 are 68-week GLP-1 receptor
             agonist randomized controlled trials.
           </P>
           <P>
-            The comparison is restricted to proteins measured on both platforms and carries the
-            Olink-to-SomaScan agreement for that protein set in the interface itself, because
-            cross-platform concordance bounds what the comparison can show.
+            The comparison is restricted to proteins measured on both platforms. The interface
+            carries the Olink-to-SomaScan agreement for that protein set, which bounds the
+            concordance the comparison can show.
           </P>
           <P>
             A between-person association and a within-person change under treatment are different
             quantities. Both trials are also significance-selected &mdash; HERITAGE published only
             proteins at q &le; 0.01, and the GLP-1 effects are filtered to each trial&apos;s own
-            q &lt; 0.05 &mdash; so the correlations are an upper bound on concordance rather than an
-            unbiased estimate.
+            q &lt; 0.05. The correlations are therefore an upper bound on concordance.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/intervention">Intervention</Link>.
@@ -201,15 +193,14 @@ export default function DetailedMethods() {
         <ModuleCard number="Module 6" name="Proteome-based exposure scores (PES)">
           <P>
             A penalized proteomic score is trained per exposure on the baseline sample and
-            evaluated on participants held out for a repeat visit. Three things are reported for
-            each score: how well it reads the exposure (R², AUC, AUPR), how it tracks within the
-            same person across visits, and what it adds to a disease model on top of standard
+            evaluated on participants held out for a repeat visit. Three quantities are reported
+            for each score. How well it reads the exposure (R², AUC, AUPR), how it tracks within
+            the same person across visits, and what it adds to a disease model on top of standard
             predictors.
           </P>
           <P>
-            Incremental disease prediction is reported from held-out or bootstrapped estimates,
-            because the apparent change in C-index computed in the training sample is biased
-            toward zero and is not a usable estimate.
+            Incremental disease prediction is reported from held-out or bootstrapped estimates. The
+            apparent change in C-index computed in the training sample is biased toward zero.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/pes">Exposure scores</Link>.
@@ -219,7 +210,7 @@ export default function DetailedMethods() {
 
       <Section
         title="Supporting analyses"
-        subtitle="Un-numbered in the manuscript; they support the modules above rather than standing alone."
+        subtitle="Un-numbered in the manuscript. They support the modules above."
       >
         <SimpleTable
           head={['Analysis', 'What it does', 'Where']}
@@ -231,7 +222,7 @@ export default function DetailedMethods() {
             ],
             [
               'Exposure GWAS',
-              'Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. This is what determines which exposures can enter Mendelian randomization.',
+              'Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.',
               <Link to="/results/gwas">Exposure GWAS</Link>,
             ],
           ]}
@@ -242,19 +233,16 @@ export default function DetailedMethods() {
         <P>
           All main results use the <Mono>base</Mono> covariate set: age, age², sex, their
           interactions, assessment center and 20 genetic principal components. Five supplementary
-          sets add one potentially mediating or optional adjustment each, and results are deposited
-          under all of them.
+          sets add one adjustment each, and results are deposited under all of them.
         </P>
         <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
           Earlier versions of this site displayed the maximally adjusted model by default and
-          labeled the sets Type1–Type7. Both are retired: the primary model is now{' '}
-          <Mono>base</Mono>, and adjustment for BMI is a sensitivity layer that cannot be read as
-          a mediation test.
+          labeled the sets Type1–Type7. Both are retired. The primary model is <Mono>base</Mono>,
+          and adjustment for BMI is a sensitivity layer.
         </Alert>
         <P>
-          Every set, its exact covariates, the migration from the old naming, and which
-          specifications are actually published are on{' '}
-          <Link to="/documentation/models">Specifications</Link>.
+          <Link to="/documentation/models">Specifications</Link> lists every set, its exact
+          covariates, the migration from the old naming, and which specifications are published.
         </P>
       </Section>
 

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { DocPage, Mono, P, Section, SimpleTable, SourceNote } from '../Documentation';
+import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 import ColumnarTable from '../../components/ColumnarTable';
 import { ecatColor, prettyCategory } from '../../lib/palette';
 
@@ -88,7 +88,7 @@ export default function DataDictionary() {
   return (
     <DocPage
       title="Exposome dictionary"
-      lead="Every exposomic feature HEAP analyzes, and every candidate variable that was considered and dropped. The dropped rows are kept visible on purpose: a variable absent from a result because it was never tested is a different fact from a variable tested without reaching significance."
+      lead="Every exposomic feature HEAP analyzes, with every candidate variable that was considered and dropped. Each dropped row carries the reason it was dropped."
     >
       <Section title="What is in the manifest">
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
@@ -100,11 +100,10 @@ export default function DataDictionary() {
           ))}
         </Box>
         <P>
-          A feature is one model term, not one questionnaire item: a categorical variable such as
-          alcohol drinker status contributes one feature per level, which is why the analyzed
-          count exceeds the number of distinct UK Biobank fields. The <Mono>UKB field</Mono>{' '}
-          column is the Showcase field id — append it to{' '}
-          <Mono>https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=</Mono> to read the original
+          A feature is one model term. A categorical variable such as alcohol drinker status
+          contributes one feature per level, so the analyzed count exceeds the number of distinct
+          UK Biobank fields. The <Mono>UKB field</Mono> column is the Showcase field id. Append it
+          to <Mono>https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=</Mono> for the original
           definition.
         </P>
       </Section>
@@ -122,10 +121,9 @@ export default function DataDictionary() {
               />
             ))}
         </Box>
-        <SourceNote>
-          category colors are <Mono>HEAP_ECAT_COLORS</Mono>, mirrored from{' '}
-          <Mono>plot_theme.R</Mono> so the site and the manuscript figures agree.
-        </SourceNote>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          Category colors match the manuscript figures.
+        </Typography>
       </Section>
 
       <Section title="The dictionary">
@@ -144,21 +142,14 @@ export default function DataDictionary() {
           </ToggleButton>
         </ToggleButtonGroup>
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
-          Sort by any column, or filter across all columns with the box below. Missingness is the
-          fraction missing among participants with a baseline proteomic draw.
+          Missingness is the fraction missing among participants with a baseline proteomic draw.
         </Typography>
         <ColumnarTable data={table} initialRowsPerPage={25} maxHeight={560} />
-        <SourceNote>
-          <Mono>HEAP/config/exposure_sets/analysis_exposures.tsv</Mono>, registered as{' '}
-          <Mono>exposome_manifest</Mono> (sheet <Mono>S_exposome_manifest</Mono>) in{' '}
-          <Mono>HEAP_manuscript/config/supp_tables.tsv</Mono>; labels and broad groupings joined
-          from <Mono>meta/search_index.json.gz</Mono>.
-        </SourceNote>
       </Section>
 
       <Section
         title="Why candidates were dropped"
-        subtitle="Exclusions are recorded in the manifest itself rather than applied silently."
+        subtitle="Each exclusion is recorded in the manifest with its reason."
       >
         <SimpleTable
           head={['Reason', 'Variables']}
@@ -167,8 +158,8 @@ export default function DataDictionary() {
             .map(([r, n]) => [r, n])}
         />
         <P>
-          The two pollution reasons are not quality failures: the per-year measurements are
-          superseded by a mean-across-years feature that is analyzed in their place.
+          The two pollution reasons record a substitution. A mean-across-years feature is analyzed
+          in place of the per-year measurements.
         </P>
       </Section>
     </DocPage>

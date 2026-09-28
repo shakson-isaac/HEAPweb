@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import QuizOutlinedIcon from '@mui/icons-material/QuizOutlined';
 import { Typography } from '@mui/material';
 import './FAQs.css';
-import { AuthorNote, DocPage, Mono, Section, SourceNote } from '../Documentation';
+import { AuthorNote, DocPage, Mono, Section } from '../Documentation';
 
 // Short answers only. Anything that needs more than a few lines points at the
 // page that carries it, so the detail lives in exactly one place.
@@ -36,17 +36,16 @@ const FAQ_ITEMS = [
       </span>,
       <span key="b">
         Read <Link to="/documentation/evidence-tiers">Evidence tiers</Link> before drawing a
-        conclusion from any single result. Every relationship carries an explicit evidence level,
-        and an observational association is presented very differently from a colocalized
-        Mendelian randomization edge.
+        conclusion from any single result. Every relationship carries an evidence level, and an
+        observational association is badged differently from a colocalized Mendelian
+        randomization edge.
       </span>,
       <span key="c">
-        If you have your own proteomics data, the per-exposure score weights and the full summary
-        statistics are reachable without a browser — see the{' '}
-        <Link to="/documentation/api">Data API</Link>.
+        The per-exposure score weights and the full summary statistics are reachable without a
+        browser. See the <Link to="/documentation/api">Data API</Link>.
       </span>,
       <span key="d">
-        Cite the paper, not the datasets: <Link to="/documentation/cite">How to cite</Link>.
+        Cite the paper: <Link to="/documentation/cite">How to cite</Link>.
       </span>,
     ],
   },
@@ -67,10 +66,9 @@ const FAQ_ITEMS = [
   {
     q: 'Does the estimate shrinking under "+ BMI" mean the effect is mediated by BMI?',
     a: [
-      'No. Attenuation after adjusting for BMI cannot distinguish mediation from confounding — or from collider bias. All three produce the same attenuation.',
+      'No. Attenuation after BMI adjustment is equally consistent with mediation, with confounding and with collider bias.',
       <span key="b">
-        For that reason <Mono>+ BMI</Mono> is labeled a sensitivity specification everywhere on
-        this site and is never presented as a mediation test.
+        <Mono>+ BMI</Mono> is labeled a sensitivity specification everywhere on this site.
       </span>,
     ],
   },
@@ -78,9 +76,8 @@ const FAQ_ITEMS = [
     q: 'What do the evidence badges mean?',
     a: [
       <span key="a">
-        Each badge names the strongest evidence obtained for that specific relationship, from
-        “an estimate exists” up to a colocalized, cross-platform-replicated Mendelian
-        randomization edge. There is deliberately no generic “significant” badge.
+        Each badge names the strongest evidence obtained for that relationship, from “an estimate
+        exists” up to a colocalized, cross-platform-replicated Mendelian randomization edge.
       </span>,
       <span key="b">
         Definitions rung by rung: <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
@@ -90,8 +87,8 @@ const FAQ_ITEMS = [
   {
     q: 'Why does a protein look causal for one disease and not for another?',
     a: [
-      'Because classification is per (protein, disease) pair, not per protein. The motif rule is defined over the six directed edges of one exposure–protein–disease triad, so it simply has no protein-wide value.',
-      'A single per-protein label was tested and rejected: applied protein-wide it contradicts the paper for its own mediator proteins.',
+      'Because classification is per protein–disease pair. The motif rule is defined over the six directed edges of one exposure–protein–disease triad, so it has no protein-wide value.',
+      'Applied protein-wide, a single label contradicts the paper for its own mediator proteins.',
     ],
   },
   {
@@ -108,8 +105,8 @@ const FAQ_ITEMS = [
     q: 'Why is gene-by-environment interaction in the supplement now?',
     a: [
       <span key="a">
-        In the revised manuscript G×E is a supplementary result rather than a top-level pillar, so
-        the site follows suit. It is fully reachable, below the divider, on{' '}
+        The revised manuscript reports G×E as a supplementary result, and the site follows it. The
+        analysis is reachable below the divider on{' '}
         <Link to="/results/architecture">Genetic and exposomic architecture</Link>, and the old{' '}
         <Mono>/results/interactions</Mono> link still works.
       </span>,
@@ -118,18 +115,17 @@ const FAQ_ITEMS = [
   {
     q: 'Why do I see 2,686 proteins in one place and 2,923 in another?',
     a: [
-      'They are different panels, not a corrected count. 2,686 is the analyzed panel behind the variance decomposition; 2,923 is the longitudinal panel behind the proteome-based exposure scores.',
-      'The same care applies to exposures: 169 features are analyzed, drawn from a larger set of candidate variables.',
+      'Each number belongs to a different panel. 2,686 is the analyzed panel behind the variance decomposition, and 2,923 is the longitudinal panel behind the proteome-based exposure scores.',
+      'Exposures work the same way: 169 features are analyzed, drawn from a larger set of candidate variables.',
     ],
   },
   {
     q: 'Why is the mediator-motif count six in one figure and 84 in another?',
     a: [
-      'Because they are two different bars. Six triads across three proteins is the Tier 1 bar and is the headline; 84 triads across 25 proteins is the nominal-significance bar.',
+      'They are two different bars. Six triads across three proteins is the Tier 1 bar, which is the headline. 84 triads across 25 proteins is the nominal-significance bar.',
       <span key="b">
-        The two sets are <b>not nested</b>. Motif definitions contain negations, so motif
-        membership is recomputed at each rung rather than filtered down from the one below, and
-        the counts are not monotonic. See{' '}
+        The two sets are separate. Motif definitions require some edges to be absent, so
+        membership is recomputed at each rung and the counts are not monotonic. See{' '}
         <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
       </span>,
     ],
@@ -137,11 +133,11 @@ const FAQ_ITEMS = [
   {
     q: 'My protein or exposure is missing from a result. Was it not significant?',
     a: [
-      'Check which of the two it is, because the site distinguishes them. "Not tested" and "tested, not significant" are shown differently in every empty state.',
+      'Check which of the two it is. Every empty state draws "not tested" and "tested, not significant" differently.',
       <span key="b">
-        Several exposures — much of the deprivation and pollution set — map too few genome-wide
-        loci to be instrumented, so they are absent from the Mendelian randomization results by
-        construction rather than by failing a test. The instrument diagnostics are on{' '}
+        Several exposures, including much of the deprivation and pollution set, map too few
+        genome-wide loci to be instrumented. They are absent from the Mendelian randomization
+        results by construction. The instrument diagnostics are on{' '}
         <Link to="/results/gwas">Exposure GWAS</Link>.
       </span>,
     ],
@@ -162,7 +158,7 @@ const FAQ_ITEMS = [
   {
     q: 'Is there a DOI for the datasets?',
     a: [
-      'No, by decision. Each dataset carries a version string and a build date so you can state exactly which release you used; the citation is always the paper.',
+      'No. Each dataset carries a version string and a build date, so you can state which release you used. The citation is the paper.',
       <span key="b">
         Templates for a data statement are on <Link to="/documentation/cite">How to cite</Link>.
       </span>,
@@ -241,10 +237,9 @@ export default function FAQs() {
             </Typography>
           </li>
         </ul>
-        <SourceNote>
-          HEAP itself should be cited as the preprint — see{' '}
-          <Link to="/documentation/cite">How to cite</Link>.
-        </SourceNote>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          Cite HEAP as the preprint. See <Link to="/documentation/cite">How to cite</Link>.
+        </Typography>
       </Section>
     </DocPage>
   );

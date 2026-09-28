@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
-import { Code, DocPage, Mono, P, Section, SimpleTable, SourceNote } from '../Documentation';
+import { Code, DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 
 // Only routes that exist today are linked from this page. Entity pages
 // (/explore/protein/<SYM> and friends) are specified in WEBSITE_PLAN §6 but are
@@ -30,23 +30,22 @@ export default function QuickStart() {
   return (
     <DocPage
       title="Quick start"
-      lead="Four ways in, depending on what you already know: a protein, an exposure, a disease, or nothing at all because you want the files."
+      lead="Four ways in: start from a protein, an exposure, a disease, or the files."
     >
       <Section title="Before you read a result">
         <P>
-          Two things determine what a number on this site means. Both take a minute and save
-          misreading everything afterwards.
+          Two pages set what every number here means.
         </P>
         <SimpleTable
           head={['Read', 'Because']}
           rows={[
             [
               <Link to="/documentation/evidence-tiers">Evidence tiers</Link>,
-              'Every relationship carries an explicit badge. An observational association and a colocalized Tier 1+ MR edge are both shown, and they are not the same claim.',
+              'Every relationship carries a badge. An observational association and a colocalized Tier 1+ MR edge are separate claims, badged separately.',
             ],
             [
               <Link to="/documentation/models">Specifications</Link>,
-              <span>All main results use the <Mono>base</Mono> covariate set. The switcher offers five, and the <Mono>+ BMI</Mono> one is a sensitivity layer, never a mediation test.</span>,
+              <span>All main results use the <Mono>base</Mono> covariate set. The switcher offers five more as sensitivity layers, including <Mono>+ BMI</Mono>.</span>,
             ],
           ]}
         />
@@ -54,18 +53,17 @@ export default function QuickStart() {
 
       <Section title="I have a protein">
         <Step n={1} title="Which exposures move it">
-          <Link to="/results/associations">Associations</Link> — search the protein by HGNC symbol,
-          then read the Miami plot: every exposure tested against it, signed by direction of effect,
-          solid points replicated across the train and test splits. Hover gives β ± SE, p and N.
-          Switch the covariate specification with the toggle above the plot.
+          <Link to="/results/associations">Associations</Link> — search by HGNC symbol. The plot
+          shows every exposure tested against that protein, signed by direction of effect. Solid
+          points replicated across both splits. Hover gives β ± SE, p and N.
         </Step>
         <Step n={2} title="How much of it is genetic, exposomic or neither">
           <Link to="/results/main">Main results</Link> — the per-protein variance decomposition, and
           where the protein sits on the genetics-versus-exposome spectrum.
         </Step>
         <Step n={3} title="Which diseases it is linked to">
-          <Link to="/results/mediation">Disease links</Link> — observational mediation, presented as
-          descriptive. Causal adjudication is a separate page on purpose.
+          <Link to="/results/mediation">Disease links</Link> — observational mediation, which is
+          descriptive. Causal adjudication has its own page.
         </Step>
         <Step n={4} title="Whether anything causal survives">
           <Link to="/results/causal">Causal evidence</Link> — the Mendelian randomization edges
@@ -88,9 +86,8 @@ export default function QuickStart() {
         </Step>
         <Step n={3} title="Whether it can be instrumented">
           <Link to="/results/gwas">Exposure GWAS</Link> — instrument diagnostics, heritability and
-          genetic correlation. Many deprivation and pollution exposures map few or no loci and
-          cannot enter Mendelian randomization at all; that is visible here rather than implied by
-          an empty cell later.
+          genetic correlation. Many deprivation and pollution exposures map few or no loci, so they
+          cannot enter Mendelian randomization.
         </Step>
         <Step n={4} title="Its proteome-based score">
           <Link to="/results/pes">Exposure scores</Link> — how well a proteomic score reads that
@@ -98,9 +95,8 @@ export default function QuickStart() {
           prediction.
         </Step>
         <Step n={5} title="Interactions with genotype">
-          <Link to="/results/architecture">Genetic and exposomic architecture</Link> — G×E is
-          reported here, below the main architecture panels, because it is supplementary in the
-          revised manuscript.
+          <Link to="/results/architecture">Genetic and exposomic architecture</Link> — the
+          polygenic G×E tests, which the manuscript reports as a supplementary analysis.
         </Step>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           Exposure ids are UK Biobank variable names. Look one up in the{' '}
@@ -115,8 +111,8 @@ export default function QuickStart() {
         </Step>
         <Step n={2} title="Which of those have genetic support">
           <Link to="/results/causal">Causal evidence</Link> — MR edges into and out of the disease,
-          by tier. Note that disease → protein effects are far more common than protein → disease
-          effects, so most proteins linked to a disease are responding to it.
+          by tier. Disease → protein effects outnumber protein → disease effects, so most linked
+          proteins are responding to the disease.
         </Step>
         <Step n={3} title="Whether an exposure score predicts it">
           <Link to="/results/pes">Exposure scores</Link> — the change in C-index when a
@@ -126,8 +122,7 @@ export default function QuickStart() {
 
       <Section title="I want the files">
         <Step n={1} title="A single result, in one line">
-          No download page needed. Every panel on this site is a static object you can fetch
-          directly:
+          Every panel on this site is a static object you can fetch directly:
           <Code label="R">
 {`jsonlite::fromJSON(
   "https://storage.googleapis.com/heap-data/web/v1/e/protein/ASGR1.json.gz"
@@ -143,25 +138,21 @@ with urllib.request.urlopen(
           The full URL scheme is on <Link to="/documentation/api">Data API</Link>.
         </Step>
         <Step n={2} title="Browse what exists first">
-          <Mono>catalog.json.gz</Mono> lists all 37 supplementary datasets with their schemas and
-          build dates; <Mono>manifest.json.gz</Mono> lists every published section. Both are one
+          <Mono>catalog.json.gz</Mono> lists the 37 supplementary datasets with their schemas and
+          build dates. <Mono>manifest.json.gz</Mono> lists every published section. Both are one
           request and under 10 KB.
         </Step>
         <Step n={3} title="Bulk archives">
           <Link to="/downloads">Downloads</Link> serves the packaged summary-statistic archives.
-          For a single protein or a single exposure the API above is smaller and faster.
+          For one protein or one exposure, the API above is smaller and faster.
         </Step>
       </Section>
 
       <Section title="Citing what you took">
         <P>
-          Datasets carry a version and a build date but no separate DOI — the citation is always
-          the paper. See <Link to="/documentation/cite">How to cite</Link>.
+          Datasets carry a version and a build date. They have no separate DOI, so cite the paper.
+          See <Link to="/documentation/cite">How to cite</Link>.
         </P>
-        <SourceNote>
-          routes listed here are the ones the site serves today; the entity pages described in{' '}
-          <Mono>docs/WEBSITE_PLAN.md</Mono> §6 are not built yet and are deliberately not linked.
-        </SourceNote>
       </Section>
     </DocPage>
   );

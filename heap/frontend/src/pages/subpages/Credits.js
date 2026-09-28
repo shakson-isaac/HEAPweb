@@ -99,13 +99,13 @@ const DRAWINGS = [
     source: 'EBI Expression Atlas anatomogram',
     href: 'https://github.com/gxa/anatomogram',
     licence: 'Apache-2.0',
-    note: 'SVGs redistributed unmodified. Highlighting is ours; the drawings are theirs.',
+    note: 'SVGs redistributed unmodified. The highlighting is ours, the drawings theirs.',
   },
 ];
 
 const SOFTWARE = [
   ['React, Material UI', 'the interface'],
-  ['Plotly.js', 'every chart that is not hand-drawn SVG'],
+  ['Plotly.js', 'the interactive charts'],
   ['data.table, ggplot2', 'the analysis and the printed figures'],
   ['locuszoomr, EnsDb.Hsapiens.v86', 'the print regional plots and the gene track'],
 ];
@@ -123,13 +123,13 @@ export default function Credits() {
     <SectionCard
       title="References and credits"
       subtitle={
-        'What this site is built on. Every dataset we did not generate, every drawing we did '
-        + 'not make, and every method someone else implemented. To cite HEAP itself, see Cite.'
+        'What this site is built on: the external datasets, drawings and methods it uses. '
+        + 'To cite HEAP itself, see Cite.'
       }
     >
       <Typography variant="body2" sx={{ maxWidth: 900, mb: 1 }}>
-        References are taken from the manuscript&rsquo;s own bibliography rather than retyped, so
-        the site and the paper credit the same work in the same words.
+        References come from the manuscript&rsquo;s bibliography, so the site and the paper credit
+        the same work in the same words.
       </Typography>
 
       <Head>Data and methods</Head>
@@ -185,9 +185,8 @@ export default function Credits() {
 
       <Divider sx={{ my: 3 }} />
       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', maxWidth: 900 }}>
-        Something used here and not credited on this page is an omission worth reporting. The list
-        is maintained by hand, which means it can fall behind the site &mdash; if you find a figure,
-        dataset or method that traces back to work not named above, it belongs here.
+        This list is maintained by hand and can fall behind the site. If a figure, dataset or
+        method here traces back to work that is not credited above, please report it.
       </Typography>
     </SectionCard>
   );

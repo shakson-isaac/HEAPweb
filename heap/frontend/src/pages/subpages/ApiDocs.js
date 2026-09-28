@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Chip } from '@mui/material';
+import { Box, Chip, Typography } from '@mui/material';
 import {
-  AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable, SourceNote,
+  AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable,
 } from '../Documentation';
 
 const BASE = 'https://storage.googleapis.com/heap-data/web/v1';
@@ -32,7 +32,7 @@ const ENDPOINTS = [
   },
   {
     path: 'e/protein/<SYMBOL>.json.gz',
-    what: 'One merged bundle per protein — nine sections joined at build time, so a protein page is one request. SYMBOL is the true HGNC symbol (HLA-A, not HLA_A).',
+    what: 'One merged bundle per protein: nine sections joined at build time, so a protein page is one request. SYMBOL is the hyphenated HGNC symbol, such as HLA-A.',
     example: 'e/protein/ASGR1.json.gz',
   },
   {
@@ -66,7 +66,7 @@ export default function ApiDocs() {
   return (
     <DocPage
       title="Data API"
-      lead="Every page on this site is built from static objects on a public CDN, and those objects are the API. There is no server, no authentication, no rate limit and no cold start — the frontend and the public API are the same files."
+      lead="Every page on this site is built from static objects on a public CDN, and those objects are the API. The same files serve the frontend and any client you write."
     >
       <Section title="Base URL">
         <Code>{BASE}</Code>
@@ -76,20 +76,16 @@ export default function ApiDocs() {
             ['Authentication', 'none'],
             ['Rate limit', 'none'],
             ['CORS', <Mono>access-control-allow-origin: *</Mono>],
-            ['Encoding', <span>objects are stored gzipped and served with <Mono>content-encoding: gzip</Mono>; any client that negotiates gzip (every browser, R’s curl, Python’s urllib) receives plain JSON</span>],
-            ['Versioning', <span>the <Mono>/v1/</Mono> prefix changes only on a breaking schema change. New content never bumps it</span>],
+            ['Encoding', <span>objects are stored gzipped and served with <Mono>content-encoding: gzip</Mono>. Any client that negotiates gzip (every browser, R’s curl, Python’s urllib) receives plain JSON</span>],
+            ['Versioning', <span>the <Mono>/v1/</Mono> prefix changes on a breaking schema change. New content keeps the prefix</span>],
             ['Caching', <span><Mono>max-age=60</Mono> on entry points, longer on content shards</span>],
           ]}
         />
-        <SourceNote>
-          response headers observed on <Mono>catalog.json.gz</Mono>;{' '}
-          <Mono>docs/WEBSITE_PLAN.md</Mono> §7 and §15.
-        </SourceNote>
       </Section>
 
       <Section
         title="Endpoints"
-        subtitle="Each example URL below was requested and returned 200 on 2026-08-18."
+        subtitle="Each example URL returns 200."
       >
         <SimpleTable
           head={['Path', 'What it returns', 'Verified example']}
@@ -108,10 +104,9 @@ export default function ApiDocs() {
 
       <Section title="Data shape">
         <P>
-          Sections and shards are <b>columnar</b>: an object of arrays, not an array of objects.
-          Dropping the repeated key names is most of the bytes on the large tables. An entity
-          bundle is one level deeper — an object keyed by section id, each holding one columnar
-          table.
+          Sections and shards are <b>columnar</b>: an object of arrays. Dropping the repeated key
+          names saves most of the bytes on the large tables. An entity bundle is one level deeper,
+          an object keyed by section id, each holding one columnar table.
         </P>
         <Code label="s/mr_motif_counts.json.gz, abbreviated">
 {`{
@@ -151,7 +146,7 @@ names(asgr1)
 
 head(as.data.frame(asgr1$expo_protein_assoc))`}
         </Code>
-        <Code label="A headline number, so nothing is hand-typed">
+        <Code label="A headline number">
 {`h <- jsonlite::fromJSON(file.path(base, "meta/headline.json.gz"))
 h$macros$nProteins$value
 #> [1] 2686`}
@@ -168,10 +163,6 @@ lep <- as.data.frame(
   jsonlite::fromJSON(file.path(base, "k/assoc_base/LEP.json.gz"))
 )`}
         </Code>
-        <SourceNote>
-          the first three blocks were executed against the live bucket with R 4.4.2 and{' '}
-          <Mono>jsonlite</Mono> on 2026-08-18; the printed output is the real output.
-        </SourceNote>
       </Section>
 
       <Section title="Python">
@@ -204,11 +195,10 @@ lep = pd.DataFrame(heap("k/assoc_base/LEP.json.gz"))
 # one section inside an entity bundle
 assoc = pd.DataFrame(heap("e/protein/ASGR1.json.gz")["expo_protein_assoc"])`}
         </Code>
-        <SourceNote>
-          the standard-library block was executed against the live bucket on 2026-08-18. If a
-          client sets <Mono>Accept-Encoding: gzip</Mono> by hand it must also decompress the
-          response itself; leaving the header alone is simpler and is what the block above does.
-        </SourceNote>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          A client that sets <Mono>Accept-Encoding: gzip</Mono> by hand must also decompress the
+          response. The block above leaves the header to the library.
+        </Typography>
       </Section>
 
       <Section title="curl">
@@ -220,24 +210,24 @@ curl -s "https://storage.googleapis.com/storage/v1/b/heap-data/o?prefix=web/v1/&
         </Code>
       </Section>
 
-      <Section title="Deliberate non-goals, and what does not exist yet">
+      <Section title="What the API does not serve">
         <SimpleTable
           head={['Not offered', 'Status', 'Do this instead']}
           rows={[
             [
               'Server-side filtering or query parameters',
               'by design',
-              'Fetch the section or the shard and filter locally. Sharded sections exist precisely so that a per-entity slice is a single small object.',
+              'Fetch the section or the shard and filter locally. Sharding keeps a per-entity slice to one small object.',
             ],
             [
               <Mono>table/&lt;KEY&gt;.parquet</Mono>,
               <Chip size="small" label="404 — not published" variant="outlined" />,
-              <span>Planned in <Mono>WEBSITE_PLAN.md</Mono> §7 but not in the pipeline yet (gap G9). Use the JSON sections.</span>,
+              'Planned. Use the JSON sections.',
             ],
             [
               <Mono>table/&lt;KEY&gt;.tsv</Mono>,
               <Chip size="small" label="404 — not published" variant="outlined" />,
-              'Same. The bucket currently holds four prefixes only: the two entry-point objects, and e/, k/, meta/, s/.',
+              'Planned. The bucket holds two entry-point objects and the prefixes e/, k/, meta/ and s/.',
             ],
             [
               <span><Mono>disease/</Mono> and <Mono>triad/</Mono> entity bundles</span>,
@@ -246,10 +236,6 @@ curl -s "https://storage.googleapis.com/storage/v1/b/heap-data/o?prefix=web/v1/&
             ],
           ]}
         />
-        <SourceNote>
-          each row was checked against the bucket on 2026-08-18; the prefix listing is the
-          authoritative answer to what exists.
-        </SourceNote>
       </Section>
 
       <AuthorNote what="Bulk supplementary deposit — not documented here yet.">
@@ -263,11 +249,11 @@ curl -s "https://storage.googleapis.com/storage/v1/b/heap-data/o?prefix=web/v1/&
 
       <Section title="Related">
         <P>
-          The dataset behind each endpoint, with its schema and build date, is listed in{' '}
-          <Mono>catalog.json.gz</Mono>. For what the columns mean, see{' '}
+          <Mono>catalog.json.gz</Mono> lists the dataset behind each endpoint, with its schema and
+          build date. For what the columns mean, see{' '}
           <Link to="/documentation/methods">Detailed methods</Link> and{' '}
-          <Link to="/documentation/models">Specifications</Link>; for how to cite a specific
-          build, <Link to="/documentation/cite">How to cite</Link>.
+          <Link to="/documentation/models">Specifications</Link>. To cite a specific build, see{' '}
+          <Link to="/documentation/cite">How to cite</Link>.
         </P>
       </Section>
     </DocPage>

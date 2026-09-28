@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Chip, Paper, Typography } from '@mui/material';
 import {
-  AuthorNote, DocPage, Mono, P, Section, SimpleTable, SourceNote, useHeadline, macro,
+  AuthorNote, DocPage, Mono, P, Section, SimpleTable, useHeadline, macro,
 } from '../Documentation';
 
 // Structural changes only (standing decision S13). Where a row would need a
@@ -30,14 +30,14 @@ export default function Changelog() {
   return (
     <DocPage
       title="Changelog"
-      lead="What changed between the first release of this resource and the current one. This tracks the resource — its structure, its vocabulary and its files — not the manuscript."
+      lead="What changed between the first release of this resource and the current one. It tracks the site: its structure, its vocabulary and its files."
     >
       <Section title="v2 — the current release">
         <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            v2 rebuilds the site for the revised manuscript. The previous public site was built
-            for the original manuscript and still described four analysis modules, the Type1–Type7
-            covariate naming, and G×E as a top-level result. All three are superseded.
+            v2 rebuilds the site for the revised manuscript. The previous site described four
+            analysis modules, the Type1–Type7 covariate naming, and G×E as a top-level result. All
+            three are superseded.
           </Typography>
         </Paper>
 
@@ -45,7 +45,7 @@ export default function Changelog() {
           head={['Change', 'Kind', 'Detail']}
           rows={[
             [
-              'Six analysis modules, not four',
+              'Six analysis modules',
               <Kind value="structural" />,
               <span>
                 v1 presented four: variance decomposition, G×E associations, mediation, and
@@ -53,7 +53,7 @@ export default function Changelog() {
                 exposure–protein association, mediation, Mendelian randomization, interventional
                 comparison, and proteome-based exposure scores — plus two un-numbered supporting
                 analyses (tissue/pathway enrichment, exposure GWAS). Module numbers follow the
-                manuscript, not the code directories.
+                manuscript.
               </span>,
             ],
             [
@@ -70,8 +70,8 @@ export default function Changelog() {
               <Kind value="structural" />,
               <span>
                 Cis-pQTL colocalization with a hard gate at PP.H4 ≥ 0.8; {n('nColoc')} loci clear
-                it. Cis edges failing the gate because the two signals sit on distinct variants in
-                linkage disequilibrium are labeled LD-confounded rather than dropped.
+                it. A cis edge fails the gate when the two signals sit on distinct variants in
+                linkage disequilibrium. Those edges are kept and labeled LD-confounded.
               </span>,
             ],
             [
@@ -111,9 +111,8 @@ export default function Changelog() {
                 Type1–Type7 is retired for descriptive names: <Mono>base</Mono> (primary),{' '}
                 <Mono>base_bmi</Mono>, <Mono>base_draw</Mono>, <Mono>base_clinical</Mono>,{' '}
                 <Mono>base_ses</Mono>, <Mono>base_prevalent</Mono>. v1 keyed its association pages
-                on <Mono>Type6</Mono>, which is now <Mono>base_ses</Mono> and is never a default.
-                <b> Type3 did not simply become base</b>: base drops BMI and fasting time, so the
-                two are different models. Full mapping on{' '}
+                on <Mono>Type6</Mono>, which is now <Mono>base_ses</Mono>, a supplementary set.{' '}
+                <b>Type3 became a different model</b>: base drops BMI and fasting time. Full mapping on{' '}
                 <Link to="/documentation/models">Specifications</Link>.
               </span>,
             ],
@@ -139,9 +138,9 @@ export default function Changelog() {
               'Protein identifiers standardized',
               <Kind value="structural" />,
               <span>
-                Protein keys are true HGNC symbols (<Mono>HLA-A</Mono>, not <Mono>HLA_A</Mono>).
-                Four proteins carry R-safe underscored names in the upstream exports; the packer
-                republishes them under the real symbol and records the alias.
+                Protein keys are hyphenated HGNC symbols, such as <Mono>HLA-A</Mono>. Four proteins
+                carry R-safe underscored names in the upstream exports. The packer republishes them
+                under the HGNC symbol and records the alias.
               </span>,
             ],
             [
@@ -163,12 +162,6 @@ export default function Changelog() {
             ],
           ]}
         />
-        <SourceNote>
-          <Mono>docs/WEBSITE_PLAN.md</Mono> §1, §2 and §13; <Mono>docs/TASKS.md</Mono> standing
-          decisions and completed rows; <Mono>HEAP/docs/MODULE_NUMBERING.md</Mono>;{' '}
-          <Mono>HEAP/config/covariates/covariate_sets.yml</Mono>. Live counts from{' '}
-          <Mono>meta/headline.json.gz</Mono>.
-        </SourceNote>
       </Section>
 
       <AuthorNote what="Why G×E was demoted — one sentence, yours.">
@@ -207,16 +200,15 @@ export default function Changelog() {
           head={['Axis', 'Bumps when', 'Where you see it']}
           rows={[
             ['Site code', 'every change', 'the deployed frontend'],
-            ['Payload API', <span>only on a breaking schema change — a field removed or its meaning changed</span>, <Mono>web/v1/</Mono>],
+            ['Payload API', <span>a breaking schema change: a field removed or its meaning changed</span>, <Mono>web/v1/</Mono>],
             ['Dataset', 'the analysis is rerun', <span>the <Mono>version</Mono> and build date on each row of <Mono>catalog.json.gz</Mono></span>],
           ]}
         />
         <P>
-          Content changes never bump the API version. Adding a section, or republishing one with
-          new values, leaves <Mono>v1</Mono> alone; only a change that would make an older client
-          misread a newer payload moves it.
+          Content changes keep the API version. Adding a section, or republishing one with new
+          values, leaves <Mono>v1</Mono> alone. The prefix moves when a change would make an older
+          client misread a newer payload.
         </P>
-        <SourceNote><Mono>docs/WEBSITE_PLAN.md</Mono> §15.</SourceNote>
       </Section>
 
       {/* Was: "Rows marked <scientific> would assert what a result means and are

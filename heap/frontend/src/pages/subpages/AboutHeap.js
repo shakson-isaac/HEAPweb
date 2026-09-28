@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
 import {
-  AuthorNote, Code, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable, SourceNote,
+  AuthorNote, Code, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable,
   macro, useHeadline,
 } from '../Documentation';
 
@@ -16,7 +16,7 @@ export default function AboutHeap() {
   return (
     <DocPage
       title="About HEAP"
-      lead="HEAP (Human Exposomic Architecture of the Proteome) measures how modifiable lifestyle and environmental exposures are reflected in the human plasma proteome, how those proteomic signatures relate to incident disease, and which of those relationships carry genetic or interventional support."
+      lead="HEAP (Human Exposomic Architecture of the Proteome) measures how modifiable lifestyle and environmental exposures are reflected in the human plasma proteome. It links those signatures to incident disease, and grades each link by its genetic and interventional support."
     >
       <AuthorNote what="Landing framing — one paragraph, yours to write." />
 
@@ -28,16 +28,15 @@ export default function AboutHeap() {
             burden, disease liability, and early disease processes.
           </Typography>
         </Paper>
-        <SourceNote>
-          the revised manuscript, quoted in <Mono>docs/WEBSITE_PLAN.md</Mono> §1. Everything on
-          this site is organized so that this distinction is visible on each individual
-          relationship rather than asserted once — see <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
-        </SourceNote>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          From the manuscript. Each relationship on the site carries its own{' '}
+          <Link to="/documentation/evidence-tiers">evidence badge</Link>.
+        </Typography>
       </Section>
 
       <Section
         title="What is in it"
-        subtitle="Read live from the published payload, which is generated from the manuscript's LaTeX macros. No number on this page is typed by hand."
+        subtitle="Counts are read from the published payload, which is generated from the manuscript's macros."
       >
         <HeadlineFallback error={error} />
         <SimpleTable
@@ -55,38 +54,31 @@ export default function AboutHeap() {
             ['Tier-1 mediator triads', `${n('nMotifTierOne')} (${n('nMotifTierOneProt')} proteins)`, 'exposure → protein → disease triads meeting the Tier-1 mediator motif'],
           ]}
         />
-        <SourceNote>
-          <Mono>meta/headline.json.gz</Mono>, built from <Mono>HEAP_manuscript/macros/numbers.tex</Mono>.
-        </SourceNote>
       </Section>
 
       <Section title="Two pairs that are easy to conflate">
         <SimpleTable
-          head={['Do not confuse', 'with', 'because']}
+          head={['Count', 'Distinct from', 'Why they differ']}
           rows={[
             [
               <span>{n('nProteins')} proteins</span>,
               <span>{n('nProteinsPES')} proteins</span>,
-              'the first is the analyzed panel used for the variance decomposition; the second is the longitudinal panel behind the exposure scores. They are different panels, not a corrected count.',
+              'The first is the analyzed Olink panel behind the variance decomposition. The second is the longitudinal panel behind the exposure scores. Each count applies to its own panel.',
             ],
             [
               <span>{n('nMotifTierOne')} mediator triads</span>,
               <span>{n('nMotifTriads')} mediator triads</span>,
-              'the first is the Tier-1 bar and is the headline; the second is the nominal-significance bar. The two sets are not nested, so the nominal count must never be shown as the headline.',
+              'The first is the Tier-1 bar, which is the published headline. The second is the nominal-significance bar, a separate set.',
             ],
           ]}
         />
-        <SourceNote>
-          <Mono>WEBSITE_PLAN.md</Mono> §3 and §13/G1; motif bars read from{' '}
-          <Mono>S_mr_triads</Mono> / <Mono>S_mr_motifs</Mono>.
-        </SourceNote>
       </Section>
 
       <Section title="How the analysis is organized">
         <P>
-          Six analysis modules feed the site. Each is described, with its inputs and outputs, in{' '}
-          <Link to="/documentation/methods">Detailed methods</Link>; the covariate adjustment
-          shared by all of them is on <Link to="/documentation/models">Specifications</Link>.
+          Six analysis modules feed the site. <Link to="/documentation/methods">Detailed methods</Link>{' '}
+          describes each one. The covariate adjustment they share is on{' '}
+          <Link to="/documentation/models">Specifications</Link>.
         </P>
         <SimpleTable
           head={['Module', 'Produces', 'Where it surfaces']}
@@ -101,34 +93,27 @@ export default function AboutHeap() {
             ['Supporting · Exposure GWAS', 'instrument diagnostics, LDSC heritability and genetic correlation', <Link to="/results/gwas">Exposure GWAS</Link>],
           ]}
         />
-        <SourceNote>
-          module numbering follows the manuscript, not the code directories, per{' '}
-          <Mono>HEAP/docs/MODULE_NUMBERING.md</Mono>. Manuscript Module 4 (MR) lives in code
-          under <Mono>module5_mr/</Mono>, and manuscript Module 5 (interventions) under the code
-          <Mono>module4</Mono> namespace.
-        </SourceNote>
       </Section>
 
       <Section title="Rules this resource follows">
         <SimpleTable
           head={['Rule', 'What it means here']}
           rows={[
-            ['No generic "significant" badge', <span>Every relationship carries an explicit evidence level, and association is kept visually separate from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
+            ['One badge per relationship', <span>Each relationship carries its evidence level, and association is kept visually separate from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
             ['One primary specification', <span>All main results use the <Mono>base</Mono> covariate set; the other five are sensitivity layers behind a switcher. See <Link to="/documentation/models">Specifications</Link>.</span>],
-            ['+ BMI is not a mediation test', 'Attenuation after adjusting for BMI cannot distinguish mediation from confounding, so the BMI specification is labeled a sensitivity layer everywhere it appears.'],
+            ['+ BMI is a sensitivity layer', 'Attenuation after BMI adjustment can reflect mediation or confounding, so the BMI specification is labeled a sensitivity layer everywhere it appears.'],
             ['Mediation is descriptive', <span>Observational mediation is reported as descriptive; causal adjudication is kept separate, in <Link to="/results/causal">Mendelian randomization and colocalization</Link>.</span>],
-            ['"Not tested" is not "not significant"', 'Empty states say which of the two they are.'],
-            ['Nothing hand-typed', 'Every rendered number traces to a manuscript macro, a registry row or a payload file.'],
-            ['Nothing unpublished', 'A result appears here only if it is in the manuscript or its supplement.'],
+            ['Untested and non-significant differ', 'Empty states say which of the two they are.'],
+            ['Numbers trace to a source', 'Every rendered number comes from a manuscript macro, a registry row or a payload file.'],
+            ['Published results only', 'A result appears here once it is in the manuscript or its supplement.'],
           ]}
         />
-        <SourceNote><Mono>docs/TASKS.md</Mono> standing decisions S1–S13 and <Mono>WEBSITE_PLAN.md</Mono> §16.</SourceNote>
       </Section>
 
       <Section title="Getting the data">
         <P>
-          Everything the pages draw is served as static, gzipped JSON from a public bucket with
-          no authentication and no rate limit. One line pulls a whole result:
+          Every page draws from static gzipped JSON in a public bucket, with no key and no rate
+          limit. One line pulls a whole result:
         </P>
         <Code label="R">
 {`jsonlite::fromJSON(
@@ -136,8 +121,8 @@ export default function AboutHeap() {
 )`}
         </Code>
         <P>
-          The full URL scheme, with tested R and Python examples, is on{' '}
-          <Link to="/documentation/api">Data API</Link>.
+          <Link to="/documentation/api">Data API</Link> gives the full URL scheme, with R and
+          Python examples.
         </P>
       </Section>
 
@@ -150,10 +135,10 @@ export default function AboutHeap() {
 
       <Section title="Version and provenance">
         <P>
-          The site code, the payload API and the datasets version independently: the payload path
-          prefix (<Mono>web/v1/</Mono>) changes only on a breaking schema change, while each
-          dataset carries its own version and build date. Datasets have no separate DOI — readers
-          cite the paper. See <Link to="/documentation/cite">How to cite</Link> and{' '}
+          The site code, the payload API and the datasets version independently. The payload path
+          prefix (<Mono>web/v1/</Mono>) changes on a breaking schema change. Each dataset carries
+          its own version and build date. Datasets have no separate DOI, so cite the paper. See{' '}
+          <Link to="/documentation/cite">How to cite</Link> and{' '}
           <Link to="/documentation/changelog">Changelog</Link>.
         </P>
         <Box sx={{ mt: 2 }}>
