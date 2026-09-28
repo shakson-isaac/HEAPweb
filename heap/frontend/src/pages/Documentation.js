@@ -243,7 +243,7 @@ function Sidebar() {
       {DOC_PAGES.map((p) => (
         <NavLink
           key={p.path}
-          to={p.path}
+          to={`/documentation/${p.path}`}
           style={({ isActive }) => ({
             display: 'block',
             padding: '5px 8px',
@@ -272,7 +272,7 @@ function Overview() {
     >
       {DOC_PAGES.map((p) => (
         <Paper key={p.path} variant="outlined" sx={{ p: 2, mb: 1.5, maxWidth: 820 }}>
-          <Link to={p.path} style={{ fontWeight: 600, fontSize: 16, textDecoration: 'none', color: '#124533' }}>
+          <Link to={`/documentation/${p.path}`} style={{ fontWeight: 600, fontSize: 16, textDecoration: 'none', color: '#124533' }}>
             {p.label}
           </Link>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{p.blurb}</Typography>

@@ -11,6 +11,11 @@
 // it; the sidebar ignores it.
 // ---------------------------------------------------------------------------
 
+// `path` is RELATIVE ON PURPOSE: it is the inner <Route path> in
+// pages/Documentation.js. Every LINK must prefix it with `/documentation/`.
+// A bare <Link to={p.path}> resolves against the current URL, so from
+// /documentation/methods it went to /documentation/methods/about and every
+// sidebar item 404'd on every page but the index (fixed 2026-09-28).
 export const DOC_PAGES = [
   { path: 'about', label: 'About HEAP', blurb: 'What the resource contains and how it is put together.' },
   { path: 'quickstart', label: 'Quick start', blurb: 'Find a protein, an exposure or a disease; download; call the API.' },
