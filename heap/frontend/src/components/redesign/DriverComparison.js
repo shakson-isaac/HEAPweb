@@ -9,6 +9,7 @@ import { useKeys, useSection, useShard } from '../../lib/useSection';
 import {
   SPEC_LABEL, diseaseInfo, distIndex, shardRows, specsIn,
 } from '../../lib/mediation';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- an exposomic effect against its genetic counterparts.
@@ -47,8 +48,8 @@ export default function DriverComparison() {
   const dcSec = useSection('med_disease');
   const { data: keys } = useKeys('med_drivers');
   const [spec, setSpec] = useState('base');
-  const [mode, setMode] = useState('overview');
-  const [protein, setProtein] = useState(null);
+  const [mode, setMode] = useUrlState('driver', 'overview');
+  const [protein, setProtein] = useUrlState('protein', null);
 
   const specs = useMemo(() => specsIn(data), [data]);
   const dz = useMemo(() => diseaseInfo(dcSec.data), [dcSec.data]);

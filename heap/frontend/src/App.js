@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { makeTheme } from './theme';
 import { ColorModeProvider, useColorMode } from './lib/colorMode';
 import Home from './pages/Home';
+import EntityProtein from './pages/EntityProtein';
 import Results from './pages/Results';
 import Downloads from './pages/Downloads';
 import NotFound from './pages/NotFound';
@@ -33,6 +34,7 @@ function Themed() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/results/*" element={<Results />} />
+              <Route path="/explore/protein/:symbol" element={<EntityProtein />} />
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/documentation/*" element={<Documentation />} />
               {/* Anything the router does not know. Without this an unknown

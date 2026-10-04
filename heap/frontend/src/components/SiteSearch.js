@@ -30,7 +30,10 @@ const INDEX_URL = `${WEB_DATA_BASE}/meta/search_index.json.gz`;
 const MAX_OPTIONS = 40;
 
 const ROUTES = {
-  protein: (id) => `/results/associations?protein=${encodeURIComponent(id)}`,
+  // A protein goes to its own page, which lists every view that has something
+  // for it. Exposures and diseases still route straight into a view until their
+  // entity pages exist.
+  protein: (id) => `/explore/protein/${encodeURIComponent(id)}`,
   exposure: (id) => `/results/enrichment?exposure=${encodeURIComponent(id)}`,
   disease: (id) => `/results/mediation?disease=${encodeURIComponent(id)}`,
 };
