@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Menu, MenuItem, Divider } from '@mui/material';
 import { SERIF } from '../theme';
-import SiteSearch from './SiteSearch';
 import { DOC_PAGES } from '../lib/docPages';
 
 const heapLogo = `${process.env.PUBLIC_URL}/HEAPlogo.png`;
@@ -130,10 +129,6 @@ function Header() {
                 </React.Fragment>
               ))}
           </Menu>
-          {/* The search index has been published since the first payload build and
-              read by nothing. It routes a protein, an exposure or a disease to the
-              page that answers for it, with the selection in the query string. */}
-          <SiteSearch />
         </nav>
       </Toolbar>
     </AppBar>
