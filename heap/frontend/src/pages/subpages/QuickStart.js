@@ -11,8 +11,8 @@ function Step({ n, title, children }) {
     <Paper variant="outlined" sx={{ p: 2, mb: 1.5, maxWidth: 820, display: 'flex', gap: 2 }}>
       <Box
         sx={{
-          flex: '0 0 28px', height: 28, borderRadius: '50%', backgroundColor: '#124533',
-          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flex: '0 0 28px', height: 28, borderRadius: '50%', backgroundColor: 'primary.main',
+          color: 'primary.contrastText', display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontWeight: 700, fontSize: 14,
         }}
       >

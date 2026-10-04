@@ -12,7 +12,7 @@ function ModuleCard({ number, name, children }) {
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820 }}>
       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-        <Chip size="small" label={number} sx={{ backgroundColor: '#124533', color: '#fff', fontWeight: 700 }} />
+        <Chip size="small" label={number} color="primary" sx={{ fontWeight: 700 }} />
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{name}</Typography>
       </Box>
       {children}

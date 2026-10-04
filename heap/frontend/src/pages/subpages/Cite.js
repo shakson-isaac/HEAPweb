@@ -43,7 +43,7 @@ export default function Cite() {
       lead="Cite the paper. The datasets published here carry a version and a build date, so you can state which release you used."
     >
       <Section title="The paper">
-        <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820, borderLeft: '4px solid #124533' }}>
+        <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
           <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
             {AUTHORS.join(', ')}. <b>{TITLE}</b>. medRxiv (preprint).{' '}
             <a href={DOI_URL} target="_blank" rel="noopener noreferrer">

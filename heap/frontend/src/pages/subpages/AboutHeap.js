@@ -21,7 +21,7 @@ export default function AboutHeap() {
       <AuthorNote what="Landing framing — one paragraph, yours to write." />
 
       <Section title="The claim, in the manuscript's own words">
-        <Paper variant="outlined" sx={{ p: 2, mb: 1, maxWidth: 820, borderLeft: '4px solid #124533' }}>
+        <Paper variant="outlined" sx={{ p: 2, mb: 1, maxWidth: 820, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
           <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65 }}>
             Only a minority of exposure-responsive proteins were consistent with causal
             intermediates, whereas many appeared to function as biological reporters of exposure

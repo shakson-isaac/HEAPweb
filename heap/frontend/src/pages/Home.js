@@ -26,6 +26,7 @@ import { prefetchCharts } from '../lib/prefetch';
 import { Link } from 'react-router-dom';
 import { Alert } from '@mui/material';
 import { WEB_DATA_BASE } from '../lib/heapdata';
+import ExposomeScatter from '../components/home/ExposomeScatter';
 import './Home.css';
 
 // ---------------------------------------------------------------------------
@@ -43,11 +44,11 @@ import './Home.css';
 //    in the human plasma proteome, how these signatures relate to disease, and which
 //    relationships have genetic or interventional support."
 // It is not used verbatim because it asserts what the proteome reflects. Fallback below.
+const HERO_TITLE = 'The exposome, written into the plasma proteome';
+
 const HERO_CLAIM =
-  'A resource of 169 lifestyle and environmental exposures, 2,686 plasma proteins,'
-  + ' impacting 181 diseases across 53,014 participants in the UK Biobank. Browse the'
-  + ' HEAP resource by protein, exposure or disease, and download the summary statistics'
-  + ' and weights.';
+  '169 lifestyle and environmental exposures tested against 2,686 plasma proteins,'
+  + ' linked to 181 incident diseases, and graded by genetic and interventional support.';
 
 // AUTHOR: reporter/intermediate framing -- needs Shakson's wording.
 // The plan's proposed strapline (WEBSITE_PLAN.md section 3) reads:
@@ -77,21 +78,10 @@ const HERO_CLAIM =
 const STAT_TILES = [
   { key: 'nParticipants', label: 'participants' },
   { key: 'nProteins', label: 'plasma proteins' },
-  { key: 'nExposures', label: 'exposures tested' },
+  { key: 'nExposures', label: 'exposures' },
   { key: 'nReplAssoc', label: 'replicated associations' },
-  { key: 'nProteinsAssoc', label: 'proteins with an association' },
-  { key: 'nExposuresAssoc', label: 'exposures with an association' },
   { key: 'nDiseasesGEM', label: 'incident diseases' },
-  {
-    key: 'nExposuresPES',
-    label: 'exposure scores (PES)',
-    // Flagged, not silently corrected: the published macro says 164 while the weights
-    // bundle's own manifest.tsv lists 160 directories (WEBSITE_PLAN.md G3, TASKS B5).
-    // Which one is right is an author decision, so the page prints the published macro
-    // and says the other number exists.
-    footnote: '164 published; 160 exposure directories exist in the weights bundle',
-  },
-  { key: 'nColoc', label: 'colocalized cis-pQTL loci' },
+  { key: 'nColoc', label: 'colocalized loci' },
 ];
 
 /** A macro's printed form. Never falls back to a typed-in number -- absent means absent. */
@@ -275,22 +265,22 @@ const Home = () => {
   return (
     <div className="home">
       <section className="home-hero">
-        <h1 className="home-title">
-          HEAP
-          <span className="home-title-expansion">
+        <div className="home-hero-text">
+          <div className="home-kicker">UK Biobank · {participantsText(macros)} participants</div>
+          <h1 className="home-title">{HERO_TITLE}</h1>
+          <p className="home-sub">
             <strong>H</strong>uman <strong>E</strong>xposomic <strong>A</strong>rchitecture
             of the <strong>P</strong>roteome
-          </span>
-        </h1>
-
-        {/* AUTHOR: hero claim -- needs Shakson's wording (S13). Neutral fallback below. */}
-        <p className="home-lede">{HERO_CLAIM}</p>
-
-        <div className="home-hero-actions">
-          <a className="home-cta" href="#start-here">Start here</a>
-          <Link className="home-cta home-cta--ghost" to="/results/associations">
-            Browse results
-          </Link>
+          </p>
+          {/* AUTHOR: hero claim -- needs Shakson's wording (S13). Neutral fallback below. */}
+          <p className="home-lede">{HERO_CLAIM}</p>
+          <div className="home-hero-actions">
+            <Link className="home-cta" to="/results/associations">Browse results</Link>
+            <Link className="home-cta home-cta--ghost" to="/downloads">Download data</Link>
+          </div>
+        </div>
+        <div className="home-hero-figure">
+          <ExposomeScatter />
         </div>
       </section>
 

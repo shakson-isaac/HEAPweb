@@ -96,7 +96,7 @@ export default function ApiDocs() {
               <a href={`${BASE}/${e.example}`} target="_blank" rel="noopener noreferrer">
                 <Mono>{e.example}</Mono>
               </a>
-              <Chip size="small" label="200" sx={{ ml: 1, height: 18, backgroundColor: '#124533', color: '#fff' }} />
+              <Chip size="small" label="200" color="primary" sx={{ ml: 1, height: 18 }} />
             </Box>,
           ])}
         />

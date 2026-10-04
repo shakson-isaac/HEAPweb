@@ -254,6 +254,11 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 const RGB = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
+// The anatomogram is black line art on white. It keeps a white card in dark mode
+// -- inverting a published drawing would misrepresent it -- so anything sitting on
+// that card pins its own ink rather than inheriting the theme's.
+const FIGURE_CARD = { bgcolor: '#ffffff', color: '#111827' };
+
 /** Mix `hex` toward white. t=1 is the pure colour, t=0 is white. */
 function tint(hex, t) {
   const c = RGB(hex).map((v) => Math.round(255 + (v - 255) * clamp(t, 0, 1)));
@@ -708,7 +713,8 @@ function Anatomogram({
                   cursor: 'pointer',
                   overflow: 'hidden',
                   borderRadius: 0.75,
-                  bgcolor: '#fff',
+                  bgcolor: '#ffffff',
+                  color: '#111827',
                   border: '1px solid',
                   borderColor: a.color,
                   borderStyle: a.dashed ? 'dashed' : 'solid',
@@ -1672,7 +1678,7 @@ export default function ExposureBodyMap({
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'stretch' }}>
             {/* Wider than the drawing needs, because the two gutters that hold
                 the label boxes are part of this panel. */}
-            <Paper variant="outlined" sx={{ flex: '1 1 430px', minWidth: 340, p: 1, bgcolor: '#fff' }}>
+            <Paper variant="outlined" sx={{ flex: '1 1 430px', minWidth: 340, p: 1, ...FIGURE_CARD }}>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
                 {`${sex} body — ${counts.onBody} enriched`}
               </Typography>
@@ -1694,7 +1700,7 @@ export default function ExposureBodyMap({
                 not-tested / tested-null confusion the four paint states exist to
                 prevent. Drawn permanently, an all-neutral brain is a visible
                 null result: 13 subregions were scored and none of them hit. */}
-            <Paper variant="outlined" sx={{ flex: '1 1 430px', minWidth: 340, p: 1, bgcolor: '#fff' }}>
+            <Paper variant="outlined" sx={{ flex: '1 1 430px', minWidth: 340, p: 1, ...FIGURE_CARD }}>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
                 {`brain subregions — ${counts.onBrain} enriched`}
               </Typography>

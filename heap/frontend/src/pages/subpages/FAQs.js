@@ -200,7 +200,7 @@ export default function FAQs() {
               role="button"
               tabIndex={0}
             >
-              <QuizOutlinedIcon style={{ color: '#124533db', marginRight: '12px' }} />
+              <QuizOutlinedIcon style={{ color: 'var(--accent)', marginRight: '12px' }} />
               <span className={openIndex === i ? 'faq-question active' : 'faq-question'}>
                 {item.q}
               </span>

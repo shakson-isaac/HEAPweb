@@ -243,9 +243,9 @@ function Sidebar() {
             textDecoration: 'none',
             fontSize: 14,
             fontWeight: isActive ? 700 : 400,
-            color: isActive ? '#124533' : '#333',
-            backgroundColor: isActive ? '#eef4f0' : 'transparent',
-            borderLeft: isActive ? '3px solid #124533' : '3px solid transparent',
+            color: isActive ? 'var(--accent)' : 'var(--soft)',
+            backgroundColor: isActive ? 'var(--panel-alt)' : 'transparent',
+            borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
           })}
         >
           {p.label}
@@ -263,7 +263,7 @@ function Overview() {
     >
       {DOC_PAGES.map((p) => (
         <Paper key={p.path} variant="outlined" sx={{ p: 2, mb: 1.5, maxWidth: 820 }}>
-          <Link to={`/documentation/${p.path}`} style={{ fontWeight: 600, fontSize: 16, textDecoration: 'none', color: '#124533' }}>
+          <Link to={`/documentation/${p.path}`} style={{ fontWeight: 600, fontSize: 16, textDecoration: 'none', color: 'var(--accent)' }}>
             {p.label}
           </Link>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{p.blurb}</Typography>

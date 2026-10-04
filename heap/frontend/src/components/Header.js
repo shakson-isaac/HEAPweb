@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Menu, MenuItem, Divider } from '@mui/material';
+import { SERIF } from '../theme';
 import { DOC_PAGES } from '../lib/docPages';
 
 const heapLogo = `${process.env.PUBLIC_URL}/HEAPlogo.png`;
@@ -64,9 +65,17 @@ function Header() {
           to="/"
           style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
         >
-          <img src={heapLogo} alt="HEAP Logo" style={{ width: '40px', height: '40px', marginRight: '10px' }} />
-          <Typography variant="h6" style={{ fontFamily: 'Inter, Arial, sans-serif', marginRight: '20px' }}>
-            <strong>HEAP</strong>
+          <img
+            src={heapLogo}
+            alt=""
+            aria-hidden="true"
+            style={{ width: 26, height: 26, marginRight: 10, borderRadius: 4, objectFit: 'cover' }}
+          />
+          <Typography
+            variant="h6"
+            style={{ fontFamily: SERIF, fontWeight: 700, letterSpacing: '-0.3px', marginRight: 22 }}
+          >
+            HEAP
           </Typography>
         </Link>
         <nav className="nav-links" style={{ display: 'flex', gap: '20px', marginLeft: '30px' }}>

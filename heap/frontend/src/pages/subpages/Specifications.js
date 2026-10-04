@@ -113,8 +113,8 @@ export default function Specifications() {
               size="small" label={s.id}
               sx={{
                 fontFamily: 'ui-monospace, monospace', fontWeight: 600,
-                backgroundColor: s.role === 'PRIMARY' ? '#124533' : '#e8e8ea',
-                color: s.role === 'PRIMARY' ? '#fff' : 'inherit',
+                backgroundColor: s.role === 'PRIMARY' ? 'primary.main' : 'action.selected',
+                color: s.role === 'PRIMARY' ? 'primary.contrastText' : 'inherit',
               }}
             />,
             s.role,

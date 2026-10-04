@@ -64,7 +64,9 @@ const RUNGS = [
   },
 ];
 
-const KIND_COLOR = { association: '#0072B2', causal: '#124533', external: '#D55E00' };
+// Arm colors are the site's evidence vocabulary, fixed across modes. The causal
+// green is lightened from the print #124533 so it stays legible on a dark panel.
+const KIND_COLOR = { association: '#0072B2', causal: '#1b7a5a', external: '#D55E00' };
 
 function Rail() {
   const nodes = ['Association', 'Replication', 'MR', 'Colocalization', 'External perturbation'];
@@ -77,14 +79,15 @@ function Rail() {
               <Box
                 sx={{
                   width: 16, height: 16, borderRadius: '50%', mx: 'auto', mb: 0.5,
-                  border: '2px solid #124533',
-                  backgroundColor: i < 4 ? '#124533' : 'transparent',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  backgroundColor: i < 4 ? 'primary.main' : 'transparent',
                 }}
               />
               <Typography variant="caption" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
             </Box>
             {i < nodes.length - 1 && (
-              <Box sx={{ flex: '0 0 24px', height: 2, backgroundColor: '#124533', opacity: i < 3 ? 1 : 0.25 }} />
+              <Box sx={{ flex: '0 0 24px', height: 2, backgroundColor: 'primary.main', opacity: i < 3 ? 1 : 0.25 }} />
             )}
           </React.Fragment>
         ))}

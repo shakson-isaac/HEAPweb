@@ -750,7 +750,8 @@ export default function InterventionNetwork() {
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
-            bgcolor: '#fff',
+            bgcolor: '#ffffff',
+            color: '#111827',
           }}
           >
             <svg

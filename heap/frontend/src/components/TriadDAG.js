@@ -332,7 +332,7 @@ export default function TriadDAG({
             `Directed graph of ${triad.exposureLabel}, ${triad.protein} and ${triad.diseaseLabel} `
             + `with its six Mendelian randomization edges`
           }
-          style={{ width: '100%', height: 'auto', maxWidth, display: 'block', background: '#fff' }}
+          style={{ width: '100%', height: 'auto', maxWidth, display: 'block', background: '#ffffff', color: '#111827' }}
         >
           <defs>
             {colors.map((c, i) => (
