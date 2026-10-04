@@ -6,6 +6,7 @@ import ColumnarTable from '../../components/ColumnarTable';
 import PlotPanel from '../../components/PlotPanel';
 import { useKeys, useShard } from '../../lib/useSection';
 import { ecatColor, prettyExposure, prettyCategory } from '../../lib/palette';
+import useUrlState from '../../lib/useUrlState';
 
 // The packer recovers whole-column types, so a TSV "TRUE" arrives as a real
 // JSON boolean. Accept either form rather than assuming one.
@@ -25,8 +26,8 @@ const SPECS = [
 ];
 
 export default function Associations() {
-  const [specId, setSpecId] = useState('assoc_base');
-  const [protein, setProtein] = useState('LEP');
+  const [specId, setSpecId] = useUrlState('spec', 'assoc_base');
+  const [protein, setProtein] = useUrlState('protein', 'LEP');
   const [testOnly, setTestOnly] = useState(false);
 
   const { data: keyIndex, loading: kLoading, error: kError } = useKeys('assoc_base');

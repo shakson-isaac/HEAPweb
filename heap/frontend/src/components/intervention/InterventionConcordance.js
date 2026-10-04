@@ -9,6 +9,7 @@ import { useKeys, useSection, useShard } from '../../lib/useSection';
 import {
   ecatColor, prettyCategory, prettyDisease, prettyExposure,
 } from '../../lib/palette';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // ONE scatter for the whole intervention section.
@@ -385,8 +386,8 @@ export default function InterventionConcordance() {
   } = useKeys('intervention_concordance_full');
   const { data: corr } = useSection('intervention_spec_correlations');
 
-  const [wanted, setWanted] = useState(DEFAULT_EXPOSURE);
-  const [trialId, setTrialId] = useState('GLP1_STEP1');
+  const [wanted, setWanted] = useUrlState('exposure', DEFAULT_EXPOSURE);
+  const [trialId, setTrialId] = useUrlState('trial', 'GLP1_STEP1');
   const [specId, setSpecId] = useState('base');
   const [xSig, setXSig] = useState('any');
   const [ySig, setYSig] = useState('this');

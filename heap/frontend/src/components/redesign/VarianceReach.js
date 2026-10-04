@@ -9,6 +9,7 @@ import { useSection } from '../../lib/useSection';
 import {
   COMPONENTS, COMPONENT_LABEL, proteinIndex, reachIndex, specLabel, specList,
 } from '../../lib/varcomp';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // MAIN RESULTS -- "how far does each component reach across the proteome?"
@@ -44,7 +45,7 @@ export default function VarianceReach() {
   const error = rc.error || pr.error || mt.error;
 
   const [exp, setExp] = useState('M1_base_lasso');
-  const [protein, setProtein] = useState(null);
+  const [protein, setProtein] = useUrlState('protein', null);
 
   const specs = useMemo(() => specList(mt.data), [mt.data]);
   const specById = useMemo(() => new Map(specs.map((s) => [s.id, s])), [specs]);

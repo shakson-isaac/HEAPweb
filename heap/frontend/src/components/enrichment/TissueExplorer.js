@@ -10,6 +10,7 @@ import LinkedScatterTable from '../LinkedScatterTable';
 import { useKeys, useSection, useShard } from '../../lib/useSection';
 import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
 import { SpecPicker } from '../../lib/covariateSpecs';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // The two entry points this page has never offered.
@@ -136,7 +137,7 @@ function ProteinMode() {
   // means: adipose-restricted, tau 0.93, and a protein this study already
   // singles out as adiposity-driven. A ubiquitous protein would look like a
   // flat bar chart and teach nothing about the axis.
-  const [picked, setPicked] = useState('LEP');
+  const [picked, setPicked] = useUrlState('protein', 'LEP');
   const [scale, setScale] = useState('tpm');
 
   const options = useMemo(
@@ -477,8 +478,8 @@ function TissueMode() {
   // direction colouring and the panel says which one it is showing, rather than
   // inventing a category.
   const { data: cats } = useSection('pes_reads_ci');
-  const [picked, setPicked] = useState('lung');
-  const [specId, setSpecId] = useState('base');
+  const [picked, setPicked] = useUrlState('tissue', 'lung');
+  const [specId, setSpecId] = useUrlState('spec', 'base');
 
   const catMap = useMemo(() => {
     const m = new Map();

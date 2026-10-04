@@ -10,6 +10,7 @@ import { useKeys, useSection, useShard } from '../../lib/useSection';
 import {
   SPEC_LABEL, binMedian, diseaseInfo, distIndex, shardRows, specsIn,
 } from '../../lib/mediation';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // DISEASE LINKS -- "reporter or intermediate?"
@@ -39,8 +40,8 @@ export default function MediationLandscape() {
   const { data, loading, error } = useSection('med_pm_dist');
   const dcSec = useSection('med_disease');
   const { data: dzKeys } = useKeys('med_dz_links');
-  const [spec, setSpec] = useState('base');
-  const [disease, setDisease] = useState(null);
+  const [spec, setSpec] = useUrlState('spec', 'base');
+  const [disease, setDisease] = useUrlState('disease', null);
   const [cut, setCut] = useState(0.10);
 
   const specs = useMemo(() => specsIn(data), [data]);

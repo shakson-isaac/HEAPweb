@@ -15,6 +15,7 @@ import { SpecPicker, assocSectionFor, specById } from '../../lib/covariateSpecs'
 import {
   NON_ANATOMICAL, SHARED_REGIONS, TISSUE_BODY_MAP, prettyTissue,
 } from '../../lib/tissueBodyMap';
+import useUrlState from '../../lib/useUrlState';
 // Served from public/, NOT imported from src/. Create React App runs SVGR over
 // every .svg under src/ to synthesise a `ReactComponent` export, and these are
 // Inkscape files carrying sodipodi:/inkscape: namespace tags, which React's JSX
@@ -843,7 +844,7 @@ export default function ExposureBodyMap({
 } = {}) {
   const { data: terms, loading, error } = useSection('bodymap_terms');
 
-  const [exposure, setExposure] = useState(detailFor?.exposure || null);
+  const [exposure, setExposure] = useUrlState('exposure', detailFor?.exposure || null);
   const [sex, setSex] = useState('male');
   const [pathway, setPathway] = useState(null);
   const [minShared, setMinShared] = useState(1);
@@ -859,7 +860,7 @@ export default function ExposureBodyMap({
   // The protein whose GTEx profile is shown under the leading-edge table.
   const [gene, setGene] = useState(null);
   // Which covariate specification the effect sizes are read from.
-  const [spec, setSpec] = useState('base');
+  const [spec, setSpec] = useUrlState('spec', 'base');
   const assocSection = assocSectionFor(spec);
   const specLabel = specById(spec).label;
   // viewKey -> Set of region ids the drawing actually carries. Measured from the
@@ -909,7 +910,7 @@ export default function ExposureBodyMap({
       || parsed.exposures.find((k) => /strenuous/i.test(k))
       || parsed.exposures[0];
     setExposure(hit);
-  }, [parsed, exposure]);
+  }, [parsed, exposure, setExposure]);
 
   // A pathway and an open tissue belong to one exposure; carrying either across
   // a change of exposure would show a drill-in for a term the new exposure does

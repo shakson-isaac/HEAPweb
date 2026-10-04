@@ -7,6 +7,7 @@ import PlotPanel from '../../components/PlotPanel';
 import { useSection, useKeys, useShard } from '../../lib/useSection';
 import { getManifest } from '../../lib/heapdata';
 import { prettyExposure } from '../../lib/palette';
+import useUrlState from '../../lib/useUrlState';
 
 // The packer recovers whole-column types, so a TSV "TRUE" arrives as a real
 // JSON boolean. Accept either form rather than assuming one.
@@ -103,8 +104,8 @@ function useGxePairCount() {
 // 1. per-exposure interaction p-values across the proteome
 // ---------------------------------------------------------------------------
 function AssocSection({ nPairs }) {
-  const [exposure, setExposure] = useState('pack_years_of_smoking_f20161_0_0');
-  const [statId, setStatId] = useState('p_GxE_joint');
+  const [exposure, setExposure] = useUrlState('exposure', 'pack_years_of_smoking_f20161_0_0');
+  const [statId, setStatId] = useUrlState('stat', 'p_GxE_joint');
 
   const { data: keyIndex, loading: kLoading, error: kError } = useKeys('gxe_assoc');
   const { data, loading, error } = useShard('gxe_assoc', exposure);

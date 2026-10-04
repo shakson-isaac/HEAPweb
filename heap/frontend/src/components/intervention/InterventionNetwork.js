@@ -8,6 +8,7 @@ import { useKeys, useShard } from '../../lib/useSection';
 import {
   ecatColor, prettyCategory, prettyDisease, prettyExposure,
 } from '../../lib/palette';
+import useUrlState from '../../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // The "shared language" network (main Figure 5d), for ANY disease the reader
@@ -226,7 +227,7 @@ function Ctl({ label, grow, children }) {
 export default function InterventionNetwork() {
   const { data: keyIndex, loading: kLoading, error: kError } = useKeys('intervention_network_nodes');
 
-  const [disease, setDisease] = useState(null);
+  const [disease, setDisease] = useUrlState('disease', null);
   const [protCap, setProtCap] = useState(40);
   const [expCap, setExpCap] = useState(12);
   const [minBreadth, setMinBreadth] = useState(0);
@@ -251,7 +252,7 @@ export default function InterventionNetwork() {
   useEffect(() => {
     if (disease || !keys.length) return;
     setDisease(DEFAULT_KEYS.find((k) => keys.includes(k)) || keys[0]);
-  }, [keys, disease]);
+  }, [keys, disease, setDisease]);
 
   // A breadth floor tuned on one disease is meaningless on the next (breadth
   // tops out at 97 for T2D and at 3 for some of the thin endpoints), so it
