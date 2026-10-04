@@ -575,8 +575,13 @@ def main():
                     help="figure export the disease list is read from, relative to "
                          "--source (repeatable; default fig_gem_landscape.json)")
     ap.add_argument("--out", default=None, help="default: <repo>/build/web/v1")
+    ap.add_argument("--gwas-deposit",
+                    default=os.environ.get(
+                        "HEAP_DEPOSIT_OUT",
+                        "/n/groups/patel/IGLOO/UKB/HEAP/output/gwas_deposit"),
+                    help="staged exposure GWAS deposit (manifest.tsv lives here)")
     ap.add_argument("--only", action="append",
-                    choices=["headline", "catalog", "search"],
+                    choices=["headline", "catalog", "search", "gwas"],
                     help="build one object (repeatable)")
     ap.add_argument("--no-rows", action="store_true",
                     help="skip catalog row counts (they scan ~0.7 GB of TSV)")
@@ -586,7 +591,7 @@ def main():
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     out = args.out or os.path.join(repo, "build", "web", "v1")
     os.makedirs(out, exist_ok=True)
-    want = set(args.only or ["headline", "catalog", "search"])
+    want = set(args.only or ["headline", "catalog", "search", "gwas"])
 
     w = Writer(out, gz=not args.no_gzip)
     warnings = []
@@ -658,6 +663,38 @@ def main():
                          % (name, m["raw"], got, what))
                 else:
                     print(f"      check  \\{name} = {m['raw']} matches the export")
+
+    if "gwas" in want:
+        # The summary statistics themselves are NOT on this bucket -- they sit in
+        # a requester-pays bucket, where the reader's own project is billed for
+        # the 49 GB. A browser cannot read anything there, not even a file
+        # listing, so the CATALOG of what exists is published here instead: 169
+        # rows, ~23 KB, naming every exposure and its size. The Downloads page
+        # renders the table from this and prints the command for each file.
+        man = os.path.join(args.gwas_deposit, "manifest.tsv")
+        if not os.path.exists(man):
+            warn("gwas: no manifest at %s -- run stage_gwas_deposit.R --finalize" % man)
+        else:
+            with open(man) as fh:
+                head = fh.readline().rstrip("\n").split("\t")
+                rows = [dict(zip(head, ln.rstrip("\n").split("\t")))
+                        for ln in fh if ln.strip()]
+            for r in rows:
+                for k in ("n_variants", "n_samples"):
+                    r[k] = int(float(r[k]))
+                for k in ("size_mb", "index_kb"):
+                    r[k] = float(r[k])
+            obj = OrderedDict(
+                version="v1",
+                bucket=os.environ.get("HEAP_GWAS_BUCKET", "gs://heap-gwas"),
+                requester_pays=True,
+                n_exposures=len(rows),
+                total_gb=round(sum(r["size_mb"] for r in rows) / 1000, 1),
+                exposures=rows,
+            )
+            n = w.write("meta/gwas_manifest.json", obj)
+            print(f"  [M] gwas_manifest      {len(rows):5d} exposures, "
+                  f"{obj['total_gb']:.0f} GB in {obj['bucket']} -> {n/1024:7.1f} KB")
 
     ledger = os.path.join(os.path.dirname(out.rstrip("/")), "manifest_catalog.tsv")
     total = write_ledger(ledger, w.entries)

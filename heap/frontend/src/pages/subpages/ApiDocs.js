@@ -230,6 +230,16 @@ curl -s "https://storage.googleapis.com/storage/v1/b/heap-data/o?prefix=web/v1/&
               'Planned. The bucket holds two entry-point objects and the prefixes e/, k/, meta/ and s/.',
             ],
             [
+              'Exposure GWAS summary statistics',
+              <Chip size="small" label="requester pays" variant="outlined" />,
+              <span>
+                The 169 files sit in <Mono>gs://heap-gwas</Mono>, where transfer is billed to the
+                project the reader names. Their catalog is public, at{' '}
+                <Mono>meta/gwas_manifest.json.gz</Mono>. See{' '}
+                <Link to="/downloads">Downloads</Link>.
+              </span>,
+            ],
+            [
               <span><Mono>disease/</Mono> and <Mono>triad/</Mono> entity bundles</span>,
               <Chip size="small" label="404 — not published" variant="outlined" />,
               <span>Only <Mono>e/protein/</Mono> and <Mono>e/exposure/</Mono> tiers are built today.</span>,

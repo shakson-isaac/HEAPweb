@@ -25,6 +25,9 @@ build/
 develop-eggs/
 dist/
 downloads/
+# ...but that rule is about DATA. It also swallowed the React component folder
+# of the same name, which is source and must be tracked.
+!heap/frontend/src/components/downloads/
 eggs/
 .eggs/
 # Root-anchored: these are Python build artifacts. An unanchored `lib/`

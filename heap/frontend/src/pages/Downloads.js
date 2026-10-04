@@ -10,6 +10,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import SectionCard from '../components/SectionCard';
+import GwasDeposit from '../components/downloads/GwasDeposit';
 import { WEB_DATA_BASE } from '../lib/heapdata';
 
 // Downloads = the published data catalog, read from two catalog files that the
@@ -762,6 +763,10 @@ export default function Downloads() {
           </Box>
         </Box>
         </SectionCard>
+
+        {/* Renders only once the deposit's manifest is reachable on the bucket,
+            so the page never advertises 169 links that 404 before the upload. */}
+        <GwasDeposit />
       </div>
     </div>
   );
