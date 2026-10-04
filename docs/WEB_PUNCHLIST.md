@@ -233,6 +233,27 @@ Status: `[ ]` open · `[x]` done · `[~]` in progress
 
 ### Deployment facts worth keeping
 
+**Credentials on O2: use the service account, not your own login.**
+`source tools/cloud_env.sh` before anything that touches the cloud. It activates
+`heap-ci@heap-4b852` from `~/.config/gcloud/heap-ci.json`, pins
+`CLOUDSDK_CORE_PROJECT=heap-4b852`, and reports what it found;
+`--check` reports without changing anything.
+
+Why: a user credential on a login node expires on Harvard's schedule and needs a
+browser to renew, which a cluster does not have -- `gcloud auth login` through a
+non-interactive shell dies at the paste step. A service-account key does not
+expire and never prompts. And the machine's default project is `cgmsy-467321`,
+which is not a HEAP project; a bucket's project cannot be changed after
+creation, so any tool reading the ambient default can put data somewhere that
+takes a migration to undo.
+
+Creating the key once (browser, no terminal auth needed): Cloud Console -> IAM &
+Admin -> Service Accounts -> `heap-ci@heap-4b852` -> Keys -> Add key -> JSON,
+then put it at `~/.config/gcloud/heap-ci.json` with `chmod 600`. The key must
+never enter a repository; `.gitignore` carries patterns for it as a safety net.
+
+
+
 | piece | project | notes |
 |---|---|---|
 | Firebase Hosting | `heap-4b852` | site id `heap-4b852`, `heap-4b852.web.app` |

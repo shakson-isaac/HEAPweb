@@ -50,6 +50,17 @@ echo "bucket  : $BUCKET (requester pays)"
 echo "project : $PROJECT"
 echo
 
+# Credentials, pinned to heap-4b852. Sourcing this is what keeps a 51 GB upload
+# from dying halfway through on an expired user token.
+# shellcheck source=/dev/null
+source "$(dirname "$0")/cloud_env.sh"
+gcloud storage ls "gs://heap-data/" --project="$PROJECT" >/dev/null 2>&1 || {
+  echo
+  echo "REFUSING: no working credential for $PROJECT. See the setup block in"
+  echo "tools/cloud_env.sh -- one service-account key fixes this permanently."
+  exit 1; }
+echo
+
 # --- 0. refuse to publish a partial set -------------------------------------
 n_bgz=$(find "$DEPOSIT" -name '*.tsv.bgz' | wc -l)
 n_tbi=$(find "$DEPOSIT" -name '*.tsv.bgz.tbi' | wc -l)

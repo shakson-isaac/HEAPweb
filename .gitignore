@@ -205,3 +205,10 @@ node_modules
 core
 core.*
 *.core
+
+# Service-account keys. They are long-lived credentials to a public bucket and
+# belong in ~/.config/gcloud, never here. See tools/cloud_env.sh.
+*.json.key
+heap-ci*.json
+gcp-*.json
+service-account*.json
