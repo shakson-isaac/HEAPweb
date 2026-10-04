@@ -71,22 +71,35 @@ echo "files: $n_bgz bgz, $n_tbi index, against $n_src source GWAS"
   echo "a silently truncated resource behind a permanent URL."; exit 1; }
 [[ -f "$DEPOSIT/manifest.tsv" ]] || { echo "REFUSING: no manifest.tsv (run --finalize)"; exit 1; }
 
-# --- 1. the bucket -----------------------------------------------------------
+# --- 1. the bucket ----------------------------------------------------------
+# ORDER MATTERS, AND THE OBVIOUS ORDER DEADLOCKS. Once requester pays is on,
+# every request to the bucket must carry --billing-project, and that flag needs
+# serviceusage.services.use on the billing project. A storage-only service
+# account does not have it, so turning the flag on first locks the uploader out
+# of its own bucket -- including out of turning the flag back off.
+#
+# So: create, upload, publish the read grant, and set requester pays LAST. The
+# bucket is private while the 51 GB goes up, and the only window where it is
+# both public and free is the second between the last two commands.
+#
+# heap-ci still needs roles/serviceusage.serviceUsageConsumer on heap-4b852 for
+# anything afterwards -- re-uploads, listing, reading the bucket's own config.
 if ! gcloud storage buckets describe "$BUCKET" --project="$PROJECT" >/dev/null 2>&1; then
   gcloud storage buckets create "$BUCKET" \
     --location=US --uniform-bucket-level-access --project="$PROJECT"
 fi
-gcloud storage buckets update "$BUCKET" --requester-pays --project="$PROJECT"
-# Readable by anyone who brings a billing project. Without this line the files
-# are private; with it, they are public but never free.
+
+# --- 2. upload, while the bucket is still ordinary ---------------------------
+gcloud storage rsync "$DEPOSIT" "$BUCKET" \
+  --recursive --exclude='\.manifest_parts.*' --project="$PROJECT"
+
+# Readable by anyone who brings a billing project. Applied BEFORE the flag,
+# because afterwards this call would need a billing project of its own.
 gcloud storage buckets add-iam-policy-binding "$BUCKET" \
   --member=allUsers --role=roles/storage.objectViewer --project="$PROJECT"
 
-# --- 2. upload ---------------------------------------------------------------
-# Writing to a requester-pays bucket needs a billing project even as the owner.
-gcloud storage rsync "$DEPOSIT" "$BUCKET" \
-  --recursive --exclude='\.manifest_parts.*' \
-  --billing-project="$PROJECT"
+# The flag, last.
+gcloud storage buckets update "$BUCKET" --requester-pays --project="$PROJECT"
 
 # --- 3. the public catalog ---------------------------------------------------
 # The site cannot list the bucket, so it reads this instead. Rebuild it from the

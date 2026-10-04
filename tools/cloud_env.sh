@@ -34,7 +34,17 @@
 #
 #        chmod 600 ~/.config/gcloud/heap-ci.json
 #
-#   3. Nothing else. This script finds it there from then on.
+#   3. Grant it one more role, if it does not have it:
+#
+#        roles/serviceusage.serviceUsageConsumer   on heap-4b852
+#
+#      storage.admin is enough to read and write ordinary buckets, but ANY call
+#      to a requester-pays bucket must pass --billing-project, and that flag is
+#      refused without serviceusage.services.use. Without it a storage-only
+#      account can create such a bucket and then be locked out of it entirely,
+#      unable even to read its configuration back.
+#
+#   4. Nothing else. This script finds the key there from then on.
 #
 # The key must never enter a repository. .gitignore carries a rule for it, but
 # the rule is a safety net, not the reason it is safe: keep it in ~/.config.
