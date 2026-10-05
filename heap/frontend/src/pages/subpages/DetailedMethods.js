@@ -51,23 +51,22 @@ export default function DetailedMethods() {
       >
         <ModuleCard number="Module 1" name="Variance decomposition">
           <P>
-            For each protein, variance in abundance was partitioned into the shares explained by
-            covariates, genetics, the exposome and gene-by-environment interaction. Two estimators
-            were run side by side: a predictive decomposition, fitting a polygenic score and a
-            penalized poly-exposure score scored out of fold; and GREML, fitting the genetic,
-            exposomic and G×E kernels jointly in one multi-kernel model.
+            How much of each protein&apos;s variation covariates, genetics, the exposome and
+            gene-by-environment interaction each explain.
           </P>
           <P>
-            Each component&apos;s share is its unique contribution, so the four are disjoint, and R²
-            scored on held-out folds places a component that fits only noise at or below zero. An
-            exposure category&apos;s contribution is its leave-one-category-out predictive R², taken
-            from its own fit, so the 13 category values do not sum to the exposome component.
+            Two estimators, run side by side. The <b>predictive decomposition</b> fits a polygenic
+            score and a penalized poly-exposure score and scores them out of fold; a component&apos;s
+            share is the drop in held-out R² when its score is removed from the full model.{' '}
+            <b>GREML</b> instead builds three similarity kernels — genetic relatedness, exposures,
+            and their element-wise product — and fits them jointly in one REML model on unrelated
+            participants.
           </P>
           <P>
-            GREML was fitted once, at a GRM cutoff of 0.025, so the covariate specifications apply
-            to the predictive decomposition only. The two estimators differ on the absolute number
-            of exposure-responsive proteins, as two estimators of the same component will; the
-            comparison rests on their selecting overlapping proteins.
+            <b>Reading it.</b> R² is scored on held-out folds, so a component that fits only noise
+            lands at or below zero. The 13 exposure categories each come from their own fit, so
+            they do not sum to the exposome component. GREML was fitted once, so the covariate
+            specifications apply to the predictive decomposition only.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/main">Main results</Link> and{' '}
@@ -77,23 +76,23 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 2" name="Exposure–protein association">
           <P>
-            Every exposure was regressed against every protein under the primary covariate set,
-            separately in the training and test splits. An association counts as replicated when it
-            clears the significance threshold in both splits with a consistent sign;{' '}
+            The effect of each exposure on each protein, and whether genotype modifies it.
+          </P>
+          <P>
+            One linear model per protein, in an 80/20 train–test split:{' '}
+            <Mono>P ~ covariates + G_cis + G_trans + E + G_cis:E + G_trans:E</Mono>. Significance
+            comes from a nested-model F-test that drops the relevant block of terms — the exposure
+            block for the main effect, the two interaction terms jointly for G×E — under a
+            Bonferroni correction across exposures and proteins. An association counts as
+            replicated when it clears the threshold in both splits with the same sign;{' '}
             {n('nExposuresAssoc')} exposures and {n('nProteinsAssoc')} proteins carry at least one.
           </P>
           <Alert severity="info" sx={{ my: 1.5 }}>
-            The headline of {n('nReplAssoc')} replicated associations counts{' '}
-            <b>exposure × protein pairs</b>, from a block F-test over every term belonging to that
-            exposure. The tables and plots are <b>per model term</b>, so a categorical exposure
-            contributes one row per level and the two counts do not match.
+            <b>Two counts.</b> The headline of {n('nReplAssoc')} counts{' '}
+            <b>exposure × protein pairs</b>, from the block F-test. The tables and plots are{' '}
+            <b>per model term</b>, so a categorical exposure contributes one row per level and the
+            two numbers do not match.
           </Alert>
-          <P>
-            Polygenic G×E was tested per exposure–protein pair with a joint F-test over the cis and
-            trans genetic blocks, under a Bonferroni threshold across all pairs in one split. A
-            replicated pair clears that threshold in the training split and again in held-out data,
-            so replicated counts are much smaller.
-          </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/associations">Associations</Link>; G×E on{' '}
             <Link to="/results/architecture">Genetic and exposomic architecture</Link>.
@@ -102,16 +101,21 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 3" name="Observational mediation (GEM)">
           <P>
-            Two models were fitted per link: a mediator model,{' '}
-            <Mono>protein ~ PGS + PXS + covariates</Mono>, and an outcome model,{' '}
-            <Mono>disease ~ protein + PGS + PXS + covariates</Mono>. G-computation over the two
-            gives the indirect effects, genetic → protein → disease and exposure → protein →
-            disease, with their matching direct effects.
+            How much of an exposure&apos;s or a genotype&apos;s association with disease runs
+            through a protein.
           </P>
           <P>
-            Pleiotropy is the number of diseases a protein mediates through its dominant exposure
-            category: at most 3 is disease-specific, at least 20 a pleiotropic shared reporter. No
-            principled cut on the proportion mediated separates a reporter from an intermediate.
+            Two models per link: a mediator model,{' '}
+            <Mono>P ~ PGS + PXS + covariates</Mono> (linear), and an outcome model,{' '}
+            <Mono>D ~ P + PGS + PXS + covariates</Mono> (Cox). G-computation over the two gives the
+            indirect effects — genetic → protein → disease and exposure → protein → disease — with
+            their matching direct effects. Diseases need at least 100 incident cases.
+          </P>
+          <P>
+            <b>Reading it.</b> Pleiotropy is the number of diseases a protein mediates through its
+            dominant exposure category: at most 3 is disease-specific, at least 20 a pleiotropic
+            shared reporter. No principled cut on the proportion mediated separates a reporter from
+            an intermediate.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/mediation">Disease links</Link>.
@@ -120,23 +124,25 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 4" name="Mendelian randomization and colocalization">
           <P>
-            Two-sample bidirectional MR was run over each exposure–protein–disease triad, testing
-            all six directed edges: exposure → protein, protein → exposure, protein → disease,
-            disease → protein, exposure → disease and disease → exposure. Exposure instruments came
-            from GWAS in UK Biobank participants independent of the pQTL discovery sample; protein
-            instruments came from two pQTL arms, UK Biobank Olink and deCODE SomaScan, which share
-            one edge set so the two can be compared directly.
+            Whether a protein moves disease risk, merely records it, or neither.
           </P>
           <P>
-            Each surviving edge was graded on a stringency ladder folding in instrument strength,
-            Steiger orientation, heterogeneity, directional pleiotropy, MR-PRESSO correction and
-            cross-platform replication. Colocalization was run for cis instruments and gated at
+            Two-sample MR over every exposure–protein–disease triad, testing all six directed
+            edges. The estimator follows the instrument count: a Wald ratio for one,
+            inverse-variance weighting for two, and IVW with MR-Egger, the weighted median and the
+            weighted mode for three or more. A fixed sequence of checks follows — Cochran&apos;s Q
+            for heterogeneity, the MR-Egger intercept for directional pleiotropy, Steiger for
+            causal direction, MR-PRESSO for outliers — with BH correction within each edge type.
+            Protein instruments come from two pQTL panels, UK Biobank Olink and deCODE SomaScan.
+          </P>
+          <P>
+            <b>Reading it.</b> An edge climbs from significance, through instrument robustness, to
+            an established direction, and for cis instruments a colocalization test at
             PP.H4 ≥ 0.8; {n('nColoc')} loci clear it. Exposures mapping few or no genome-wide loci,
-            including much of the deprivation and pollution set, cannot be instrumented, and are
-            reported as such.
+            including much of the deprivation and pollution set, cannot be instrumented at all.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Definitions of every rung are on <Link to="/documentation/evidence-tiers">Evidence tiers</Link>;
+            Every rung is defined on <Link to="/documentation/evidence-tiers">Evidence tiers</Link>;
             results on <Link to="/results/causal">Causal evidence</Link> and{' '}
             <Link to="/results/gwas">Exposure GWAS</Link>.
           </Typography>
@@ -144,17 +150,21 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 5" name="Interventional comparison">
           <P>
-            Exposure–protein associations were correlated against measured proteomic change
-            (post-intervention minus baseline) in three interventional cohorts: HERITAGE, a 20-week
-            endurance-training intervention, and STEP 1 and STEP 2, 68-week GLP-1 receptor agonist
-            randomized controlled trials. The comparison is restricted to proteins measured on both
-            platforms, and the interface carries the Olink-to-SomaScan agreement for that set.
+            Whether a trial moves the same proteins the exposure tracks observationally.
           </P>
           <P>
-            A between-person association and a within-person change under treatment are different
-            quantities, and both trials published significance-selected proteins &mdash; HERITAGE at
-            q &le; 0.01, the GLP-1 effects at each trial&apos;s own q &lt; 0.05. The correlations are
-            an upper bound on concordance.
+            UK Biobank exposure–protein effect sizes are correlated against measured proteomic
+            change in three interventional cohorts: HERITAGE, 20 weeks of endurance training
+            (~250 proteins shared with the Olink panel), and STEP 1 and STEP 2, 68-week
+            semaglutide trials (~2,500 shared). Pearson correlations, BH-corrected within each
+            intervention.
+          </P>
+          <P>
+            <b>Reading it.</b> A between-person association and a within-person change under
+            treatment are different quantities, and both trials published significance-selected
+            proteins — HERITAGE at q ≤ 0.01, the GLP-1 effects at each trial&apos;s own q &lt; 0.05.
+            The correlations are an upper bound, bounded further by the Olink–SomaScan agreement
+            for the shared proteins.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/intervention">Intervention</Link>.
@@ -163,16 +173,21 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 6" name="Proteome-based exposure scores (PES)">
           <P>
-            A penalized proteomic score was trained per exposure on the baseline sample and
-            evaluated on participants held out for a repeat visit. Three quantities are reported
-            for each score: how well it reads the exposure (R², AUC, AUPR), how it tracks within
-            the same person across visits, and what it adds to a disease model on top of standard
-            predictors.
+            A proteomic score trained to read each exposure, then tested on what else it can do.
           </P>
           <P>
-            Incremental disease prediction is reported from held-out or bootstrapped estimates,
-            because the apparent change in C-index computed in the training sample is biased toward
-            zero.
+            Lasso regression on the full panel, one score per exposure, under 5-fold nested
+            cross-validation: the outer loop produces out-of-fold predictions, the inner loop tunes
+            the penalty. Those out-of-fold predictions become each participant&apos;s score, so a
+            score is never fitted on the person it is later used to describe. A final model refit
+            on the whole training cohort is applied to participants held out for a repeat visit.
+          </P>
+          <P>
+            <b>Reading it.</b> Exposure prediction is AUC and AUPR for binary exposures and R² for
+            continuous ones. Tracking is the correlation between a person&apos;s change in
+            self-reported exposure and their change in score across visits. Disease prediction is
+            the C-index on bootstrapped held-out data — the apparent change computed in the
+            training sample is biased toward zero.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/pes">Exposure scores</Link>.
@@ -204,8 +219,10 @@ export default function DetailedMethods() {
       <Section title="Covariate adjustment">
         <P>
           All main results use the <Mono>base</Mono> covariate set: age, age², sex, their
-          interactions, assessment center and 20 genetic principal components. Five supplementary
-          sets add one adjustment each, and results are deposited under all of them.
+          interactions, assessment center and 20 genetic principal components. Three further
+          specifications add one adjustment each — BMI, the blood-draw conditions, or a clinical
+          block — and a fourth changes the sample instead, dropping participants who already had a
+          major chronic disease.
         </P>
         <P>
           <Link to="/documentation/models">Specifications</Link> lists every set, its exact

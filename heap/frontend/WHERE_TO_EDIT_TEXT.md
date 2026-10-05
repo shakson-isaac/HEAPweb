@@ -19,7 +19,7 @@ server is running; `CI=true npm run build` before committing.
 that looks like a path or an id. Grep for the exact words to find one:
 `grep -rn "the words you see" --include=*.js src/`
 
-765 strings across 85 files.
+767 strings across 85 files.
 
 ---
 
@@ -282,31 +282,33 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **49** — The six modules
 - **50** — Module numbers follow the manuscript.
 - **52** — Variance decomposition
-- **73** — Main results
-- **74** — Lifestyle categories
-- **78** — Exposure–protein association
-- **87** — exposure × protein pairs
-- **88** — per model term
-- **99** — Genetic and exposomic architecture
-- **103** — Observational mediation (GEM)
-- **106** — protein ~ PGS + PXS + covariates
-- **107** — disease ~ protein + PGS + PXS + covariates
-- **117** — Disease links
-- **121** — Mendelian randomization and colocalization
-- **139** — Evidence tiers
-- **140** — Causal evidence
-- **141** — Exposure GWAS
-- **145** — Interventional comparison
-- **164** — Proteome-based exposure scores (PES)
-- **178** — Exposure scores
-- **184** — Supporting analyses
-- **185** — Un-numbered in the manuscript. They support the modules above.
-- **191** — Tissue and pathway enrichment
-- **192** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
-- **193** — Tissues and pathways
-- **197** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
-- **198** — Exposure GWAS
-- **204** — Covariate adjustment
+- **58** — predictive decomposition
+- **72** — Main results
+- **73** — Lifestyle categories
+- **77** — Exposure–protein association
+- **83** — P ~ covariates + G_cis + G_trans + E + G_cis:E + G_trans:E
+- **92** — exposure × protein pairs
+- **93** — per model term
+- **98** — Genetic and exposomic architecture
+- **102** — Observational mediation (GEM)
+- **109** — P ~ PGS + PXS + covariates
+- **110** — D ~ P + PGS + PXS + covariates
+- **121** — Disease links
+- **125** — Mendelian randomization and colocalization
+- **145** — Evidence tiers
+- **146** — Causal evidence
+- **147** — Exposure GWAS
+- **151** — Interventional comparison
+- **174** — Proteome-based exposure scores (PES)
+- **193** — Exposure scores
+- **199** — Supporting analyses
+- **200** — Un-numbered in the manuscript. They support the modules above.
+- **206** — Tissue and pathway enrichment
+- **207** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
+- **208** — Tissues and pathways
+- **212** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
+- **213** — Exposure GWAS
+- **219** — Covariate adjustment
 
 ## `/documentation/models`
 
@@ -314,26 +316,25 @@ that looks like a path or an id. Grep for the exact words to find one:
 
 - **37** — Primary (base)
 - **40** — age, age², sex, their interactions, assessment centre, 20 genetic PCs
-- **41** — The primary model, and what every other specification is measured against. None of these can sit on the path from an exposure to a protein.
+- **41** — The baseline every other specification is measured against. None of these can sit on an exposure → protein path.
 - **48** — body mass index
-- **49** — Attenuation here is not evidence of mediation: BMI can be a mediator, a confounder or a collider, and adjustment cannot tell them apart.
+- **49** — Attenuation here is not evidence of mediation — BMI can be a mediator, a confounder or a collider, and adjustment cannot tell them apart.
 - **65** — BMI, the draw conditions, and blood-pressure, HRT, oral-contraceptive, insulin and cholesterol-lowering medication
 - **66** — The most heavily adjusted model on the site.
 - **70** — + blood draw
 - **73** — fasting time and the season of the visit
-- **74** — Whether the conditions at the blood draw explain the result.
+- **74** — Whether conditions at the draw explain the result.
 - **78** — Healthy at baseline
 - **81** — nothing — it drops participants instead
-- **82** — Whether the result holds in people who were not already ill. Participants with a prevalent major chronic disease at the blood draw are excluded, about 15% of the panel.
+- **82** — Whether the result holds in people who were not already ill. Excludes the ~15% with a prevalent major chronic disease.
 - **90** — Every number on this site was produced under one of five specifications. The control on a results page switches between them.
 - **92** — The five specifications
-- **121** — Why “Healthy at baseline” is not like the others
-- **124** — different people
-- **135** — Using the control
-- **137** — control opens on
-- **149** — The exact covariates
-- **150** — Field names as they appear in covariate_sets.yml, for reproducing a fit.
-- **180** — Detailed methods
+- **120** — Why “Healthy at baseline” is not like the others
+- **123** — different people
+- **132** — Using the control
+- **144** — The exact covariates
+- **145** — Field names as they appear in covariate_sets.yml.
+- **174** — Detailed methods
 
 ## `/documentation/quickstart`
 
@@ -425,9 +426,9 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **278** — Browse results
 - **279** — Download data
 - **290** — Four ways in
-- **323** — Citation and license
-- **324** — Cite and reuse
-- **336** — Data usage agreement and licenses:
+- **319** — Citation and license
+- **320** — Cite and reuse
+- **332** — Data usage agreement and licenses:
 
 ## `/downloads`
 
@@ -667,14 +668,14 @@ that looks like a path or an id. Grep for the exact words to find one:
 
 `src/components/home/ExposomeScatter.js`
 
-- **60** — Causal intermediates
-- **61** — the protein moves disease risk
-- **62** — Disease reporters
-- **63** — disease liability moves the protein
-- **64** — Exposome reporters
-- **65** — the exposure moves the protein
-- **227** — Every plasma protein placed by genetic against exposomic variance explained. Proteins with Tier-1 causal evidence on disease are named.
-- **320** — evidence layer
+- **65** — Causal intermediates
+- **67** — the protein moves disease risk
+- **69** — Disease reporters
+- **71** — disease liability moves the protein
+- **73** — Exposome reporters
+- **75** — the exposure moves the protein
+- **260** — Every plasma protein placed by genetic against exposomic variance explained. Proteins with Tier-1 causal evidence on disease are named.
+- **364** — evidence layer
 
 ## `component — ExposomicGradient`
 
@@ -872,13 +873,14 @@ that looks like a path or an id. Grep for the exact words to find one:
 
 `src/components/PDEffects.js`
 
-- **110** — ' + tier + '
-- **168** — Protein &rarr; disease: causal estimate beside observational association
-- **169** — Protein→disease effects were rare: eight proteins carried one at Tier 1, each acting on a single disease except ADM.
-- **178** — Search a protein…
-- **209** — MR β (per SD protein)
-- **210** — −log10 p<sub>adj</sub>
-- **222** — hazard ratio (95% CI)
+- **129** — ' + tier + '
+- **187** — Protein &rarr; disease: causal estimate beside observational association
+- **188** — Protein→disease effects were rare: eight proteins carried one at Tier 1, each acting on a single disease except ADM.
+- **197** — Search a protein…
+- **232** — switch panel
+- **251** — MR β (per SD protein)
+- **252** — −log10 p<sub>adj</sub>
+- **264** — hazard ratio (95% CI)
 
 ## `component — PesDisease`
 

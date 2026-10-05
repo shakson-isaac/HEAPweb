@@ -38,7 +38,7 @@ const SPECS = [
     kind: 'model',
     adds: null,
     addsPlain: 'age, age², sex, their interactions, assessment centre, 20 genetic PCs',
-    tells: 'The primary model, and what every other specification is measured against. None of these can sit on the path from an exposure to a protein.',
+    tells: 'The baseline every other specification is measured against. None of these can sit on an exposure → protein path.',
   },
   {
     id: 'base_bmi',
@@ -46,7 +46,7 @@ const SPECS = [
     kind: 'model',
     adds: ['body_mass_index_bmi_f23104_0_0'],
     addsPlain: 'body mass index',
-    tells: 'Attenuation here is not evidence of mediation: BMI can be a mediator, a confounder or a collider, and adjustment cannot tell them apart.',
+    tells: 'Attenuation here is not evidence of mediation — BMI can be a mediator, a confounder or a collider, and adjustment cannot tell them apart.',
   },
   {
     id: 'base_clinical',
@@ -71,7 +71,7 @@ const SPECS = [
     kind: 'model',
     adds: ['fasting_time_f74_0_0', 'assessment_season'],
     addsPlain: 'fasting time and the season of the visit',
-    tells: 'Whether the conditions at the blood draw explain the result.',
+    tells: 'Whether conditions at the draw explain the result.',
   },
   {
     id: 'base_exclprev',
@@ -79,7 +79,7 @@ const SPECS = [
     kind: 'sample',
     adds: null,
     addsPlain: 'nothing — it drops participants instead',
-    tells: 'Whether the result holds in people who were not already ill. Participants with a prevalent major chronic disease at the blood draw are excluded, about 15% of the panel.',
+    tells: 'Whether the result holds in people who were not already ill. Excludes the ~15% with a prevalent major chronic disease.',
   },
 ];
 
@@ -91,9 +91,8 @@ export default function Specifications() {
     >
       <Section title="The five specifications">
         <P>
-          Four of the five change the <b>model</b>, each adding a single adjustment on top of{' '}
-          <Mono>base</Mono> so that a shift in an estimate is attributable to that one adjustment.
-          The fifth changes the <b>sample</b>.
+          Four change the <b>model</b>, one adjustment each, so a shift is attributable to that
+          adjustment. The fifth changes the <b>sample</b>.
         </P>
         <SimpleTable
           head={['Specification', 'Changes', 'What it tells you']}
@@ -120,34 +119,30 @@ export default function Specifications() {
 
       <Section title="Why “Healthy at baseline” is not like the others">
         <P>
-          The four adjustment specifications re-estimate the same model on the same people. “Healthy
-          at baseline” estimates it on <b>different people</b>, so everything downstream is refitted —
-          the exposure scores, the variance decomposition and the mediation models are all trained
-          again on the smaller sample.
+          The other four re-estimate the same model on the same people. This one estimates it on{' '}
+          <b>different people</b>, so the exposure scores, the variance decomposition and the
+          mediation models are all refitted on the smaller sample.
         </P>
         <P>
-          A difference between <Mono>base</Mono> and an adjustment layer therefore says something
-          about that covariate. A difference between <Mono>base</Mono> and this one says something
-          about who was analyzed, and the two are not read the same way.
+          A difference against <Mono>base</Mono> therefore means something about a covariate in the
+          first four cases, and something about who was analyzed in this one.
         </P>
       </Section>
 
       <Section title="Using the control">
         <P>
-          A results page with a <b>Specification</b> control opens on <Mono>base</Mono>, and
-          switching shows the same result as fitted under that specification. A page offers
-          whichever of the five exist for the result on screen, rather than offering one that would
-          silently fall back to <Mono>base</Mono>.
+          The control opens on <Mono>base</Mono> and shows the same result as fitted under whichever
+          specification you pick. A page offers only those that exist for the result on screen.
         </P>
         <P>
-          The estimator is varied too — ridge and elastic net, for the variance decomposition and
-          mediation — but that is deposited with the supplement rather than offered as a control.
+          The estimator varies too — ridge and elastic net, for the variance decomposition and
+          mediation — but that is deposited rather than offered as a control.
         </P>
       </Section>
 
       <Section
         title="The exact covariates"
-        subtitle="Field names as they appear in covariate_sets.yml, for reproducing a fit."
+        subtitle="Field names as they appear in covariate_sets.yml."
       >
         <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
@@ -174,10 +169,9 @@ export default function Specifications() {
           ])}
         />
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          <Mono>sex</Mono> and <Mono>uk_biobank_assessment_centre</Mono> are coerced to factors.{' '}
-          <Mono>age2</Mono>, <Mono>age_sex</Mono> and <Mono>age2_sex</Mono> are derived quadratic
-          and interaction terms. Which covariates sit behind any single estimate is also in{' '}
-          <Link to="/documentation/methods">Detailed methods</Link>.
+          <Mono>sex</Mono> and <Mono>uk_biobank_assessment_centre</Mono> are factors;{' '}
+          <Mono>age2</Mono>, <Mono>age_sex</Mono> and <Mono>age2_sex</Mono> are derived terms. See
+          also <Link to="/documentation/methods">Detailed methods</Link>.
         </Typography>
       </Section>
     </DocPage>

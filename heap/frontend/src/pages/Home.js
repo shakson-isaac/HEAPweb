@@ -301,10 +301,6 @@ const Home = () => {
 
       <section className="home-block" id="start-here" aria-label="Start here">
         <h2 className="home-h2">Start here</h2>
-        <p className="home-block-sub">
-          Five ways people arrive at this resource. Pick the one that matches yours —
-          no need to know which analysis module holds the answer.
-        </p>
         <ul className="home-usecases">
           {USE_CASES.map((u) => (
             <li className="home-usecase" key={u.lead}>
@@ -342,11 +338,6 @@ const Home = () => {
             Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
             License (CC BY-NC-ND)
           </a>.
-        </p>
-        {/* S12 / D10: datasets carry a version string and build date, never their own DOI. */}
-        <p className="home-legal-line home-legal-fine">
-          Datasets carry a version string rather than a DOI — cite the paper.
-          {meta && meta.version ? ` Data payload ${meta.version}.` : ''}
         </p>
       </section>
     </div>
