@@ -130,6 +130,15 @@ export default function Cite() {
 dataset build ${latest || '<see catalog.json.gz>'} (accessed <date>), described in
 ${AUTHORS[0].split(' ').slice(-1)[0]} et al., doi:${DOI}.`}
         </Code>
+        <P>
+          The exposure GWAS summary statistics are cited the same way, naming the bucket they came
+          from:
+        </P>
+        <Code>
+{`Exposure GWAS summary statistics were obtained from the HEAP resource
+(gs://heap-gwas, 169 exposures, accessed <date>), described in
+${AUTHORS[0].split(' ').slice(-1)[0]} et al., doi:${DOI}.`}
+        </Code>
       </Section>
 
       <Section title="Citing one result">

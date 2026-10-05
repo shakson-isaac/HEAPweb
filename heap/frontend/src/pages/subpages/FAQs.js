@@ -156,6 +156,25 @@ const FAQ_ITEMS = [
     ],
   },
   {
+    q: 'Where are the exposure GWAS summary statistics?',
+    a: [
+      <span key="a">
+        In <Mono>gs://heap-gwas</Mono>: 169 exposures, one bgzipped file each with a tabix index,
+        7.78 million variants per file and 51 GB in total. REGENIE step 2 under the base covariate
+        set, autosomes only, columns in the GWAS Catalog standard.
+      </span>,
+      <span key="b">
+        The bucket is requester-pays, so the transfer is billed to the Google Cloud project you
+        name and a project with billing enabled is needed:{' '}
+        <Mono>gcloud storage cp gs://heap-gwas/&lt;exposure&gt;.tsv.bgz . --billing-project=YOUR_PROJECT</Mono>.
+      </span>,
+      <span key="c">
+        <Link to="/downloads">Downloads</Link> lists every exposure with its size and the exact
+        command.
+      </span>,
+    ],
+  },
+  {
     q: 'Is there a DOI for the datasets?',
     a: [
       'No. Each dataset carries a version string and a build date, so you can state which release you used. The citation is the paper.',

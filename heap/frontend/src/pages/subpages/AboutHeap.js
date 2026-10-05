@@ -124,6 +124,12 @@ export default function AboutHeap() {
           <Link to="/documentation/api">Data API</Link> gives the full URL scheme, with R and
           Python examples.
         </P>
+        <P>
+          The exposure GWAS summary statistics sit apart from the payload: 169 files, one per
+          exposure, 51 GB in total, in a requester-pays bucket where the transfer is billed to the
+          project the reader names. <Link to="/downloads">Downloads</Link> lists every exposure and
+          the command to fetch it.
+        </P>
       </Section>
 
       <AuthorNote what="Published exposure-score count needs a decision.">

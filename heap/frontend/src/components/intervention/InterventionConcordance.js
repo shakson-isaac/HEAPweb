@@ -781,7 +781,7 @@ export default function InterventionConcordance() {
 
   return (
     <SectionCard
-      title="One scatter: the UK Biobank effect against the trial that moved the same protein"
+      title="Do trial protein shifts agree with the observational signatures?"
       subtitle="Directional concordance depended on the exposure: for example, strenuous sports showed positive concordance with GLP-1 receptor agonist protein shifts, whereas processed meat showed inverse concordance."
       loading={kLoading}
       error={kError}

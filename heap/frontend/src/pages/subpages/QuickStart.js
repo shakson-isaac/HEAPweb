@@ -146,6 +146,15 @@ with urllib.request.urlopen(
           <Link to="/downloads">Downloads</Link> serves the packaged summary-statistic archives.
           For one protein or one exposure, the API above is smaller and faster.
         </Step>
+        <Step n={4} title="Exposure GWAS summary statistics">
+          169 files, one per exposure, bgzipped with a tabix index. They are in a requester-pays
+          bucket, so the transfer is billed to the Google Cloud project you name:
+          <Code label="One exposure">
+{`gcloud storage cp gs://heap-gwas/ever_smoked_f20160_0_0.tsv.bgz . \\
+  --billing-project=YOUR_PROJECT`}
+          </Code>
+          <Link to="/downloads">Downloads</Link> lists all 169 with their sizes.
+        </Step>
       </Section>
 
       <Section title="Citing what you took">

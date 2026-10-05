@@ -57,6 +57,16 @@ export default function Changelog() {
               </span>,
             ],
             [
+              'Exposure GWAS published',
+              <Kind value="structural" />,
+              <span>
+                The 169 exposure GWAS are released as summary statistics: one bgzipped file per
+                exposure with a tabix index, 7.78M variants each, 51 GB in total, in a
+                requester-pays bucket. v1 published no GWAS. See{' '}
+                <Link to="/downloads">Downloads</Link>.
+              </span>,
+            ],
+            [
               'Bidirectional MR added',
               <Kind value="structural" />,
               <span>
