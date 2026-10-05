@@ -3,16 +3,22 @@ import { Link } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
 import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 
-// Rewritten 2026-10-05. The page used to open with a summary table of the six
-// sets keyed on role, count-of-covariates-added and which analysis modules
-// offered them -- a manuscript methods table, on a website. It now answers the
-// three questions a visitor actually arrives with: why more than one model
-// exists, what each one adds, and what the control on a results page does.
-// The exact field names stay, as reference, at the bottom.
+// Rewritten 2026-10-05, twice over.
+//
+// The first version was a manuscript methods table: role, count-of-covariates-
+// added, which analysis modules offered each set. The second answered why more
+// than one model exists and what each adds -- but it documented the SIX sets
+// defined in covariate_sets.yml, which is the wrong set for this page.
+//
+// What a visitor can actually switch between is the five in lib/covariateSpecs
+// SPECS, and the mismatch was not cosmetic: base_ses and base_prevalent were
+// documented but are offered nowhere, while `Healthy at baseline` -- the fifth
+// button on every switcher -- had no row at all. It is also the one that works
+// differently from the others, and nothing said so.
+//
+// So this page now mirrors lib/covariateSpecs.js, in its order, with its
+// labels. If a specification is added there, add it here.
 
-// Transcribed from HEAP/config/covariates/covariate_sets.yml (version 2.0), the
-// single source of truth for named covariate sets across all HEAP modules.
-// Field names are reproduced exactly as they appear there.
 const BASE_CORE = [
   'age_when_attended_assessment_centre_f21003_0_0',
   'sex_f31_0_0',
@@ -23,31 +29,29 @@ const BASE_CORE = [
   'genetic_principal_components_f22009_0_1 … genetic_principal_components_f22009_0_20',
 ];
 
-const SETS = [
+// Order, ids and labels follow lib/covariateSpecs.js SPECS exactly, so the page
+// reads in the same order as the control it describes.
+const SPECS = [
   {
     id: 'base',
-    label: 'base',
+    label: 'Primary (base)',
+    kind: 'model',
     adds: null,
-    addsPlain: 'nothing — this is the model everything else is measured against',
-    tests: 'The primary model. It holds structural confounders only: age, sex, where and when the sample was taken, and ancestry. None of them can sit on the path from an exposure to a protein.',
+    addsPlain: 'age, age², sex, their interactions, assessment centre, 20 genetic PCs',
+    tells: 'The primary model, and what every other specification is measured against. None of these can sit on the path from an exposure to a protein.',
   },
   {
     id: 'base_bmi',
     label: '+ BMI',
+    kind: 'model',
     adds: ['body_mass_index_bmi_f23104_0_0'],
     addsPlain: 'body mass index',
-    tests: 'Whether a result survives adjusting for body size. An estimate that shrinks here is equally consistent with BMI on the causal path, BMI confounding the association, and BMI as a collider — adjustment cannot separate the three, so attenuation is not evidence of mediation.',
-  },
-  {
-    id: 'base_draw',
-    label: '+ blood draw',
-    adds: ['fasting_time_f74_0_0', 'assessment_season'],
-    addsPlain: 'fasting time and the season of the visit',
-    tests: 'Whether the conditions at the blood draw explain the result rather than the exposure.',
+    tells: 'Attenuation here is not evidence of mediation: BMI can be a mediator, a confounder or a collider, and adjustment cannot tell them apart.',
   },
   {
     id: 'base_clinical',
     label: '+ clinical',
+    kind: 'model',
     adds: [
       'body_mass_index_bmi_f23104_0_0',
       'fasting_time_f74_0_0',
@@ -58,32 +62,24 @@ const SETS = [
       'combined_Insulin',
       'combined_Cholesterol_lowering_medication',
     ],
-    addsPlain: 'BMI, the draw conditions, and five medication classes',
-    tests: 'The most heavily adjusted model on the site. Blood pressure, hormone replacement, oral contraceptive, insulin and cholesterol-lowering medication are each adjusted for.',
+    addsPlain: 'BMI, the draw conditions, and blood-pressure, HRT, oral-contraceptive, insulin and cholesterol-lowering medication',
+    tells: 'The most heavily adjusted model on the site.',
   },
   {
-    id: 'base_ses',
-    label: '+ deprivation',
-    adds: [
-      'average_total_household_income_before_tax_f738_0_0',
-      'index_of_multiple_deprivation_england_f26410_0_0',
-      'income_score_england_f26411_0_0',
-      'employment_score_england_f26412_0_0',
-      'health_score_england_f26413_0_0',
-      'education_score_england_f26414_0_0',
-      'housing_score_england_f26415_0_0',
-      'crime_score_england_f26416_0_0',
-      'living_environment_score_england_f26417_0_0',
-    ],
-    addsPlain: 'household income and eight deprivation scores',
-    tests: 'A different question, not a stricter version of the same one. Those nine variables are exposures in HEAP, so moving them into the model deletes a whole exposure category from the exposome being estimated. Fitted for the associations only, and a default nowhere.',
+    id: 'base_draw',
+    label: '+ blood draw',
+    kind: 'model',
+    adds: ['fasting_time_f74_0_0', 'assessment_season'],
+    addsPlain: 'fasting time and the season of the visit',
+    tells: 'Whether the conditions at the blood draw explain the result.',
   },
   {
-    id: 'base_prevalent',
-    label: '+ prevalent disease',
-    adds: ['prevalent_major_disease'],
-    addsPlain: 'a flag for prevalent major chronic disease',
-    tests: 'Whether disease a participant already had at the draw explains the result. Its counterpart on the sample side drops those participants instead of adjusting for them.',
+    id: 'base_exclprev',
+    label: 'Healthy at baseline',
+    kind: 'sample',
+    adds: null,
+    addsPlain: 'nothing — it drops participants instead',
+    tells: 'Whether the result holds in people who were not already ill. Participants with a prevalent major chronic disease at the blood draw are excluded, about 15% of the panel.',
   },
 ];
 
@@ -91,49 +87,61 @@ export default function Specifications() {
   return (
     <DocPage
       title="Specifications"
-      lead="A specification is the set of covariates an estimate was adjusted for. Every number on this site was produced under one of six, and the control on a results page switches between them."
+      lead="Every number on this site was produced under one of five specifications. The control on a results page switches between them."
     >
-      <Section title="Why there is more than one">
+      <Section title="The five specifications">
         <P>
-          What an exposure–protein estimate comes out at depends on what else is in the model.
-          Adjust for nothing and a result can be driven by age or sex; adjust for everything and a
-          variable on the causal path can be removed along with the confounders. HEAP fits one
-          primary model and five variants, each adding a single adjustment on top of it, so a
-          movement in an estimate can be attributed to that one adjustment rather than to a
-          wholesale change of model.
+          Four of the five change the <b>model</b>, each adding a single adjustment on top of{' '}
+          <Mono>base</Mono> so that a shift in an estimate is attributable to that one adjustment.
+          The fifth changes the <b>sample</b>.
         </P>
-      </Section>
-
-      <Section title="The six specifications">
         <SimpleTable
-          head={['Specification', 'Adds', 'What it tells you']}
-          rows={SETS.map((s) => [
+          head={['Specification', 'Changes', 'What it tells you']}
+          rows={SPECS.map((s) => [
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                 {s.label}
               </Typography>
               <Mono>{s.id}</Mono>
             </Box>,
-            s.addsPlain,
-            s.tests,
+            <Box>
+              <Typography variant="caption" sx={{
+                display: 'block', fontWeight: 700, letterSpacing: '0.06em',
+                color: s.kind === 'sample' ? 'text.primary' : 'text.secondary',
+              }}>
+                {s.kind === 'sample' ? 'THE SAMPLE' : 'THE MODEL'}
+              </Typography>
+              {s.addsPlain}
+            </Box>,
+            s.tells,
           ])}
         />
       </Section>
 
-      <Section title="Using the control">
+      <Section title="Why “Healthy at baseline” is not like the others">
         <P>
-          A results page that carries a <b>Specification</b> control opens on <Mono>base</Mono>.
-          Switching re-reads the same result as it was fitted under that adjustment; nothing is
-          refitted in the browser, and no estimate changes meaning. Five are published —{' '}
-          <Mono>base</Mono>, <Mono>+ BMI</Mono>, <Mono>+ blood draw</Mono>,{' '}
-          <Mono>+ clinical</Mono> and the exclude-prevalent-disease sample variant — so a page
-          offers the subset that exists for the result it is showing.
+          The four adjustment specifications re-estimate the same model on the same people. “Healthy
+          at baseline” estimates it on <b>different people</b>, so everything downstream is refitted —
+          the exposure scores, the variance decomposition and the mediation models are all trained
+          again on the smaller sample.
         </P>
         <P>
-          The covariate set is one of three things the supplement varies. The other two are the
-          analyzed sample (dropping participants with prevalent major disease) and the estimator
-          (ridge and elastic net, for the variance decomposition and mediation). Those are
-          deposited rather than offered as a control.
+          A difference between <Mono>base</Mono> and an adjustment layer therefore says something
+          about that covariate. A difference between <Mono>base</Mono> and this one says something
+          about who was analyzed, and the two are not read the same way.
+        </P>
+      </Section>
+
+      <Section title="Using the control">
+        <P>
+          A results page with a <b>Specification</b> control opens on <Mono>base</Mono>, and
+          switching shows the same result as fitted under that specification. A page offers
+          whichever of the five exist for the result on screen, rather than offering one that would
+          silently fall back to <Mono>base</Mono>.
+        </P>
+        <P>
+          The estimator is varied too — ridge and elastic net, for the variance decomposition and
+          mediation — but that is deposited with the supplement rather than offered as a control.
         </P>
       </Section>
 
@@ -151,11 +159,18 @@ export default function Specifications() {
         </Paper>
         <SimpleTable
           head={['Specification', 'What it adds to base']}
-          rows={SETS.filter((x) => x.adds).map((x) => [
-            <Mono>{x.id}</Mono>,
-            <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
-              {x.adds.map((c) => <li key={c}>{c}</li>)}
-            </Box>,
+          rows={SPECS.filter((s) => s.adds || s.kind === 'sample').map((s) => [
+            <Mono>{s.id}</Mono>,
+            s.adds ? (
+              <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
+                {s.adds.map((c) => <li key={c}>{c}</li>)}
+              </Box>
+            ) : (
+              <span>
+                No covariates. The <Mono>base</Mono> block is fitted on the subset of participants
+                without a prevalent major chronic disease.
+              </span>
+            ),
           ])}
         />
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>

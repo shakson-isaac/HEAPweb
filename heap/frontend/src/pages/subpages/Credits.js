@@ -30,7 +30,7 @@ const REFS = [
   {
     what: 'Pathways',
     used: 'Reactome pathway definitions, the gene sets behind every pathway enrichment and the program clusters.',
-    cite: 'Joshi-Tope G et al. Reactome: a knowledgebase of biological pathways. Nucleic Acids Research (2005).',
+    cite: 'Joshi-Tope G et al. Reactome: a knowledgebase of biological pathways. Nucleic Acids Research (2005); Milacic M et al. The Reactome pathway knowledgebase 2024. Nucleic Acids Research (2024).',
   },
   {
     what: 'Disease genetics',
@@ -40,32 +40,32 @@ const REFS = [
   {
     what: 'pQTLs — SomaScan',
     used: 'deCODE plasma protein QTLs, the external replication panel for protein-involving MR edges.',
-    cite: 'Ferkingstad E et al. Large-scale integration of the plasma proteome with genetics and disease. Nature Genetics (2021).',
+    cite: 'Ferkingstad E et al. Large-scale integration of the plasma proteome with genetics and disease. Nature Genetics (2021); Eldjarn GH et al. Large-scale plasma proteomics comparisons through genetics and disease associations. Nature (2023).',
   },
   {
     what: 'Cross-platform reliability',
     used: 'Olink–SomaScan assay correlations, used to weight the intervention concordance and to size its points.',
-    cite: 'Eldjarn GH et al. Large-scale plasma proteomics comparisons through genetics and disease associations. Nature (2023).',
+    cite: 'Wang B et al. Comparative studies of 2168 plasma proteins measured by two affinity-based platforms in 4000 Chinese adults. Nature Communications (2025); Eldjarn GH et al. Nature (2023).',
   },
   {
     what: 'pQTLs — Olink',
-    used: 'UK Biobank plasma proteomics and its genetic instruments.',
-    cite: 'Wang Y et al. Comparative studies of 2168 plasma proteins measured by two affinity-based platforms. Nature Communications (2025).',
+    used: 'UK Biobank plasma proteomics — the protein measurements behind every result on this site, and the Olink arm of every MR edge.',
+    cite: 'Sun BB et al. Plasma proteomic associations with genetics and health in the UK Biobank. Nature (2023).',
   },
   {
     what: 'Split-sample MR design',
     used: 'The sample-independent design the exposure instruments follow, so no participant contributes to both sides of an estimate.',
-    cite: 'Deng Y et al. Atlas of the plasma proteome in health and disease. Cell (2025).',
+    cite: 'Deng Y-T et al. Atlas of the plasma proteome in health and disease in 53,026 adults. Cell (2025).',
   },
   {
     what: 'Exercise trial',
     used: 'HERITAGE — protein changes after 20 weeks of endurance training, one arm of the intervention concordance.',
-    cite: 'Sarzynski MA et al. The HERITAGE Family Study. Medicine & Science in Sports & Exercise (2022).',
+    cite: 'Sarzynski MA et al. The HERITAGE Family Study. Medicine & Science in Sports & Exercise (2022); Robbins JM et al. Plasma proteomic changes in response to exercise training are associated with cardiorespiratory fitness adaptations. JCI Insight (2023).',
   },
   {
     what: 'GLP-1 trials',
-    used: 'STEP 1 and STEP 2 — protein changes under semaglutide, the other two intervention arms.',
-    cite: 'Wilding JPH et al. NEJM (2021); Davies M et al. Lancet (2021).',
+    used: 'STEP 1 and STEP 2 — protein changes under semaglutide, the other two intervention arms. The proteomic measurements are Maretty et al.; the trials themselves are Wilding and Davies.',
+    cite: 'Maretty L et al. Proteomic changes upon treatment with semaglutide in individuals with obesity. Nature Medicine (2025); Wilding JPH et al. NEJM (2021); Davies M et al. Lancet (2021).',
   },
   {
     what: 'Colocalization',

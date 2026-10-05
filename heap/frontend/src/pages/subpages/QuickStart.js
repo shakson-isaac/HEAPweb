@@ -34,7 +34,7 @@ export default function QuickStart() {
     >
       <Section title="Before you read a result">
         <P>
-          Two pages set what every number here means.
+          We evaluate associations through <Link to="/documentation/evidence-tiers">evidence tiers</Link> and <Link to="/documentation/models">specifications</Link>.
         </P>
         <SimpleTable
           head={['Read', 'Because']}
@@ -98,10 +98,10 @@ export default function QuickStart() {
           <Link to="/results/architecture">Genetic and exposomic architecture</Link> — the
           polygenic G×E tests, which the manuscript reports as a supplementary analysis.
         </Step>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+        {/* <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           Exposure ids are UK Biobank variable names. Look one up in the{' '}
           <Link to="/documentation/dictionary">exposome dictionary</Link>.
-        </Typography>
+        </Typography> */}
       </Section>
 
       <Section title="I have a disease">
@@ -157,10 +157,9 @@ with urllib.request.urlopen(
         </Step>
       </Section>
 
-      <Section title="Citing what you took">
+      <Section title="Citing Usage of HEAP">
         <P>
-          Datasets carry a version and a build date. They have no separate DOI, so cite the paper.
-          See <Link to="/documentation/cite">How to cite</Link>.
+          Cite the paper if you utilize HEAP results. See <Link to="/documentation/cite">How to cite</Link>.
         </P>
       </Section>
     </DocPage>

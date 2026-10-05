@@ -63,12 +63,15 @@ const FAQ_ITEMS = [
       </span>,
     ],
   },
+  /* Commented out 2026-10-05, not deleted: the BMI/mediation guard still holds
+     and is carried by the + BMI row on /documentation/models.
   {
     q: 'Does the estimate shrinking under "+ BMI" mean the effect is mediated by BMI?',
     a: [
       'No. Attenuation after BMI adjustment is equally consistent with mediation, with confounding and with collider bias. Adjustment cannot separate the three.',
     ],
   },
+  */
   {
     q: 'What do the evidence badges mean?',
     a: [
@@ -180,7 +183,6 @@ export default function FAQs() {
   return (
     <DocPage
       title="FAQs"
-      lead="Short answers. Anything that needs more than a few lines links to the page that carries it."
     >
       <ul className="faq-list">
         {FAQ_ITEMS.map((item, i) => (

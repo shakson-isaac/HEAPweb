@@ -60,8 +60,8 @@ const RUNGS = [
   {
     tier: 'Intervention concordant',
     kind: 'external',
-    adds: 'External perturbation agrees',
-    detail: 'The proteomic response in HERITAGE, STEP 1 or STEP 2 agrees in direction with the observational association. Restricted to proteins measured on both platforms.',
+    adds: 'Intervention agrees',
+    detail: 'The proteomic response in HERITAGE (exercise intervention) and STEP 1/STEP 2 (GLP1-RA RCT) agrees in direction with the observational association. Restricted to proteins measured on both platforms.',
   },
 ];
 
@@ -91,7 +91,7 @@ export default function EvidenceTiers() {
   return (
     <DocPage
       title="Evidence tiers"
-      lead="Every relationship on this site carries a badge naming the strongest evidence obtained for it. Each badge below states what it required."
+      lead="We use tiers of evidence to characterize associations detected in HEAP using Mendelian Randomization and interventional cohort studies."
     >
       <HeadlineFallback error={error} />
 

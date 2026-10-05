@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import {
-  AuthorNote, Code, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable,
+  AuthorNote, Code, DocPage, HeadlineFallback, P, Section, SimpleTable,
   macro, useHeadline,
 } from '../Documentation';
 
@@ -66,8 +66,7 @@ export default function AboutHeap() {
 
       <Section title="Getting the data">
         <P>
-          Every result is a static gzipped JSON object in a public bucket. No key, no rate limit,
-          one line per result:
+          Every result is a static gzipped JSON object in a public bucket.
         </P>
         <Code label="R">
 {`jsonlite::fromJSON(
@@ -76,8 +75,9 @@ export default function AboutHeap() {
         </Code>
         <P>
           <Link to="/documentation/api">Data API</Link> lists what you can fetch.{' '}
-          <Link to="/downloads">Downloads</Link> covers the 169 exposure GWAS, which are 51 GB and
-          sit in a requester-pays bucket where transfer is billed to the project you name.
+          <Link to="/downloads">Downloads</Link> covers supplementary tables and data which are free to download.
+          The 169 exposure GWAS summary stats (total 51 GB) are under a requester-pays
+          bucket, billing a user&rsquo;s Google Cloud project upon access.
         </P>
       </Section>
 
@@ -90,9 +90,8 @@ export default function AboutHeap() {
 
       <Section title="Version and provenance">
         <P>
-          The site code, the payload API and the datasets version independently. The payload path
-          prefix (<Mono>web/v1/</Mono>) changes on a breaking schema change. Each dataset carries
-          its own version and build date. Datasets have no separate DOI, so cite the paper. See{' '}
+          Versioning will be updated independently for the site code, the payload API and the datasets.
+          Cite the paper. See{' '}
           <Link to="/documentation/cite">How to cite</Link>.
         </P>
         <Box sx={{ mt: 2 }}>
