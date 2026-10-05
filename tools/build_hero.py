@@ -127,13 +127,27 @@ def main():
     # The causal layer is small enough to name on the figure, so it carries its
     # coordinates and tier. The two reporter layers run to ~500 proteins each and
     # are drawn as a wash, so they only need the names.
-    # Whether each colocalized protein ALSO reaches Tier 1 on a cis P -> D edge
-    # in the triad table. Six of the eight do; ALCAM and SOST have no rows there
-    # at all, so this is recorded rather than assumed.
+    # Whether each colocalized protein ALSO reaches Tier 1 on a cis P -> D edge.
+    #
+    # NEITHER SOURCE IS COMPLETE ON ITS OWN, so this takes the union:
+    #   mr_triad_tiers  both pQTL arms, but only COMPLETE exposure-protein-
+    #                   disease triads -- ALCAM has no triad and is missing
+    #   mr_pd_effects   every protein-disease pair, but UKB ONLY (see
+    #                   build_pd_effects.py, which filters dataset != "UKB")
+    #                   -- ICAM1's evidence is deCODE and is missing
+    # Using the triad table alone reported ALCAM as not Tier 1, which is wrong.
     cis_cols = ("tier_PDcis_UKB", "tier_PDcis_DECODE")
     tier1_cis = set()
     for i, prot in enumerate(tiers["Protein"]):
         if any(tiers[c][i] in ("Tier1", "Tier1plus") for c in cis_cols):
+            tier1_cis.add(prot)
+    for prot in causal_best:
+        sh = os.path.join(args.out, "k", "mr_pd_effects", f"{prot}.json.gz")
+        if not os.path.exists(sh):
+            continue
+        with gzip.open(sh, "rt", encoding="utf-8") as fh:
+            e = json.load(fh)
+        if any(str(v) in ("Tier1", "Tier1plus") for v in e.get("mr_tier_cis", [])):
             tier1_cis.add(prot)
 
     rows = []
