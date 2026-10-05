@@ -84,22 +84,31 @@ echo "files: $n_bgz bgz, $n_tbi index, against $n_src source GWAS"
 #
 # heap-ci still needs roles/serviceusage.serviceUsageConsumer on heap-4b852 for
 # anything afterwards -- re-uploads, listing, reading the bucket's own config.
-if ! gcloud storage buckets describe "$BUCKET" --project="$PROJECT" >/dev/null 2>&1; then
+if ! gcloud storage buckets describe "$BUCKET" --project="$PROJECT" \
+     --billing-project="$PROJECT" >/dev/null 2>&1; then
   gcloud storage buckets create "$BUCKET" \
     --location=US --uniform-bucket-level-access --project="$PROJECT"
 fi
 
-# --- 2. upload, while the bucket is still ordinary ---------------------------
+# A rerun meets a bucket that is ALREADY requester pays, and then every call
+# below needs the billing flag. A first run meets an ordinary bucket, where the
+# flag is not accepted. Ask the bucket which case this is rather than assume.
+RP=$(gcloud storage buckets describe "$BUCKET" --project="$PROJECT" \
+     --billing-project="$PROJECT" --format="value(requester_pays)" 2>/dev/null || echo "")
+BILL=()
+[[ "$RP" == "True" ]] && BILL=(--billing-project="$PROJECT")
+echo "requester pays already on: ${RP:-False}"
+
+# --- 2. upload ---------------------------------------------------------------
 gcloud storage rsync "$DEPOSIT" "$BUCKET" \
-  --recursive --exclude='\.manifest_parts.*' --project="$PROJECT"
+  --recursive --exclude='\.manifest_parts.*' --project="$PROJECT" "${BILL[@]}"
 
-# Readable by anyone who brings a billing project. Applied BEFORE the flag,
-# because afterwards this call would need a billing project of its own.
+# Readable by anyone who brings a billing project of their own.
 gcloud storage buckets add-iam-policy-binding "$BUCKET" \
-  --member=allUsers --role=roles/storage.objectViewer --project="$PROJECT"
+  --member=allUsers --role=roles/storage.objectViewer --project="$PROJECT" "${BILL[@]}"
 
-# The flag, last.
-gcloud storage buckets update "$BUCKET" --requester-pays --project="$PROJECT"
+# The flag, last on a fresh bucket; a no-op when it is already set.
+gcloud storage buckets update "$BUCKET" --requester-pays --project="$PROJECT" "${BILL[@]}"
 
 # --- 3. the public catalog ---------------------------------------------------
 # The site cannot list the bucket, so it reads this instead. Rebuild it from the
