@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write meta/hero_causal.json.gz -- the proteins the landing figure calls out.
+"""Write meta/hero_causal.json.gz -- the three evidence layers the landing figure draws.
 
 The landing scatter places all 2,686 proteins by genetic against exposomic R².
 That shows half the paper's claim: the exposome is written across the proteome.
@@ -33,11 +33,22 @@ from collections import OrderedDict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Protein -> disease, both instrument classes, both pQTL arms.
-PD_COLS = (
-    "tier_PDcis_UKB", "tier_PDcis_DECODE",
-    "tier_PDtrans_UKB", "tier_PDtrans_DECODE",
-)
+# Three directions, each at Tier 1, each answering a different question about a
+# protein that tracks an exposure:
+#
+#   P -> D  the protein moves disease risk          a causal intermediate
+#   D -> P  disease liability moves the protein     a disease reporter
+#   E -> P  the exposure moves the protein          an exposome reporter
+#
+# These are not exclusive. Every P->D protein is also both kinds of reporter,
+# and most reporters are both -- which is the point, and why the figure shows
+# one layer at a time rather than three colors at once.
+LAYERS = {
+    "causal": ("tier_PDcis_UKB", "tier_PDcis_DECODE",
+               "tier_PDtrans_UKB", "tier_PDtrans_DECODE"),
+    "disease_reporter": ("tier_DP_UKB", "tier_DP_DECODE"),
+    "exposome_reporter": ("tier_EP_UKB", "tier_EP_DECODE"),
+}
 RANK = {"Tier1plus": 2, "Tier1": 1}
 
 
@@ -61,22 +72,25 @@ def main():
     tiers = read_section(args.out, "mr_triad_tiers")
     arch = read_section(args.out, "geno_vs_expo_arch")
 
-    missing = [c for c in PD_COLS if c not in tiers]
+    missing = [c for cols in LAYERS.values() for c in cols if c not in tiers]
     if missing:
         raise SystemExit("build_hero: mr_triad_tiers is missing %s -- the tier "
                          "schema changed, so this derivation is stale"
                          % ", ".join(missing))
 
-    best = {}        # protein -> 1 (Tier 1) or 2 (Tier 1+)
-    diseases = {}    # protein -> set of diseases it reaches at Tier 1
-    for i, prot in enumerate(tiers["Protein"]):
-        for col in PD_COLS:
-            r = RANK.get(tiers[col][i], 0)
-            if not r:
-                continue
-            if r > best.get(prot, 0):
-                best[prot] = r
-            diseases.setdefault(prot, set()).add(tiers["Disease"][i])
+    best = {}        # layer -> protein -> 1 (Tier 1) or 2 (Tier 1+)
+    diseases = {}    # protein -> set of diseases it reaches at Tier 1 as P -> D
+    for layer, cols in LAYERS.items():
+        seen = best.setdefault(layer, {})
+        for i, prot in enumerate(tiers["Protein"]):
+            for col in cols:
+                r = RANK.get(tiers[col][i], 0)
+                if not r:
+                    continue
+                if r > seen.get(prot, 0):
+                    seen[prot] = r
+                if layer == "causal":
+                    diseases.setdefault(prot, set()).add(tiers["Disease"][i])
 
     # Only call out a protein the figure actually draws, and carry its
     # coordinates so the page does not have to join two objects by hand.
@@ -86,8 +100,11 @@ def main():
         if g is not None and e is not None:
             coord[p] = (g, e)
 
+    # The causal layer is small enough to name on the figure, so it carries its
+    # coordinates and tier. The two reporter layers run to ~500 proteins each and
+    # are drawn as a wash, so they only need the names.
     rows = []
-    for prot, rank in sorted(best.items(), key=lambda kv: (-kv[1], kv[0])):
+    for prot, rank in sorted(best["causal"].items(), key=lambda kv: (-kv[1], kv[0])):
         if prot not in coord:
             continue
         g, e = coord[prot]
@@ -99,15 +116,19 @@ def main():
             exposomic=e,
         ))
 
-    dropped = sorted(set(best) - set(coord))
+    dropped = sorted(set(best["causal"]) - set(coord))
     obj = OrderedDict(
         version="v1",
-        definition=("proteins with at least one protein -> disease MR edge at "
-                    "Tier 1, in either pQTL arm, cis or trans. Not the mediator "
-                    "motif count."),
+        definition=("Tier-1 MR evidence per direction, either pQTL arm. "
+                    "`causal` is protein -> disease (cis or trans) and is NOT "
+                    "the mediator motif count; `disease_reporter` is "
+                    "disease -> protein; `exposome_reporter` is exposure -> "
+                    "protein. The three overlap by design."),
         n_tier1=sum(1 for r in rows if r["tier"] == "Tier1"),
         n_tier1plus=sum(1 for r in rows if r["tier"] == "Tier1plus"),
         proteins=rows,
+        disease_reporters=sorted(set(best["disease_reporter"]) & set(coord)),
+        exposome_reporters=sorted(set(best["exposome_reporter"]) & set(coord)),
     )
 
     os.makedirs(os.path.join(args.out, "meta"), exist_ok=True)
@@ -122,9 +143,11 @@ def main():
             fh.write(raw)
 
     n = os.path.getsize(path)
-    print(f"  [M] hero_causal        {len(rows)} proteins "
-          f"({obj['n_tier1plus']} at Tier 1+) -> {n/1024:.1f} KB")
-    print("      " + ", ".join(r["protein"] for r in rows))
+    print(f"  [M] hero_causal        causal {len(rows)} "
+          f"({obj['n_tier1plus']} at Tier 1+), disease reporters "
+          f"{len(obj['disease_reporters'])}, exposome reporters "
+          f"{len(obj['exposome_reporters'])} -> {n/1024:.1f} KB")
+    print("      causal: " + ", ".join(r["protein"] for r in rows))
     if dropped:
         print(f"      note: {len(dropped)} Tier-1 protein(s) absent from the "
               f"scatter and not drawn: {', '.join(dropped)}")

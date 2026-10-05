@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { Box, Typography } from '@mui/material';
+import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useSection } from '../../lib/useSection';
 import { WEB_DATA_BASE } from '../../lib/heapdata';
 
@@ -11,10 +11,20 @@ import { WEB_DATA_BASE } from '../../lib/heapdata';
 // halves of the paper's claim rather than one.
 //
 // The cloud is the first half -- the exposome is written across the proteome.
-// The named points are the second: of everything above the 1% line, only a
-// handful carry Tier-1 Mendelian randomization evidence into disease. Showing
-// them together is the whole argument in one picture, and it is why this figure
-// headlines the site rather than a category bar chart.
+// The layer control is the second: among the same proteins, 6 carry Tier-1 MR
+// evidence INTO disease while ~500 carry it in the reverse direction, from
+// disease or from the exposure. Six against five hundred is the paper's claim,
+// and a visitor can switch between the three readings rather than take it on
+// trust.
+//
+// ONE LAYER AT A TIME, NOT THREE COLORS. All six causal proteins are also both
+// kinds of reporter, and 384 proteins are both reporter types, so a simultaneous
+// three-way coloring is mud. The toggle also sets the default: `causal` opens
+// first because 6 named points land immediately, where opening on a 496-protein
+// wash would read as decoration.
+//
+// NAMES ONLY ON THE CAUSAL LAYER. 496 labels is not a figure. The reporter
+// layers are a wash and rely on hover for identity.
 //
 // THE COUNT IS NOT ON THE PLOT, deliberately. The stat strip immediately below
 // the figure already reads 2,686 proteins, and an "N exposure-responsive"
@@ -44,17 +54,51 @@ const Y_MAX = 0.17;
 const LABEL = ['LEP', 'FABP4', 'CFH'];
 const HIT = 14;            // px: how close the cursor must be to pick a protein
 
+// Plain words on the control, arrow notation in the legend. "D -> P" means
+// nothing to someone who has not read the paper; "disease reporters" does.
+const LAYERS = [
+  { id: 'causal', label: 'Causal intermediates', edge: 'P \u2192 D',
+    gloss: 'the protein moves disease risk' },
+  { id: 'disease_reporter', label: 'Disease reporters', edge: 'D \u2192 P',
+    gloss: 'disease liability moves the protein' },
+  { id: 'exposome_reporter', label: 'Exposome reporters', edge: 'E \u2192 P',
+    gloss: 'the exposure moves the protein' },
+];
+
 const sx = (v) => PAD + Math.sqrt(Math.min(v, X_MAX) / X_MAX) * (W - PAD - 14);
 const sy = (v) => H - PAD - Math.sqrt(Math.min(v, Y_MAX) / Y_MAX) * (H - PAD - 18);
 const pct = (v) => `${(v * 100).toFixed(v >= 0.1 ? 0 : 1)}%`;
+
+/** One legend entry: the mark as it is actually drawn, then its meaning. */
+function Key({ color, r = 2, filled, dim, ring, children }) {
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+      <Box component="svg" width={14} height={14} sx={{ flex: '0 0 14px' }}>
+        {ring ? (
+          <>
+            <circle cx={7} cy={7} r={4.6} fill="none" stroke="currentColor" strokeWidth={1.4} />
+            <circle cx={7} cy={7} r={1.8} fill="currentColor" />
+          </>
+        ) : (
+          <circle cx={7} cy={7} r={r + 1.2} fill={color} opacity={dim ? 0.3 : 0.85} />
+        )}
+      </Box>
+      <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.35 }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
 
 export default function ExposomeScatter() {
   const theme = useTheme();
   const h = theme.palette.heap;
   const navigate = useNavigate();
   const svgRef = useRef(null);
+  const litRef = useRef([]);     // the highlighted set, for the hit test
   const [hover, setHover] = useState(null);
   const [causal, setCausal] = useState(null);
+  const [layer, setLayer] = useState('causal');
   const { data, loading, error } = useSection('geno_vs_expo_arch');
 
   // 0.3 KB. Fetched rather than derived in the browser: the tier table it comes
@@ -82,6 +126,11 @@ export default function ExposomeScatter() {
 
   // Nearest point to the cursor, in SVG user units. The viewBox maps 1:1 to the
   // drawing, so a client offset scales by the rendered width.
+  //
+  // TWO PASSES, HIGHLIGHTED SET FIRST. RGMA sits on top of ICAM1 (3.6%/2.5%
+  // against 3.53%/2.49%) and won a plain nearest-point search by a fraction of
+  // a pixel, which made a protein the figure had NAMED impossible to click. A
+  // lit point inside the hit radius therefore wins over a closer unlit one.
   const pick = useCallback((evt) => {
     const svg = svgRef.current;
     if (!svg || !pts) return;
@@ -89,18 +138,26 @@ export default function ExposomeScatter() {
     const k = W / r.width;
     const mx = (evt.clientX - r.left) * k;
     const my = (evt.clientY - r.top) * k;
-    let best = null;
-    let bestD = HIT * HIT;
-    for (let i = 0; i < pts.length; i += 1) {
-      const d = (pts[i].x - mx) ** 2 + (pts[i].y - my) ** 2;
-      if (d < bestD) { bestD = d; best = pts[i]; }
-    }
-    setHover(best);
+    const nearest = (arr) => {
+      let best = null;
+      let bestD = HIT * HIT;
+      for (let i = 0; i < arr.length; i += 1) {
+        const d = (arr[i].x - mx) ** 2 + (arr[i].y - my) ** 2;
+        if (d < bestD) { bestD = d; best = arr[i]; }
+      }
+      return best;
+    };
+    setHover(nearest(litRef.current) || nearest(pts));
   }, [pts]);
 
+  // A protein with Tier-1 MR evidence is interesting BECAUSE of that evidence,
+  // so it opens the triad explorer rather than its exposure associations.
   const open = useCallback(() => {
-    if (hover) navigate(`/results/associations?protein=${encodeURIComponent(hover.p)}`);
-  }, [hover, navigate]);
+    if (!hover) return;
+    const p = encodeURIComponent(hover.p);
+    const isCausal = (causal?.proteins || []).some((r) => r.protein === hover.p);
+    navigate(isCausal ? `/results/causal/triads?p=${p}` : `/results/associations?protein=${p}`);
+  }, [hover, navigate, causal]);
 
   if (loading || error || !pts || !pts.length) {
     // No skeleton and no error card: the page reads perfectly without the figure,
@@ -133,12 +190,28 @@ export default function ExposomeScatter() {
     return out;
   };
 
-  const responsive = pts.filter((d) => d.resp);
-  const plain = pts.filter((d) => !d.resp);
+  const active = LAYERS.find((l) => l.id === layer) || LAYERS[0];
+  const counts = {
+    causal: causal?.proteins?.length,
+    disease_reporter: causal?.disease_reporters?.length,
+    exposome_reporter: causal?.exposome_reporters?.length,
+  };
+  const named = layer === 'causal';
+  const litNames = new Set(
+    named
+      ? (causal?.proteins || []).map((r) => r.protein)
+      : (causal?.[layer === 'disease_reporter' ? 'disease_reporters' : 'exposome_reporters'] || []),
+  );
+  const hasLayer = litNames.size > 0;
+  const lit = hasLayer ? pts.filter((d) => litNames.has(d.p)) : [];
+  const rest = hasLayer ? pts.filter((d) => !litNames.has(d.p)) : pts;
+  litRef.current = lit;
   const labels = LABEL.map((name) => pts.find((d) => d.p === name)).filter(Boolean);
-  const marked = (causal?.proteins || [])
-    .map((r) => ({ ...r, pt: pts.find((d) => d.p === r.protein) }))
-    .filter((r) => r.pt);
+  const marked = named
+    ? (causal?.proteins || [])
+      .map((r) => ({ ...r, pt: pts.find((d) => d.p === r.protein) }))
+      .filter((r) => r.pt)
+    : [];
   const placed = place([
     ...marked.map((r) => ({ key: r.protein, text: r.protein, bold: true, x0: r.pt.x, y0: r.pt.y })),
     ...labels.map((d) => ({ key: d.p, text: d.p, bold: false, x0: d.x, y0: d.y })),
@@ -166,11 +239,24 @@ export default function ExposomeScatter() {
           stroke={h.soft} strokeWidth={1} strokeDasharray="3 3" opacity={0.7}
         />
 
-        {plain.map((d) => (
-          <circle key={d.p} cx={d.x} cy={d.y} r={1.5} fill={h.soft} opacity={0.42} />
+        {/* Three states, one hue. Gray is below the 1% line; pale teal is
+            exposure-responsive, so the headline claim stays visible on every
+            layer; full teal is the layer on screen. The first version let the
+            layer own the teal, which wiped the responsive cloud off the default
+            view and left six rings on a gray field. */}
+        {rest.map((d) => (
+          <circle
+            key={d.p} cx={d.x} cy={d.y}
+            r={d.resp ? 1.8 : 1.5}
+            fill={d.resp ? h.accent : h.soft}
+            opacity={d.resp ? 0.34 : 0.24}
+          />
         ))}
-        {responsive.map((d) => (
-          <circle key={d.p} cx={d.x} cy={d.y} r={1.9} fill={h.accent} opacity={0.75} />
+        {lit.map((d) => (
+          <circle
+            key={d.p} cx={d.x} cy={d.y}
+            r={named ? 2 : 2.3} fill={h.accent} opacity={0.95}
+          />
         ))}
 
         {/* The minority with causal evidence: a ring, so they read against the
@@ -227,13 +313,43 @@ export default function ExposomeScatter() {
         </text>
       </svg>
 
-      <Typography
-        component="figcaption" variant="caption"
-        sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontStyle: 'italic' }}
-      >
-        Each dot is one plasma protein. Named proteins carry Tier-1 Mendelian
-        randomization evidence on disease. Hover for a protein; click to open it.
-      </Typography>
+      <Box component="figcaption" sx={{ mt: 1 }}>
+        <ToggleButtonGroup
+          exclusive size="small" value={layer}
+          onChange={(_, v) => v && setLayer(v)}
+          aria-label="evidence layer"
+          sx={{ flexWrap: 'wrap', mb: 1 }}
+        >
+          {LAYERS.map((l) => (
+            <ToggleButton
+              key={l.id} value={l.id}
+              sx={{ textTransform: 'none', fontSize: '0.74rem', px: 1.1, py: 0.5 }}
+            >
+              {l.label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+
+        {/* The legend carries what the caption used to say, but keyed to the
+            marks actually on screen, and it changes with the layer. */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', alignItems: 'baseline' }}>
+          <Key color={h.accent} r={2.3} filled>
+            <b>{counts[layer] != null ? counts[layer].toLocaleString() : '—'}</b>{' '}
+            {active.label.toLowerCase()} ({active.edge} at Tier 1) — {active.gloss}
+          </Key>
+          <Key color={h.accent} r={1.8} filled dim>
+            exposure-responsive, no Tier-1 edge this way
+          </Key>
+          <Key color={h.soft} r={1.5} filled dim>
+            below 1% exposomic variance
+          </Key>
+          {named && (
+            <Key ring>
+              named above — click opens its triads
+            </Key>
+          )}
+        </Box>
+      </Box>
     </figure>
   );
 }

@@ -19,7 +19,7 @@ server is running; `CI=true npm run build` before committing.
 that looks like a path or an id. Grep for the exact words to find one:
 `grep -rn "the words you see" --include=*.js src/`
 
-758 strings across 85 files.
+765 strings across 85 files.
 
 ---
 
@@ -667,7 +667,14 @@ that looks like a path or an id. Grep for the exact words to find one:
 
 `src/components/home/ExposomeScatter.js`
 
-- **154** — Every plasma protein placed by genetic against exposomic variance explained. Proteins with Tier-1 causal evidence on disease are named.
+- **60** — Causal intermediates
+- **61** — the protein moves disease risk
+- **62** — Disease reporters
+- **63** — disease liability moves the protein
+- **64** — Exposome reporters
+- **65** — the exposure moves the protein
+- **227** — Every plasma protein placed by genetic against exposomic variance explained. Proteins with Tier-1 causal evidence on disease are named.
+- **320** — evidence layer
 
 ## `component — ExposomicGradient`
 
