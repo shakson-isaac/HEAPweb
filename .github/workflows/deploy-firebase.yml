@@ -6,6 +6,10 @@ on:
     types:
       - completed
   push:
+    # Only the default branch deploys. Without this, a push to ANY
+    # branch touching these paths would redeploy the live site.
+    branches:
+      - main
     paths:
       - 'heap/frontend/**'
       - '.github/workflows/deploy-firebase.yml'
@@ -28,8 +32,16 @@ jobs:
     # Step 3: Set up Firebase CLI
     - name: Set up Firebase CLI
       run: |
-        curl -sL https://firebase.tools | bash  # Install Firebase CLI
-        firebase --version  # Check Firebase CLI version
+        # Installed from the npm registry, not the firebase.tools shell
+        # installer. That installer downloads a versioned binary from
+        # firebase.tools/bin/..., and on 2026-08-27 that URL served a
+        # "Not Found" BODY with a success status -- which the script happily
+        # wrote to /usr/local/bin/firebase and chmod +x'd, so the deploy failed
+        # with "line 1: Not: command not found". Piping curl -sL to bash cannot
+        # tell a binary from an error page.
+        npm install -g firebase-tools@^15
+        # Fail here, loudly, rather than at deploy time.
+        firebase --version
 
     # Step 4: Install Node.js and dependencies
     - name: Set up Node.js
@@ -48,7 +60,11 @@ jobs:
       run: |
         cd heap/frontend  # Navigate to the frontend directory
         echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
-        echo "Other custom variables can go here if needed"
+        # Sharded result payloads, published from O2 by tools/sync_gcs.py.
+        # Public bucket, so this is not a secret; the secret only exists so the
+        # bucket can be moved without editing the frontend.
+        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" >> .env
+        cat .env
   
     # Step 6: Build React app
     - name: Build React app
@@ -60,4 +76,6 @@ jobs:
     - name: Deploy to Firebase Hosting
       run: |
         cd heap/frontend  # Navigate to the frontend directory
-        firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
+        # Uses the service account from google-github-actions/auth above, not a
+        # deprecated `firebase login:ci` token.
+        firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}

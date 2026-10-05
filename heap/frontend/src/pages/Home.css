@@ -1,56 +1,301 @@
-.container {
-  padding: 16px;
-  line-height: 1.6;
-  font-family: 'Inter', sans-serif;
-  background-color: #f7fafc;
+/* ---------------------------------------------------------------------------
+   Landing page, editorial layout.
+
+   Colors come from the six variables in App.css, so this file is written once
+   and works in light and dark. Nothing here sets a hex.
+   --------------------------------------------------------------------------- */
+
+.home {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 54px 40px 72px;
+  color: var(--ink);
 }
 
-.heading {
-  margin-bottom: 16px;
-  font-size: 2em;
-  font-weight: bold;
-  color: #1a202c;
-  text-align: center; /* Center the heading */
+/* ---------------------------------------------------------------------- hero */
+.home-hero {
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  gap: 54px;
+  align-items: center;
 }
 
-.paragraph {
-  margin-bottom: 12px;
-  font-size: 1em;
-  color: #2d3748;
+.home-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--soft);
+  margin-bottom: 14px;
 }
 
-.list {
-  margin-bottom: 12px;
-  padding-left: 20px;
-  list-style-type: disc;
+.home-title {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(2.3rem, 4.4vw, 3.3rem);
+  line-height: 1.06;
+  letter-spacing: -1px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  max-width: 15ch;
 }
 
-.list-item {
+.home-sub {
+  font-size: 0.95rem;
+  color: var(--soft);
+  margin: 0 0 18px;
+  letter-spacing: 0.01em;
+}
+
+.home-sub strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.home-lede {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.2rem;
+  line-height: 1.55;
+  color: var(--soft);
+  max-width: 50ch;
+  margin: 0 0 26px;
+}
+
+.home-hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.home-cta {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--paper);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 0.93rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-cta:hover {
+  text-decoration: none;
+  filter: brightness(1.06);
+}
+
+.home-cta--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.home-cta--ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  filter: none;
+}
+
+.home-hero-figure {
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------- stats */
+.home-stats {
+  margin-top: 46px;
+  padding-top: 26px;
+  border-top: 1px solid var(--rule);
+}
+
+.home-stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 46px;
+}
+
+.home-stat-value {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.95rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.home-stat-value--pending {
+  color: var(--soft);
+}
+
+.home-stat-label {
+  font-size: 0.78rem;
+  color: var(--soft);
+  margin-top: 2px;
+}
+
+.home-stat-note {
+  font-size: 0.7rem;
+  color: var(--soft);
+  margin-top: 3px;
+}
+
+/* -------------------------------------------------------------------- blocks */
+.home-block {
+  margin-top: 44px;
+  padding-top: 26px;
+  border-top: 1px solid var(--rule);
+}
+
+.home-h2 {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin: 0 0 6px;
+}
+
+.home-block-sub {
+  font-size: 0.95rem;
+  color: var(--soft);
+  margin: 0 0 20px;
+  max-width: 64ch;
+}
+
+/* Cards are columns separated by rules, not boxes. */
+.home-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 14px;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 4px 24px 6px 0;
+  border-right: 1px solid var(--rule);
+  text-decoration: none;
+  color: inherit;
+}
+
+.home-card:last-child {
+  border-right: 0;
+}
+
+.home-card:hover {
+  text-decoration: none;
+}
+
+.home-card-title {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.home-card:hover .home-card-title {
+  color: var(--accent);
+}
+
+.home-card-body {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--soft);
+}
+
+.home-card-go {
+  font-size: 0.76rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--accent);
+  margin-top: auto;
+}
+
+/* ------------------------------------------------------------------ use cases */
+.home-usecases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 0 32px;
+}
+
+.home-usecase {
+  padding: 18px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.home-usecase-lead {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.home-usecase-body {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--soft);
   margin-bottom: 10px;
-  text-indent: -20px;
-  padding-left: 20px;
-  font-size: 1em;
-  color: #4a5568;
 }
 
-.section {
-  margin-bottom: 20px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  background-color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 1000px; /* Set a reasonable max-width for the sections */
-  width: calc(100% - 32px); /* Ensure the section takes full width minus padding */
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
-  margin-left: auto; /* Center the section */
-  margin-right: auto; /* Center the section */
+.home-usecase-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.image {
-  width: 100%;
-  max-width: 600px;
-  margin-top: 10px;
-  border-radius: 8px;
-  display: block; /* Center the image */
-  margin: 0 auto; /* Center the image */
+.home-pill {
+  font-size: 0.78rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--soft);
+  text-decoration: none;
+}
+
+.home-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------- legal */
+.home-legal-line {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--soft);
+  max-width: 78ch;
+  margin: 0 0 8px;
+}
+
+.home-legal-fine {
+  font-size: 0.78rem;
+}
+
+/* ------------------------------------------------------------------- narrow */
+@media (max-width: 900px) {
+  .home {
+    padding: 34px 20px 54px;
+  }
+
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .home-card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-card {
+    padding: 14px 18px 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .home-card:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .home-stat-grid {
+    gap: 26px 32px;
+  }
 }

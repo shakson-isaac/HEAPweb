@@ -1,15 +1,108 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { Box, Typography } from '@mui/material';
+import {
+  AuthorNote, Code, DocPage, HeadlineFallback, P, Section, SimpleTable,
+  macro, useHeadline,
+} from '../Documentation';
 
-const AboutHeap = () => {
+// Structural description of the resource only (standing decision S13). The
+// site's own framing copy is left to the author.
+//
+// The manuscript's central claim was quoted here in a pull-quote until
+// 2026-10-04. It was cut: a finding about reporters and intermediates does not
+// tell a first-time visitor what this resource is or what they can do with it,
+// which is what an About page is for. The lead sentence does that job.
+export default function AboutHeap() {
+  const { data: h, error } = useHeadline();
+  const n = (k) => macro(h, k);
+
   return (
-    <div className="content container">
-      <h1 className="heading">About HEAP</h1>
-      <p className="paragraph">
-        HEAP (Human Exposomic Architecture of the Proteome) is a comprehensive tool designed to analyze the interactions between genetics, exposures, proteomics, and disease outcomes. It leverages data from the UK Biobank to provide insights into how various factors contribute to health and disease.
-      </p>
-      {/* Add more content about HEAP */}
-    </div>
-  );
-};
+    <DocPage
+      title="About HEAP"
+      lead="HEAP (Human Exposomic Architecture of the Proteome) measures how modifiable lifestyle and environmental exposures are reflected in the human plasma proteome. It links those signatures to incident disease, and grades each link by its genetic and interventional support."
+    >
+      <AuthorNote what="Landing framing — one paragraph, yours to write." />
 
-export default AboutHeap;
+      <Section title="What is in it">
+        <HeadlineFallback error={error} />
+        <SimpleTable
+          head={['Quantity', 'Value', 'What it counts']}
+          rows={[
+            ['Participants', n('nParticipants'), 'UK Biobank participants with a baseline plasma proteomic draw'],
+            ['Proteins', n('nProteins'), 'proteins in the analyzed Olink panel (variance decomposition)'],
+            ['Exposures', n('nExposures'), 'exposomic features, across 13 categories'],
+            ['Replicated associations', n('nReplAssoc'), 'exposure × protein associations holding in both the train and the test split'],
+            ['Exposures with a hit', n('nExposuresAssoc'), 'exposures with at least one replicated association'],
+            ['Proteins with a hit', n('nProteinsAssoc'), 'proteins with at least one replicated association'],
+            ['Incident diseases', n('nDiseasesGEM'), 'first-occurrence disease outcomes with enough cases to model'],
+            ['Exposure scores (PES)', n('nExposuresPES'), 'proteome-based exposure scores'],
+            ['Colocalized loci', n('nColoc'), 'cis-pQTL loci passing the PP.H4 ≥ 0.8 colocalization gate'],
+            ['Tier-1 mediator triads', `${n('nMotifTierOne')} (${n('nMotifTierOneProt')} proteins)`, 'exposure → protein → disease triads meeting the Tier-1 mediator motif'],
+          ]}
+        />
+      </Section>
+
+      <Section title="How the analysis is organized">
+        <P>
+          Six analysis modules feed the site. <Link to="/documentation/methods">Detailed methods</Link>{' '}
+          describes each one. The covariate adjustment they share is on{' '}
+          <Link to="/documentation/models">Specifications</Link>.
+        </P>
+        <SimpleTable
+          head={['Module', 'Produces', 'Where it surfaces']}
+          rows={[
+            ['1 · Variance decomposition', 'per-protein R² split into covariate, genetic, exposomic and G×E components', <Link to="/results/main">Main results</Link>],
+            ['2 · Exposure–protein association', 'coefficients for every exposure × protein pair, in a train/test design', <Link to="/results/associations">Associations</Link>],
+            ['3 · Mediation (GEM)', 'observational exposure → protein → disease decomposition, descriptive', <Link to="/results/mediation">Disease links</Link>],
+            ['4 · Mendelian randomization', 'six directed edges per triad, graded on the evidence ladder, plus colocalization', <Link to="/results/causal">Causal evidence</Link>],
+            ['5 · Interventional comparison', 'concordance with HERITAGE, STEP 1 and STEP 2 proteomic responses', <Link to="/results/intervention">Intervention</Link>],
+            ['6 · Exposure scores (PES)', 'proteome-based scores per exposure, with tracking and disease prediction', <Link to="/results/pes">Exposure scores</Link>],
+            ['Supporting · Enrichment', 'tissue and pathway enrichment of the association results', <Link to="/results/enrichment">Tissues and pathways</Link>],
+            ['Supporting · Exposure GWAS', 'instrument diagnostics, LDSC heritability and genetic correlation', <Link to="/results/gwas">Exposure GWAS</Link>],
+          ]}
+        />
+      </Section>
+
+      <Section title="Getting the data">
+        <P>
+          Every result is a static gzipped JSON object in a public bucket.
+        </P>
+        <Code label="R">
+{`jsonlite::fromJSON(
+  "https://storage.googleapis.com/heap-data/web/v1/e/protein/ASGR1.json.gz"
+)`}
+        </Code>
+        <P>
+          <Link to="/documentation/api">Data API</Link> lists what you can fetch.{' '}
+          <Link to="/downloads">Downloads</Link> covers supplementary tables and data which are free to download.
+          The 169 exposure GWAS summary stats (total 51 GB) are under a requester-pays
+          bucket, billing a user&rsquo;s Google Cloud project upon access.
+        </P>
+      </Section>
+
+      <AuthorNote what="Published exposure-score count needs a decision.">
+        The manuscript macro reports {n('nExposuresPES')} proteome-based exposure scores; the
+        score bundle on disk contains {n('nPESpanels')} panels. Both are shown above as they
+        stand. Reconciling them changes a published number, which is an author decision
+        (gap G3 / blocker B5).
+      </AuthorNote>
+
+      <Section title="Version and provenance">
+        <P>
+          Versioning will be updated independently for the site code, the payload API and the datasets.
+          Cite the paper. See{' '}
+          <Link to="/documentation/cite">How to cite</Link>.
+        </P>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Preprint:{' '}
+            <a href="https://doi.org/10.1101/2025.05.07.25327178" target="_blank" rel="noopener noreferrer">
+              10.1101/2025.05.07.25327178
+            </a>
+          </Typography>
+        </Box>
+      </Section>
+    </DocPage>
+  );
+}
