@@ -282,32 +282,32 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **49** — The six modules
 - **50** — Module numbers follow the manuscript.
 - **52** — Variance decomposition
-- **72** — Main results
-- **73** — Lifestyle categories
-- **77** — Exposure–protein association
-- **84** — P ~ covariates + G_cis + G_trans + E + G_cis:E + G_trans:E
-- **94** — exposure × protein pairs
-- **95** — per model term
-- **100** — Genetic and exposomic architecture
-- **104** — Observational mediation (GEM)
-- **111** — P ~ PGS + PXS + covariates
-- **112** — D ~ P + PGS + PXS + covariates
-- **124** — Disease links
-- **128** — Mendelian randomization and colocalization
-- **149** — Evidence tiers
-- **150** — Causal evidence
-- **151** — Exposure GWAS
-- **155** — Interventional comparison
-- **183** — Proteome-based exposure scores (PES)
-- **203** — Exposure scores
-- **209** — Supporting analyses
-- **210** — Un-numbered in the manuscript. They support the modules above.
-- **216** — Tissue and pathway enrichment
-- **217** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
-- **218** — Tissues and pathways
-- **222** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
-- **223** — Exposure GWAS
-- **229** — Covariate adjustment
+- **81** — Main results
+- **82** — Lifestyle categories
+- **86** — Exposure–protein association
+- **94** — P ~ C + G_cis + G_trans + E_i + G_cis:E_i + G_trans:E_i
+- **105** — exposure × protein pairs
+- **106** — per model term
+- **111** — Genetic and exposomic architecture
+- **115** — Observational mediation (GEM)
+- **125** — P ~ PGS + PXS + C
+- **127** — D ~ P + PGS + PXS + C
+- **140** — Disease links
+- **144** — Mendelian randomization and colocalization
+- **170** — Evidence tiers
+- **171** — Causal evidence
+- **172** — Exposure GWAS
+- **176** — Interventional comparison
+- **206** — Proteome-based exposure scores (PES)
+- **231** — Exposure scores
+- **237** — Supporting analyses
+- **238** — Un-numbered in the manuscript. They support the modules above.
+- **244** — Tissue and pathway enrichment
+- **245** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
+- **246** — Tissues and pathways
+- **250** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
+- **251** — Exposure GWAS
+- **257** — Covariate adjustment
 
 ## `/documentation/models`
 
