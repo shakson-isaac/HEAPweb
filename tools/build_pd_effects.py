@@ -7,8 +7,17 @@ mediation module -- no MR estimate anywhere in it. This joins the two so the gap
 between them is visible, which is the actual finding: most proteins associate
 with disease observationally and do not survive MR.
 
-  MR side          $HEAP_OUTPUT/mr_edges/summary/mr_sensitivity_long.tsv
+  MR side          $HEAP_OUTPUT/mr_edges/summary/mr_sensitivity_long.tsv        (UKB)
+                   $HEAP_OUTPUT/mr_edges/summary/DECODE/mr_sensitivity_long.tsv (deCODE)
                    (Pcis_to_D + Ptrans_to_D; b, se, pval_adj, tier, PP.H4)
+
+BOTH pQTL ARMS, suffixed per arm. Until 2026-10-05 this read the UKB file only
+and dropped deCODE on the floor, which made the page lie by omission: ICAM1's
+Tier-1 cis edge into type 2 diabetes is deCODE-only, so the protein -> disease
+page showed it with no MR hit and no colocalization at all. Same for SOST
+(osteoporosis, PP.H4 0.985). Arms are never merged -- they are different assays
+with different instruments, and averaging them is exactly the error the original
+comment here warned about.
   observational    figures/website/fig_mr_priority.json (Cox HR per protein x disease)
 
 The two speak different disease vocabularies -- MR uses FinnGen R12 endpoints,
@@ -24,7 +33,9 @@ HEAP_OUT = os.environ.get("HEAP_OUTPUT", "/n/groups/patel/IGLOO/UKB/HEAP/output"
 FIGDIR = "/n/groups/patel/IGLOO/UKB/HEAP/figures/website"
 SUM = os.path.join(HEAP_OUT, "mr_edges", "summary")
 WIDE = os.path.join(SUM, "supp", "mr_triads_wide.tsv")
-SENS = os.path.join(SUM, "mr_sensitivity_long.tsv")
+SENS = {"UKB": os.path.join(SUM, "mr_sensitivity_long.tsv"),
+        "DECODE": os.path.join(SUM, "DECODE", "mr_sensitivity_long.tsv")}
+ARMS = ("UKB", "DECODE")
 PRIO = os.path.join(FIGDIR, "fig_mr_priority.json")
 # Profile-likelihood CIs for the observational HR. Module 3 computes them but
 # MR_priority_table drops them; HEAP/scripts/analysis_summaries/export_protein_hr_ci.R
@@ -41,7 +52,7 @@ def num(v):
         return None
 
 def main():
-    for p in (WIDE, SENS, PRIO):
+    for p in (WIDE, PRIO, *SENS.values()):
         if not os.path.exists(p):
             sys.exit(f"build_pd_effects: missing {p}")
     os.makedirs(OUTD, exist_ok=True)
@@ -59,20 +70,25 @@ def main():
     # cis and trans kept apart: they are different instruments for the same
     # edge, and Tier 1 is cis-only in practice, so collapsing them would hide
     # which instrument carried the evidence.
-    mr = defaultdict(dict)
-    with open(SENS) as fh:
-        for r in csv.DictReader(fh, delimiter="\t"):
-            # UKB panel only. The top-level summary file happens to hold just
-            # UKB (deCODE lives in summary/DECODE/), but assert it rather than
-            # rely on that: silently averaging two instrument panels into one
-            # estimate is exactly the kind of error that still looks plausible.
-            if r["dataset"] != "UKB":
-                continue
-            d = r["edge_dir"]
-            if d not in ("Pcis_to_D", "Ptrans_to_D"):
-                continue
-            cls = "cis" if d == "Pcis_to_D" else "trans"
-            mr[(r["src_id"], r["tgt_id"])][cls] = r
+    # (protein, disease) -> {"UKB": {"cis": row, "trans": row}, "DECODE": {...}}
+    mr = defaultdict(lambda: defaultdict(dict))
+    for arm in ARMS:
+        n = 0
+        with open(SENS[arm]) as fh:
+            for r in csv.DictReader(fh, delimiter="\t"):
+                # Each file should hold one panel. Assert it rather than trust
+                # it: silently folding two instrument panels into one estimate
+                # is the kind of error that still looks plausible afterwards.
+                if r["dataset"] != arm:
+                    sys.exit(f"build_pd_effects: {SENS[arm]} holds dataset "
+                             f"{r['dataset']!r}, expected {arm!r}")
+                d = r["edge_dir"]
+                if d not in ("Pcis_to_D", "Ptrans_to_D"):
+                    continue
+                cls = "cis" if d == "Pcis_to_D" else "trans"
+                mr[(r["src_id"], r["tgt_id"])][arm][cls] = r
+                n += 1
+        print(f"  {arm:7s} {n:,} protein -> disease rows")
 
     # --- observational side --------------------------------------------------
     # (protID, DZ_ID) -> (l95, u95)
@@ -132,14 +148,23 @@ def main():
     # bury the MR signal under observational rows that can never be graded.
     mr_proteins = {p for p, _ in mr}
     pairs = sorted({k for k in (set(mr) | set(obs)) if k[0] in mr_proteins})
-    COLS = ["protID", "disease", "disease_ukb", "disease_label", "icd10",
-            "mr_b_cis", "mr_se_cis", "mr_padj_cis", "mr_tier_cis", "mr_nsnp_cis",
-            "coloc_pph4_cis",
-            "mr_b_trans", "mr_se_trans", "mr_padj_trans", "mr_tier_trans",
-            "mr_nsnp_trans",
-            "obs_HR", "obs_HR_l95", "obs_HR_u95", "obs_p", "obs_neglog10p",
-            "n_cases", "cox_cindex",
-            "has_mr", "has_obs", "mr_hit"]
+    # One row per protein x disease still, with the MR block repeated per arm.
+    # Keeping one row means the page can show both arms side by side without a
+    # join; an `arm` column with duplicated rows would have changed what a row
+    # means for every consumer.
+    def arm_cols(arm):
+        a = arm.lower()
+        return [f"mr_b_cis_{a}", f"mr_se_cis_{a}", f"mr_padj_cis_{a}",
+                f"mr_tier_cis_{a}", f"mr_nsnp_cis_{a}", f"coloc_pph4_cis_{a}",
+                f"mr_b_trans_{a}", f"mr_se_trans_{a}", f"mr_padj_trans_{a}",
+                f"mr_tier_trans_{a}", f"mr_nsnp_trans_{a}",
+                f"has_mr_{a}", f"mr_hit_{a}"]
+
+    COLS = (["protID", "disease", "disease_ukb", "disease_label", "icd10"]
+            + [c for arm in ARMS for c in arm_cols(arm)]
+            + ["obs_HR", "obs_HR_l95", "obs_HR_u95", "obs_p", "obs_neglog10p",
+               "n_cases", "cox_cindex",
+               "has_mr", "has_obs", "mr_hit"])
 
     n_both = n_mr_only = n_obs_only = n_hit = n_ci = 0
     with open(os.path.join(OUTD, "mr_pd_effects.tsv"), "w", newline="") as fh:
@@ -148,10 +173,24 @@ def main():
         for (prot, fg) in pairs:
             m = mr.get((prot, fg), {})
             o = obs.get((prot, fg))
-            c, t = m.get("cis"), m.get("trans")
-            hit = any((x or {}).get("mr_hit") in ("TRUE", "1", "True")
-                      for x in (c, t))
-            has_mr, has_obs = bool(m), o is not None
+            per_arm, hit_any, has_mr = [], False, False
+            for arm in ARMS:
+                a = m.get(arm, {})
+                c, t = a.get("cis"), a.get("trans")
+                h = any((x or {}).get("mr_hit") in ("TRUE", "1", "True")
+                        for x in (c, t))
+                hit_any = hit_any or h
+                has_mr = has_mr or bool(a)
+                g_ = lambda d, k: (d or {}).get(k, "")
+                per_arm += [
+                    g_(c, "b"), g_(c, "se"), g_(c, "pval_adj"), g_(c, "mr_tier"),
+                    g_(c, "nsnp"), g_(c, "PP_H4"),
+                    g_(t, "b"), g_(t, "se"), g_(t, "pval_adj"), g_(t, "mr_tier"),
+                    g_(t, "nsnp"),
+                    "TRUE" if a else "FALSE",
+                    "TRUE" if h else "FALSE",
+                ]
+            hit, has_obs = hit_any, o is not None
             n_both += has_mr and has_obs
             n_mr_only += has_mr and not has_obs
             n_obs_only += has_obs and not has_mr
@@ -160,10 +199,7 @@ def main():
             g = lambda d, k: (d or {}).get(k, "")
             w.writerow([
                 prot, fg, fg2ukb.get(fg, ""), label_of.get(fg, fg), fg2icd.get(fg, ""),
-                g(c, "b"), g(c, "se"), g(c, "pval_adj"), g(c, "mr_tier"),
-                g(c, "nsnp"), g(c, "PP_H4"),
-                g(t, "b"), g(t, "se"), g(t, "pval_adj"), g(t, "mr_tier"),
-                g(t, "nsnp"),
+                *per_arm,
                 g(o, "protein_HR"),
                 *(hrci.get((prot, o["DZ_ID"]), ("", "")) if o else ("", "")),
                 g(o, "protein_p"), g(o, "neglog10p"),

@@ -158,30 +158,44 @@ export default function MotifKey({ edges, motifs, selected, onSelect }) {
             {edgeList.map((e) => {
               const { d, label } = edgePath(e.num);
               const on = hoverEdge === e.num;
-              // An edge is "live" when the hovered motif constrains it either way.
-              const inMotif = hoverMotif
+              // A motif constrains an edge in one of three ways, and the first
+              // version collapsed two of them: `emph` was `sig !== '.'`, so
+              // "must be ABSENT" lit up exactly like "must be SUPPORTED" and
+              // hovering the mediator highlighted all six edges instead of
+              // 1, 2, 3. Absence is half of every motif rule, so it has to read
+              // as its own state rather than as support. (fixed 2026-10-05)
+              //   '+'  required present    solid, full weight, arrowhead
+              //   '-'  required absent     dashed and faded, no arrowhead
+              //   '.'  unconstrained       dimmed out
+              const sig = hoverMotif
                 ? motifList.find((m) => m.motif === hoverMotif)?.sig[Number(e.num) - 1]
                 : null;
-              const emph = on || (inMotif && inMotif !== '.');
-              const col = inMotif && inMotif !== '.'
+              const need = sig === '+';
+              const forbid = sig === '-';
+              const emph = on || need;
+              const col = need || forbid
                 ? motifColor(hoverMotif) : (on ? '#37474F' : '#90A4AE');
+              // Faded when a motif is hovered and this edge is not required.
+              const fade = hoverMotif && !need ? (forbid ? 0.45 : 0.14) : 1;
               return (
                 <g key={e.num} style={{ color: col, cursor: 'default' }}
                    onMouseEnter={() => setHoverEdge(e.num)}
                    onMouseLeave={() => setHoverEdge(null)}>
                   <path d={d} fill="none" stroke="currentColor"
                         strokeWidth={emph ? 2.6 : 1.5}
-                        opacity={hoverMotif && !emph ? 0.22 : 1}
-                        markerEnd="url(#mk-arrow)" />
+                        strokeDasharray={forbid ? '4 3' : undefined}
+                        opacity={fade}
+                        markerEnd={forbid ? undefined : 'url(#mk-arrow)'} />
                   {/* fat invisible hit area so thin curves are still hoverable */}
                   <path d={d} fill="none" stroke="transparent" strokeWidth={14} />
                   <circle cx={label.x} cy={label.y} r={9.5}
                           fill="var(--mk-bg, #FFFFFF)" stroke="currentColor"
                           strokeWidth={emph ? 1.8 : 1}
-                          opacity={hoverMotif && !emph ? 0.22 : 1} />
+                          strokeDasharray={forbid ? '3 2' : undefined}
+                          opacity={fade} />
                   <text x={label.x} y={label.y + 3.6} textAnchor="middle"
                         fontSize={11} fontWeight={700} fill="currentColor"
-                        opacity={hoverMotif && !emph ? 0.22 : 1}>{e.num}</text>
+                        opacity={fade}>{e.num}</text>
                 </g>
               );
             })}
@@ -274,8 +288,9 @@ export default function MotifKey({ edges, motifs, selected, onSelect }) {
           </Box>
           <Typography variant="caption" color="text.secondary"
                       sx={{ display: 'block', mt: 1 }}>
-                      Filled = supported · open = either direction · × = absent. Bars count the Tier 1
-                      triads matching each motif (log scale).
+                      Filled = supported · open = either direction · × = absent. Hovering a motif
+                      draws the edges it requires present as solid arrows and the ones it requires
+                      absent as dashed. Bars count the Tier 1 triads matching each motif (log scale).
           </Typography>
         </Box>
       </Box>

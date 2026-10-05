@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert, Box, Chip, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
@@ -7,6 +7,7 @@ import PlotPanel from './PlotPanel';
 import ColumnarTable from './ColumnarTable';
 import SectionCard from './SectionCard';
 import { useKeys, useShard } from '../lib/useSection';
+import { useUrlState } from '../lib/useUrlState';
 
 // ---------------------------------------------------------------------------
 // Which diseases can this protein influence -- asked twice, once of the MR and
@@ -48,8 +49,14 @@ export default function PDEffects() {
   // ADM opens the panel: it carries the strongest cis evidence in the table
   // (two Tier-1 protein->disease edges) alongside 46 observational estimates,
   // so the gap the panel exists to show is visible without hunting for it.
-  const [protein, setProtein] = useState('ADM');
-  const [inst, setInst] = useState('cis');
+  // `p` in the URL so the figure on the landing page, and anything else, can
+  // point at one protein. It was local state, so every link landed on ADM.
+  const [protein, setProtein] = useUrlState('p', 'ADM');
+  const [inst, setInst] = useUrlState('inst', 'cis');
+  // Which pQTL panel supplied the instrument. Until 2026-10-05 the section held
+  // UKB only, so there was nothing to choose and ICAM1 -- whose Tier-1 cis edge
+  // into type 2 diabetes is deCODE-only -- showed no MR hit at all.
+  const [arm, setArm] = useUrlState('arm', 'ukb');
   const { data, loading, error } = useShard('mr_pd_effects', protein);
 
   const options = useMemo(
@@ -61,16 +68,16 @@ export default function PDEffects() {
     if (!data?.disease) return [];
     const out = [];
     for (let i = 0; i < data.disease.length; i += 1) {
-      const b = num(data[`mr_b_${inst}`]?.[i]);
-      const padj = num(data[`mr_padj_${inst}`]?.[i]);
+      const b = num(data[`mr_b_${inst}_${arm}`]?.[i]);
+      const padj = num(data[`mr_padj_${inst}_${arm}`]?.[i]);
       const hr = num(data.obs_HR?.[i]);
       const op = num(data.obs_p?.[i]);
       out.push({
         label: data.disease_label[i],
         icd10: data.icd10?.[i] || '',
-        tier: data[`mr_tier_${inst}`]?.[i] || '',
-        nsnp: num(data[`mr_nsnp_${inst}`]?.[i]),
-        pph4: num(data.coloc_pph4_cis?.[i]),
+        tier: data[`mr_tier_${inst}_${arm}`]?.[i] || '',
+        nsnp: num(data[`mr_nsnp_${inst}_${arm}`]?.[i]),
+        pph4: num(data[`coloc_pph4_cis_${arm}`]?.[i]),
         mr_b: b,
         mr_y: padj != null && padj > 0 ? -Math.log10(padj) : null,
         // Reported as the hazard ratio itself, not a log transform of it: the
@@ -84,9 +91,21 @@ export default function PDEffects() {
       });
     }
     return out;
-  }, [data, inst]);
+  }, [data, inst, arm]);
 
   const mrRows = rows.filter((r) => r.mr_b != null && r.mr_y != null);
+  // An empty MR panel means "this arm did not instrument this protein", which
+  // is different from "no effect". Carry the other arm's count so the message
+  // can point at it instead of leaving a blank chart.
+  const otherArm = arm === 'ukb' ? 'decode' : 'ukb';
+  const nOther = useMemo(() => {
+    if (!data?.disease) return 0;
+    let n = 0;
+    for (let i = 0; i < data.disease.length; i += 1) {
+      if (num(data[`mr_b_${inst}_${otherArm}`]?.[i]) != null) n += 1;
+    }
+    return n;
+  }, [data, inst, otherArm]);
   const obsRows = rows.filter((r) => r.obs_x != null && r.obs_x > 0 && r.obs_y != null);
   const nMrHit = mrRows.filter((r) => r.tier && r.tier !== 'Null').length;
   // Bonferroni across the diseases actually shown, matching how the observational
@@ -154,11 +173,11 @@ export default function PDEffects() {
     if (!data?.disease) return null;
     const keep = ['disease_label', 'icd10', `mr_b_${inst}`, `mr_se_${inst}`,
       `mr_padj_${inst}`, `mr_tier_${inst}`, `mr_nsnp_${inst}`,
-      'coloc_pph4_cis', 'obs_HR', 'obs_HR_l95', 'obs_HR_u95', 'obs_p', 'n_cases'];
+      `coloc_pph4_cis_${arm}`, 'obs_HR', 'obs_HR_l95', 'obs_HR_u95', 'obs_p', 'n_cases'];
     const out = {};
     keep.forEach((k) => { if (data[k]) out[k] = data[k]; });
     return Object.keys(out).length ? out : null;
-  }, [data, inst]);
+  }, [data, inst, arm]);
 
   if (kLoading) return <Typography variant="body2">Loading…</Typography>;
   if (kError) return <Typography variant="body2" color="error">{String(kError)}</Typography>;
@@ -183,6 +202,17 @@ export default function PDEffects() {
           <ToggleButton value="cis" sx={{ textTransform: 'none', px: 1.5 }}>cis-pQTL</ToggleButton>
           <ToggleButton value="trans" sx={{ textTransform: 'none', px: 1.5 }}>trans-pQTL</ToggleButton>
         </ToggleButtonGroup>
+        {/* The two panels are different assays with different instruments, so
+            they are switched between rather than merged. */}
+        <ToggleButtonGroup size="small" exclusive value={arm}
+          onChange={(_, v) => v && setArm(v)} aria-label="pQTL panel">
+          <ToggleButton value="ukb" sx={{ textTransform: 'none', px: 1.5 }}>
+            UK Biobank · Olink
+          </ToggleButton>
+          <ToggleButton value="decode" sx={{ textTransform: 'none', px: 1.5 }}>
+            deCODE · SomaScan
+          </ToggleButton>
+        </ToggleButtonGroup>
         <Chip size="small" label={`${mrRows.length} MR-tested`} />
         <Chip size="small" color={nMrHit ? 'success' : 'default'}
               label={`${nMrHit} above Null`} />
@@ -192,10 +222,22 @@ export default function PDEffects() {
       {loading && <Typography variant="body2">Loading {protein}…</Typography>}
       {error && <Typography variant="body2" color="error">{String(error)}</Typography>}
 
-      {!loading && !mrRows.length && !obsRows.length && (
+      {!loading && !mrRows.length && nOther > 0 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          The {arm === 'ukb' ? 'UK Biobank Olink' : 'deCODE SomaScan'} panel did
+          not instrument <b>{protein}</b> for {inst}-pQTL MR. The{' '}
+          {otherArm === 'ukb' ? 'UK Biobank Olink' : 'deCODE SomaScan'} panel has{' '}
+          {nOther} estimate{nOther === 1 ? '' : 's'} &mdash;{' '}
+          <Box component="span" sx={{ textDecoration: 'underline', cursor: 'pointer' }}
+               onClick={() => setArm(otherArm)}>switch panel</Box>. An empty panel
+          here means the instrument is missing, not that the effect is null.
+        </Alert>
+      )}
+
+      {!loading && !mrRows.length && !obsRows.length && !nOther && (
         <Alert severity="info">
           No protein&rarr;disease estimate for <b>{protein}</b> with{' '}
-          {inst}-pQTL instruments.
+          {inst}-pQTL instruments in either pQTL panel.
         </Alert>
       )}
 

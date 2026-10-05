@@ -79,6 +79,7 @@ def main():
 
     tiers = read_section(args.out, "mr_triad_tiers")
     coloc = read_section(args.out, "mr_coloc")
+    triads = read_section(args.out, "mr_triads")
     arch = read_section(args.out, "geno_vs_expo_arch")
 
     missing = [c for cols in LAYERS.values() for c in cols if c not in tiers]
@@ -127,28 +128,40 @@ def main():
     # The causal layer is small enough to name on the figure, so it carries its
     # coordinates and tier. The two reporter layers run to ~500 proteins each and
     # are drawn as a wash, so they only need the names.
-    # Whether each colocalized protein ALSO reaches Tier 1 on a cis P -> D edge.
+    # WHICH OF THE EIGHT COMPLETE AN EXPOSURE -> PROTEIN -> DISEASE CHAIN.
     #
-    # NEITHER SOURCE IS COMPLETE ON ITS OWN, so this takes the union:
-    #   mr_triad_tiers  both pQTL arms, but only COMPLETE exposure-protein-
-    #                   disease triads -- ALCAM has no triad and is missing
-    #   mr_pd_effects   every protein-disease pair, but UKB ONLY (see
-    #                   build_pd_effects.py, which filters dataset != "UKB")
-    #                   -- ICAM1's evidence is deCODE and is missing
-    # Using the triad table alone reported ALCAM as not Tier 1, which is wrong.
-    cis_cols = ("tier_PDcis_UKB", "tier_PDcis_DECODE")
-    tier1_cis = set()
-    for i, prot in enumerate(tiers["Protein"]):
-        if any(tiers[c][i] in ("Tier1", "Tier1plus") for c in cis_cols):
-            tier1_cis.add(prot)
-    for prot in causal_best:
-        sh = os.path.join(args.out, "k", "mr_pd_effects", f"{prot}.json.gz")
-        if not os.path.exists(sh):
+    # All eight are Tier-1 cis P -> D and all eight colocalize -- those are one
+    # category, not two, confirmed in both arms against mr_sensitivity_long.tsv
+    # (SOST and ICAM1 are deCODE; reading the UKB file alone made SOST look
+    # Tier-2 and ICAM1 look absent). So a `tier1_cis` flag separated nothing.
+    #
+    # The distinction that does exist is the mediator motif: three of the eight
+    # carry a Tier-1 edge on all three legs of the chain, so only they can be
+    # read as the exposure acting THROUGH the protein.
+    # DO NOT RECOMPUTE THE MOTIF. The rule turns on three negations as well as
+    # three presences, and two rules exist in this project that differ only in
+    # those negations -- FURIN is the case that separates them. Re-deriving it
+    # here gave five proteins when the negations were ignored and two when they
+    # were applied my way; the pipeline's own classification gives the three the
+    # manuscript reports. So read `motif` from mr_triads and only check that the
+    # chain's three forward edges clear Tier 1.
+    T1 = ("Tier1", "Tier1plus")
+    tier_at = {(tiers["Exposure"][i], tiers["Protein"][i], tiers["Disease"][i]): i
+               for i in range(len(tiers["Protein"]))}
+    NEED = (("tier_EP_UKB", "tier_EP_DECODE"),
+            ("tier_PDcis_UKB", "tier_PDcis_DECODE",
+             "tier_PDtrans_UKB", "tier_PDtrans_DECODE"),
+            ("tier_ED_UKB", "tier_ED_DECODE"))
+    mediator = set()
+    for i, m in enumerate(triads["motif"]):
+        if not str(m).startswith("A"):
             continue
-        with gzip.open(sh, "rt", encoding="utf-8") as fh:
-            e = json.load(fh)
-        if any(str(v) in ("Tier1", "Tier1plus") for v in e.get("mr_tier_cis", [])):
-            tier1_cis.add(prot)
+        j = tier_at.get((triads["Exposure"][i], triads["Protein"][i],
+                         triads["Disease"][i]))
+        if j is None:
+            continue
+        if all(any(tiers[c][j] in T1 for c in g) for g in NEED):
+            mediator.add(triads["Protein"][i])
 
     rows = []
     for prot, pph4 in sorted(causal_best.items(), key=lambda kv: (-kv[1], kv[0])):
@@ -158,7 +171,7 @@ def main():
         rows.append(OrderedDict(
             protein=prot,
             pp_h4=round(pph4, 3),
-            tier1_cis=prot in tier1_cis,
+            mediator=prot in mediator,
             n_diseases=len(causal_dis[prot]),
             genetic=g,
             exposomic=e,
@@ -167,13 +180,13 @@ def main():
     dropped = sorted(set(causal_best) - set(coord))
     obj = OrderedDict(
         version="v1",
-        definition=("`proteins` is the causal core: cis-pQTL colocalized with "
-                    "the disease signal at PP.H4 >= 0.8, either pQTL arm -- the "
-                    "set \\nCausalCore counts. `tier1_cis` records whether each "
-                    "also reaches Tier 1 on a cis P -> D edge. "
+        definition=("`proteins` is the causal core: Tier-1 cis protein -> "
+                    "disease, colocalized at PP.H4 >= 0.8, either pQTL arm -- "
+                    "the set \\nCausalCore counts. `mediator` marks the subset "
+                    "completing a Tier-1 exposure -> protein -> disease chain. "
                     "`disease_reporter` and `exposome_reporter` are Tier-1 "
                     "D -> P and E -> P. The three overlap by design."),
-        n_tier1_cis=sum(1 for r in rows if r["tier1_cis"]),
+        n_mediator=sum(1 for r in rows if r["mediator"]),
         proteins=rows,
         disease_reporters=sorted(set(best["disease_reporter"]) & set(coord)),
         exposome_reporters=sorted(set(best["exposome_reporter"]) & set(coord)),
@@ -192,7 +205,7 @@ def main():
 
     n = os.path.getsize(path)
     print(f"  [M] hero_causal        causal {len(rows)} "
-          f"({obj['n_tier1_cis']} also Tier-1 cis), disease reporters "
+          f"({obj['n_mediator']} complete a mediator chain), disease reporters "
           f"{len(obj['disease_reporters'])}, exposome reporters "
           f"{len(obj['exposome_reporters'])} -> {n/1024:.1f} KB")
     print("      causal: " + ", ".join(r["protein"] for r in rows))

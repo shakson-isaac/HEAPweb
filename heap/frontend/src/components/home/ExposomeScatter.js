@@ -163,11 +163,18 @@ export default function ExposomeScatter() {
 
   // A protein with Tier-1 MR evidence is interesting BECAUSE of that evidence,
   // so it opens the triad explorer rather than its exposure associations.
+  // Where a click lands depends on what the protein has. One of the eight with
+  // protein -> disease evidence opens the MR effects page, which is where that
+  // evidence lives. The three that also complete a chain open the triad
+  // explorer instead, because the chain is the thing worth seeing. Anything
+  // else opens its exposure associations.
   const open = useCallback(() => {
     if (!hover) return;
     const p = encodeURIComponent(hover.p);
-    const isCausal = (causal?.proteins || []).some((r) => r.protein === hover.p);
-    navigate(isCausal ? `/results/causal/triads?p=${p}` : `/results/associations?protein=${p}`);
+    const rec = (causal?.proteins || []).find((r) => r.protein === hover.p);
+    if (rec?.mediator) navigate(`/results/causal/triads?p=${p}`);
+    else if (rec) navigate(`/results/causal/effects?p=${p}`);
+    else navigate(`/results/associations?protein=${p}`);
   }, [hover, navigate, causal]);
 
   if (loading || error || !pts || !pts.length) {
@@ -215,6 +222,7 @@ export default function ExposomeScatter() {
   const hue = active.hue[h.mode === 'dark' ? 'dark' : 'light'];
   const counts = {
     causal: causal?.proteins?.length,
+    mediator: causal?.n_mediator,
     disease_reporter: causal?.disease_reporters?.length,
     exposome_reporter: causal?.exposome_reporters?.length,
   };
@@ -286,11 +294,21 @@ export default function ExposomeScatter() {
 
         {/* The minority with causal evidence: a ring, so they read against the
             cloud without a second hue competing with the teal. */}
+        {/* An enclosing ring is reserved for the three that complete a
+            Tier-1 exposure -> protein -> disease chain. The other five carry
+            the same protein -> disease evidence but no chain, so they get the
+            plain dot the rest of the layer uses. */}
         {marked.map((r) => (
           <g key={r.protein}>
-            <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none" stroke={h.paper} strokeWidth={2.4} />
-            <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none" stroke={hue} strokeWidth={1.6} />
-            <circle cx={r.pt.x} cy={r.pt.y} r={2} fill={hue} />
+            {r.mediator && (
+              <>
+                <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none"
+                        stroke={h.paper} strokeWidth={2.4} />
+                <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none"
+                        stroke={hue} strokeWidth={1.6} />
+              </>
+            )}
+            <circle cx={r.pt.x} cy={r.pt.y} r={r.mediator ? 2 : 3} fill={hue} />
           </g>
         ))}
 
@@ -383,7 +401,8 @@ export default function ExposomeScatter() {
           </Key>
           {named && (
             <Key ring color={hue}>
-              named above — click opens its triads
+              <b>{counts.mediator ?? '—'}</b> of them complete a Tier-1
+              exposure &rarr; protein &rarr; disease chain
             </Key>
           )}
         </Box>
