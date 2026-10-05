@@ -95,10 +95,7 @@ export default function EvidenceTiers() {
     >
       <HeadlineFallback error={error} />
 
-      <Section
-        title="The ladder"
-        subtitle="Rungs are cumulative within their arm: an MR Tier 1 edge has already met every Tier 2 requirement."
-      >
+      <Section title="The ladder">
         <SimpleTable
           head={['Badge', 'Arm', 'What it adds', 'What it required']}
           rows={RUNGS.map((r) => [
@@ -127,9 +124,6 @@ export default function EvidenceTiers() {
             ['MR Tier 2', '55', '135'],
           ]}
         />
-        <P>
-          Trans evidence enters at Tier 2, where it outnumbers cis evidence more than two to one.
-        </P>
       </Section>
 
       <Section title="Motif counts by rung">
@@ -152,10 +146,8 @@ export default function EvidenceTiers() {
 
       <Section title="Colocalization">
         <P>
-          Colocalization is a gate at PP.H4 ≥ 0.8, the posterior probability that the pQTL and the
-          outcome share one causal variant. {n('nColoc')} cis-pQTL loci clear it. A cis edge whose
-          pQTL and outcome signals sit on distinct variants in linkage disequilibrium is demoted
-          and labeled LD-confounded wherever it appears. The same gate is applied in{' '}
+          {n('nColoc')} cis-pQTL loci clear the gate. A cis edge whose pQTL and outcome signals sit
+          on distinct variants in linkage disequilibrium is demoted and labeled LD-confounded in{' '}
           <Link to="/results/causal">Causal evidence</Link>.
         </P>
       </Section>

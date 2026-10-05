@@ -171,15 +171,6 @@ const FAQ_ITEMS = [
       </span>,
     ],
   },
-  {
-    q: 'Is there a DOI for the datasets?',
-    a: [
-      'No. Each dataset carries a version string and a build date, so you can state which release you used. The citation is the paper.',
-      <span key="b">
-        Templates for a data statement are on <Link to="/documentation/cite">How to cite</Link>.
-      </span>,
-    ],
-  },
 ];
 
 export default function FAQs() {

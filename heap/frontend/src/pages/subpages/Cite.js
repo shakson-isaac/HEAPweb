@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Alert, Box, Paper, Typography } from '@mui/material';
+import React from 'react';
+import { Paper, Typography } from '@mui/material';
 import {
   AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable,
 } from '../Documentation';
-import { WEB_DATA_BASE } from '../../lib/heapdata';
 
 const DOI = '10.1101/2025.05.07.25327178';
 const DOI_URL = `https://doi.org/${DOI}`;
@@ -14,33 +12,16 @@ const AUTHORS = [
   'Venkatesh L. Murthy', 'Miriam S. Udler', 'Chirag J. Patel',
 ];
 
-// The build a reader actually pulled from, read from the catalog rather than
-// written down here -- a hand-typed build date goes stale the first time the
-// payload is republished.
-function useCatalog() {
-  const [state, setState] = useState({ data: null, error: null });
-  useEffect(() => {
-    let alive = true;
-    fetch(`${WEB_DATA_BASE}/catalog.json.gz`, { cache: 'no-cache' })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status} ${r.statusText}`))))
-      .then((data) => alive && setState({ data, error: null }))
-      .catch((error) => alive && setState({ data: null, error }));
-    return () => { alive = false; };
-  }, []);
-  return state;
-}
-
+// Trimmed 2026-10-05 to the preprint, the BibTeX, the license and one sentence
+// on citing the data. The page also carried three build identifiers read live
+// from catalog.json.gz, two data-statement templates and sections on citing a
+// single result and on reusing figures. A reader who needs the build string can
+// read it from the catalog, which the Data API page documents.
 export default function Cite() {
-  const { data: catalog, error } = useCatalog();
-  const updates = catalog
-    ? catalog.datasets.map((d) => d.updated).filter(Boolean).sort()
-    : [];
-  const latest = updates.length ? updates[updates.length - 1] : null;
-
   return (
     <DocPage
       title="How to cite"
-      lead="Cite the paper. The datasets published here carry a version and a build date, so you can state which release you used."
+      lead="Cite the preprint. If you use summary statistics or any other data from this site, cite the preprint for those too — the datasets have no separate DOI."
     >
       <Section title="The paper">
         <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
@@ -86,77 +67,6 @@ export default function Cite() {
             ['Quote and cite it in your own work.', 'Distribute a modified or transformed version.'],
           ]}
         />
-      </Section>
-
-      <Section title="The datasets">
-        <Alert severity="info" sx={{ maxWidth: 820, mb: 2 }}>
-          There are no dataset DOIs, by decision. Each dataset carries a version string and a
-          build date so that a reader can state which build they used; the citation is always the
-          paper.
-        </Alert>
-        <P>
-          Three identifiers fix a build, and the payload carries all three:
-        </P>
-        <SimpleTable
-          head={['Identifier', 'Where it lives', 'Current value']}
-          rows={[
-            [
-              'Payload API version',
-              <Mono>manifest.json.gz → version</Mono>,
-              <Mono>v1</Mono>,
-            ],
-            [
-              'Catalog version',
-              <Mono>catalog.json.gz → version</Mono>,
-              catalog ? <Mono>{catalog.version}</Mono> : '—',
-            ],
-            [
-              'Dataset build date',
-              <Mono>catalog.json.gz → datasets[].updated</Mono>,
-              latest ? <span>most recent: <Mono>{latest}</Mono> across {catalog.n_datasets} datasets</span> : '—',
-            ],
-          ]}
-        />
-        {error && (
-          <Alert severity="warning" sx={{ maxWidth: 820, mb: 2 }}>
-            The catalog could not be read from the payload ({String(error.message || error)}), so
-            the current values above show as em dashes rather than as stale hand-typed dates.
-          </Alert>
-        )}
-        <P>A data statement can therefore be written as:</P>
-        <Code>
-{`Summary statistics were obtained from the HEAP resource
-(${WEB_DATA_BASE}), payload version v1,
-dataset build ${latest || '<see catalog.json.gz>'} (accessed <date>), described in
-${AUTHORS[0].split(' ').slice(-1)[0]} et al., doi:${DOI}.`}
-        </Code>
-        <P>
-          The exposure GWAS summary statistics are cited the same way, naming the bucket they came
-          from:
-        </P>
-        <Code>
-{`Exposure GWAS summary statistics were obtained from the HEAP resource
-(gs://heap-gwas, 169 exposures, accessed <date>), described in
-${AUTHORS[0].split(' ').slice(-1)[0]} et al., doi:${DOI}.`}
-        </Code>
-      </Section>
-
-      <Section title="Citing one result">
-        <P>
-          To cite a single relationship, cite the paper and name its evidence level. “Tier 1+,
-          colocalized” and “observational, replicated” are different statements about the same pair
-          of entities. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.
-        </P>
-      </Section>
-
-      <Section title="Reusing figures">
-        <Box sx={{ maxWidth: 820 }}>
-          <P>
-            Published figures are shown as printed. The preprint license allows redistribution
-            with attribution, and no modification. Recoloring or recropping a panel counts as
-            modification.
-          </P>
-        </Box>
       </Section>
     </DocPage>
   );

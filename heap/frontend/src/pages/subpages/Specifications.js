@@ -1,7 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Chip, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
+
+// Rewritten 2026-10-05. The page used to open with a summary table of the six
+// sets keyed on role, count-of-covariates-added and which analysis modules
+// offered them -- a manuscript methods table, on a website. It now answers the
+// three questions a visitor actually arrives with: why more than one model
+// exists, what each one adds, and what the control on a results page does.
+// The exact field names stay, as reference, at the bottom.
 
 // Transcribed from HEAP/config/covariates/covariate_sets.yml (version 2.0), the
 // single source of truth for named covariate sets across all HEAP modules.
@@ -19,37 +26,28 @@ const BASE_CORE = [
 const SETS = [
   {
     id: 'base',
-    role: 'PRIMARY',
-    summary: 'Demographics, assessment site and ancestry.',
-    modules: 'modules 1, 2, 3, 5, 6, population architecture',
-    covariates: BASE_CORE,
+    label: 'base',
     adds: null,
-    note: 'Every main figure in the manuscript uses this set.',
+    addsPlain: 'nothing — this is the model everything else is measured against',
+    tests: 'The primary model. It holds structural confounders only: age, sex, where and when the sample was taken, and ancestry. None of them can sit on the path from an exposure to a protein.',
   },
   {
     id: 'base_bmi',
-    role: 'supplementary',
-    summary: 'base plus body mass index.',
-    modules: 'modules 1, 2, 3, 6',
-    covariates: BASE_CORE,
+    label: '+ BMI',
     adds: ['body_mass_index_bmi_f23104_0_0'],
-    note: 'BMI can act as a mediator or a collider for many exposures, so it is kept in its own set.',
+    addsPlain: 'body mass index',
+    tests: 'Whether a result survives adjusting for body size. An estimate that shrinks here is equally consistent with BMI on the causal path, BMI confounding the association, and BMI as a collider — adjustment cannot separate the three, so attenuation is not evidence of mediation.',
   },
   {
     id: 'base_draw',
-    role: 'supplementary',
-    summary: 'base plus the conditions at blood draw.',
-    modules: 'modules 1, 2, 3, 6',
-    covariates: BASE_CORE,
+    label: '+ blood draw',
     adds: ['fasting_time_f74_0_0', 'assessment_season'],
-    note: 'Metabolic state at the draw and the time of year the sample was taken.',
+    addsPlain: 'fasting time and the season of the visit',
+    tests: 'Whether the conditions at the blood draw explain the result rather than the exposure.',
   },
   {
     id: 'base_clinical',
-    role: 'supplementary — maximal explicit adjustment',
-    summary: 'base plus BMI, draw conditions and five medication classes.',
-    modules: 'modules 1, 2, 3, 6, population architecture',
-    covariates: BASE_CORE,
+    label: '+ clinical',
     adds: [
       'body_mass_index_bmi_f23104_0_0',
       'fasting_time_f74_0_0',
@@ -60,14 +58,12 @@ const SETS = [
       'combined_Insulin',
       'combined_Cholesterol_lowering_medication',
     ],
-    note: 'Five medication classes are adjusted for. Response categories (do not know / prefer not to answer / none of the above) are excluded.',
+    addsPlain: 'BMI, the draw conditions, and five medication classes',
+    tests: 'The most heavily adjusted model on the site. Blood pressure, hormone replacement, oral contraceptive, insulin and cholesterol-lowering medication are each adjusted for.',
   },
   {
     id: 'base_ses',
-    role: 'supplementary — MODULE 2 ONLY',
-    summary: 'base plus socioeconomic deprivation, remapped out of the exposome.',
-    modules: 'module 2 only',
-    covariates: BASE_CORE,
+    label: '+ deprivation',
     adds: [
       'average_total_household_income_before_tax_f738_0_0',
       'index_of_multiple_deprivation_england_f26410_0_0',
@@ -79,16 +75,15 @@ const SETS = [
       'crime_score_england_f26416_0_0',
       'living_environment_score_england_f26417_0_0',
     ],
-    note: 'The nine variables belong to the Deprivation_Indices exposure and move into the covariate matrix at run time. Wales and Scotland scores are dropped for more than 20% missingness. The England index sits alongside its seven domain sub-scores, so the set is collinear by construction and the SES coefficients are left uninterpreted.',
+    addsPlain: 'household income and eight deprivation scores',
+    tests: 'A different question, not a stricter version of the same one. Those nine variables are exposures in HEAP, so moving them into the model deletes a whole exposure category from the exposome being estimated. Fitted for the associations only, and a default nowhere.',
   },
   {
     id: 'base_prevalent',
-    role: 'supplementary',
-    summary: 'base plus a prevalent major chronic disease flag.',
-    modules: 'modules 1, 2, 3, 6',
-    covariates: BASE_CORE,
+    label: '+ prevalent disease',
     adds: ['prevalent_major_disease'],
-    note: 'The adjustment-axis treatment of prevalent disease. Its sample-axis counterpart is the exclude_prevalent filter, which drops those participants.',
+    addsPlain: 'a flag for prevalent major chronic disease',
+    tests: 'Whether disease a participant already had at the draw explains the result. Its counterpart on the sample side drops those participants instead of adjusting for them.',
   },
 ];
 
@@ -96,134 +91,79 @@ export default function Specifications() {
   return (
     <DocPage
       title="Specifications"
-      lead="Six named covariate sets are defined for HEAP. One is the primary model behind every main result. The other five are sensitivity layers."
+      lead="A specification is the set of covariates an estimate was adjusted for. Every number on this site was produced under one of six, and the control on a results page switches between them."
     >
-      <Section title="base is the primary specification">
+      <Section title="Why there is more than one">
         <P>
-          <Mono>base</Mono> holds structural confounders only: demographics, assessment site and
-          ancestry. None of them can mediate an exposure → protein effect. Every main figure in the
-          manuscript uses it, and it is the default in every switcher here. Each of the other five
-          sets adds one adjustment on top of <Mono>base</Mono>, so a shift in an estimate can be
-          attributed to that adjustment.
+          What an exposure–protein estimate comes out at depends on what else is in the model.
+          Adjust for nothing and a result can be driven by age or sex; adjust for everything and a
+          variable on the causal path can be removed along with the confounders. HEAP fits one
+          primary model and five variants, each adding a single adjustment on top of it, so a
+          movement in an estimate can be attributed to that one adjustment rather than to a
+          wholesale change of model.
         </P>
+      </Section>
+
+      <Section title="The six specifications">
         <SimpleTable
-          head={['Set', 'Role', 'Adds to base', 'Available in']}
+          head={['Specification', 'Adds', 'What it tells you']}
           rows={SETS.map((s) => [
-            <Chip
-              size="small" label={s.id}
-              sx={{
-                fontFamily: 'ui-monospace, monospace', fontWeight: 600,
-                backgroundColor: s.role === 'PRIMARY' ? 'primary.main' : 'action.selected',
-                color: s.role === 'PRIMARY' ? 'primary.contrastText' : 'inherit',
-              }}
-            />,
-            s.role,
-            s.adds ? s.adds.length : '—',
-            s.modules,
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {s.label}
+              </Typography>
+              <Mono>{s.id}</Mono>
+            </Box>,
+            s.addsPlain,
+            s.tests,
           ])}
         />
       </Section>
 
-      <Section title="+ BMI is a sensitivity layer">
+      <Section title="Using the control">
         <P>
-          An estimate that shrinks under <Mono>base_bmi</Mono> is equally consistent with BMI on
-          the causal path, BMI confounding the association, and BMI as a collider. Adjustment
-          cannot separate the three, so attenuation here is not evidence of mediation. Mediation
-          is estimated in <Link to="/results/mediation">Disease links</Link> and adjudicated in{' '}
-          <Link to="/results/causal">Causal evidence</Link>.
+          A results page that carries a <b>Specification</b> control opens on <Mono>base</Mono>.
+          Switching re-reads the same result as it was fitted under that adjustment; nothing is
+          refitted in the browser, and no estimate changes meaning. Five are published —{' '}
+          <Mono>base</Mono>, <Mono>+ BMI</Mono>, <Mono>+ blood draw</Mono>,{' '}
+          <Mono>+ clinical</Mono> and the exclude-prevalent-disease sample variant — so a page
+          offers the subset that exists for the result it is showing.
         </P>
-      </Section>
-
-      <Section title="base_ses answers a different question">
         <P>
-          The nine deprivation variables are exposures in HEAP. Moving them into the covariate
-          matrix deletes a whole exposure category from the model, so <Mono>base_ses</Mono>{' '}
-          estimates a smaller exposome rather than testing the same one more strictly. It is
-          offered in Module 2 only, and is a default nowhere.
+          The covariate set is one of three things the supplement varies. The other two are the
+          analyzed sample (dropping participants with prevalent major disease) and the estimator
+          (ridge and elastic net, for the variance decomposition and mediation). Those are
+          deposited rather than offered as a control.
         </P>
       </Section>
 
       <Section
-        title="The sets in full"
-        subtitle="Field names as they appear in covariate_sets.yml. Every set contains the base block, and the second row is what the set adds."
+        title="The exact covariates"
+        subtitle="Field names as they appear in covariate_sets.yml, for reproducing a fit."
       >
-        {SETS.map((s) => (
-          <Paper key={s.id} variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820 }}>
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontFamily: 'ui-monospace, monospace', fontWeight: 700 }}
-              >
-                {s.id}
-              </Typography>
-              <Chip size="small" label={s.role} variant="outlined" />
-            </Box>
-            <Typography variant="body2" sx={{ mb: 1 }}>{s.summary}</Typography>
-            <SimpleTable
-              head={['Block', 'Covariates']}
-              rows={[
-                [
-                  'base',
-                  <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
-                    {s.covariates.map((c) => <li key={c}>{c}</li>)}
-                  </Box>,
-                ],
-                ...(s.adds
-                  ? [[
-                    `+ ${s.id}`,
-                    <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
-                      {s.adds.map((c) => <li key={c}>{c}</li>)}
-                    </Box>,
-                  ]]
-                  : []),
-              ]}
-            />
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{s.note}</Typography>
-          </Paper>
-        ))}
+        <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 820 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+            Every specification contains the <Mono>base</Mono> block
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
+            {BASE_CORE.map((c) => <li key={c}>{c}</li>)}
+          </Box>
+        </Paper>
+        <SimpleTable
+          head={['Specification', 'What it adds to base']}
+          rows={SETS.filter((x) => x.adds).map((x) => [
+            <Mono>{x.id}</Mono>,
+            <Box component="ul" sx={{ m: 0, pl: 2.2, fontFamily: 'ui-monospace, monospace', fontSize: 12.5 }}>
+              {x.adds.map((c) => <li key={c}>{c}</li>)}
+            </Box>,
+          ])}
+        />
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           <Mono>sex</Mono> and <Mono>uk_biobank_assessment_centre</Mono> are coerced to factors.{' '}
           <Mono>age2</Mono>, <Mono>age_sex</Mono> and <Mono>age2_sex</Mono> are derived quadratic
-          and interaction terms.
+          and interaction terms. Which covariates sit behind any single estimate is also in{' '}
+          <Link to="/documentation/methods">Detailed methods</Link>.
         </Typography>
-      </Section>
-
-      <Section title="Three sensitivity axes">
-        <P>
-          The covariate set is one of three axes the supplement varies. The other two are the
-          analyzed sample and the estimator.
-        </P>
-        <SimpleTable
-          head={['Axis', 'Varies', 'Deposited variants']}
-          rows={[
-            ['Adjustment', 'which covariates enter the model', <span><Mono>base</Mono>, <Mono>base_plus_bmi</Mono>, <Mono>base_plus_blood_draw</Mono>, <Mono>base_plus_clinical</Mono></span>],
-            ['Sample', 'which participants are analyzed', <span><Mono>exclude_prevalent_disease</Mono> — participants with prevalent major disease are dropped from the sample</span>],
-            ['Estimator', 'how the penalized score is fitted', <span><Mono>estimator_ridge</Mono>, <Mono>estimator_elastic_net</Mono> (variance decomposition and mediation only)</span>],
-          ]}
-        />
-        <P>
-          A fourth axis, the interaction structure (
-          <Mono>interactions_gene_by_covariate</Mono>, <Mono>interactions_exposure_by_covariate</Mono>,{' '}
-          <Mono>interactions_both</Mono>), is varied for the variance decomposition alone.
-        </P>
-      </Section>
-
-      <Section title="What is published under each specification">
-        <P>
-          Five specifications are deposited for the exposure–protein associations, the G×E
-          associations, the variance decomposition and the mediation results:{' '}
-          <Mono>base</Mono>, <Mono>base_plus_bmi</Mono>, <Mono>base_plus_blood_draw</Mono>,{' '}
-          <Mono>base_plus_clinical</Mono> and <Mono>exclude_prevalent_disease</Mono>. The
-          exposure-score results use the same five under shorter names (<Mono>base</Mono>,{' '}
-          <Mono>base_bmi</Mono>, <Mono>base_draw</Mono>, <Mono>base_clinical</Mono>,{' '}
-          <Mono>base_exclprev</Mono>).
-        </P>
-        <P>
-          Two of the six defined sets are absent from the published payload. <Mono>base_ses</Mono>{' '}
-          is Module 2 only. The <Mono>base_prevalent</Mono> adjustment is covered on the sample axis
-          by <Mono>exclude_prevalent_disease</Mono>. The switcher on{' '}
-          <Link to="/results/associations">Associations</Link> shows the five that exist.
-        </P>
       </Section>
     </DocPage>
   );

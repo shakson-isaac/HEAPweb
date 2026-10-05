@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  Box, Chip, Divider, Link, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Typography,
-} from '@mui/material';
+import { Box, Chip, Link, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import SectionCard from '../../components/SectionCard';
 
 // ---------------------------------------------------------------------------
@@ -172,11 +169,6 @@ export default function Credits() {
         ))}
       </Box>
 
-      <Divider sx={{ my: 3 }} />
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', maxWidth: 900 }}>
-        This list is maintained by hand and can fall behind the site. If a figure, dataset or
-        method here traces back to work that is not credited above, please report it.
-      </Typography>
     </SectionCard>
   );
 }

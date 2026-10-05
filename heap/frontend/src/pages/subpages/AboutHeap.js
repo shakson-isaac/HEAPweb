@@ -24,10 +24,7 @@ export default function AboutHeap() {
     >
       <AuthorNote what="Landing framing — one paragraph, yours to write." />
 
-      <Section
-        title="What is in it"
-        subtitle="Counts are read from the published payload, which is generated from the manuscript's macros."
-      >
+      <Section title="What is in it">
         <HeadlineFallback error={error} />
         <SimpleTable
           head={['Quantity', 'Value', 'What it counts']}
@@ -42,24 +39,6 @@ export default function AboutHeap() {
             ['Exposure scores (PES)', n('nExposuresPES'), 'proteome-based exposure scores'],
             ['Colocalized loci', n('nColoc'), 'cis-pQTL loci passing the PP.H4 ≥ 0.8 colocalization gate'],
             ['Tier-1 mediator triads', `${n('nMotifTierOne')} (${n('nMotifTierOneProt')} proteins)`, 'exposure → protein → disease triads meeting the Tier-1 mediator motif'],
-          ]}
-        />
-      </Section>
-
-      <Section title="Where the numbers differ between pages">
-        <SimpleTable
-          head={['You may see', 'And elsewhere', 'Why they differ']}
-          rows={[
-            [
-              <span>{n('nProteins')} proteins</span>,
-              <span>{n('nProteinsPES')} proteins</span>,
-              'Two panels. The first is the Olink panel behind the variance decomposition; the second is the longitudinal panel behind the exposure scores.',
-            ],
-            [
-              <span>{n('nMotifTierOne')} mediator triads</span>,
-              <span>{n('nMotifTriads')} mediator triads</span>,
-              'Two bars. The first is Tier 1, the published headline; the second is nominal significance, a separate set.',
-            ],
           ]}
         />
       </Section>
@@ -81,17 +60,6 @@ export default function AboutHeap() {
             ['6 · Exposure scores (PES)', 'proteome-based scores per exposure, with tracking and disease prediction', <Link to="/results/pes">Exposure scores</Link>],
             ['Supporting · Enrichment', 'tissue and pathway enrichment of the association results', <Link to="/results/enrichment">Tissues and pathways</Link>],
             ['Supporting · Exposure GWAS', 'instrument diagnostics, LDSC heritability and genetic correlation', <Link to="/results/gwas">Exposure GWAS</Link>],
-          ]}
-        />
-      </Section>
-
-      <Section title="Three rules for reading the site">
-        <SimpleTable
-          head={['Rule', 'What it means']}
-          rows={[
-            ['Every relationship carries one badge', <span>Association is badged separately from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
-            ['Every main result uses base', <span>The other five covariate sets are sensitivity layers behind a switcher. See <Link to="/documentation/models">Specifications</Link>.</span>],
-            ['Mediation is descriptive', <span>Causal adjudication is separate, in <Link to="/results/causal">Mendelian randomization and colocalization</Link>.</span>],
           ]}
         />
       </Section>
