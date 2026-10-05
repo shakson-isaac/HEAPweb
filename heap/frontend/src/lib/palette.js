@@ -105,3 +105,30 @@ export const MOTIF_COLORS = {
 };
 
 export const motifColor = (m) => MOTIF_COLORS[String(m).charAt(0)] || '#78909C';
+
+// ---------------------------------------------------------------------------
+// Text ON a data color.
+//
+// The category palette runs from near-black (Smoking) to pale yellow (Sun
+// Exposure). A chip that always writes white on it is unreadable at the pale
+// end -- "Sun Exposure · 5" measured 1.62:1 -- and the failure is the same in
+// both modes, because the chip's own background does not change with the theme.
+// So the label follows the swatch rather than the theme: dark ink on a light
+// color, white on a dark one, by luminance.
+// ---------------------------------------------------------------------------
+export function readableOn(background) {
+  const hex = String(background || '').replace('#', '');
+  if (hex.length < 6) return '#ffffff';
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const f = (v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const L = 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  // Measure both candidates rather than guessing a crossover: a luminance
+  // threshold picked white for several mid-tone categories that carry dark ink
+  // better, and left them at 3:1.
+  const against = (l) => (Math.max(L, l) + 0.05) / (Math.min(L, l) + 0.05);
+  const best = against(1) >= against(0.0095) ? '#ffffff' : '#111827';
+  // A few mid-tone swatches (the tau bands, the ubiquitous blue) clear neither
+  // house color: both land near 4.3:1. Pure black clears 4.5:1 on all of them.
+  if (Math.max(against(1), against(0.0095)) < 4.5) return '#000000';
+  return best;
+}

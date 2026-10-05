@@ -10,7 +10,7 @@ import { useKeys, useSection, useShard } from '../../lib/useSection';
 // getShard rather than useShard for the effect-size panel: that panel needs ten
 // shards at once (they are keyed by PROTEIN), and useShard is one key per hook.
 import { getShard } from '../../lib/heapdata';
-import { prettyExposure } from '../../lib/palette';
+import { prettyExposure, readableOn } from '../../lib/palette';
 import { SpecPicker, assocSectionFor, specById } from '../../lib/covariateSpecs';
 import {
   NON_ANATOMICAL, SHARED_REGIONS, TISSUE_BODY_MAP, prettyTissue,
@@ -1884,13 +1884,13 @@ export default function ExposureBodyMap({
                         <Chip
                           size="small"
                           label={`τ = ${profile.meta.tau.toFixed(2)} — ${tauBand(profile.meta.tau).word}`}
-                          sx={{ bgcolor: tauBand(profile.meta.tau).color, color: '#fff', fontWeight: 700 }}
+                          sx={{ bgcolor: tauBand(profile.meta.tau).color, color: readableOn(tauBand(profile.meta.tau).color), fontWeight: 700 }}
                         />
                       )}
                       {profile?.here && (
                         <Chip
                           size="small"
-                          sx={{ bgcolor: drill.row.color, color: '#fff', fontWeight: 700 }}
+                          sx={{ bgcolor: drill.row.color, color: readableOn(drill.row.color), fontWeight: 700 }}
                           label={`${prettyTissue(openTissue)}: rank ${profile.here.rank} of ${profile.rows.length} · ${fmtTpm(profile.here.tpm)} TPM`}
                         />
                       )}

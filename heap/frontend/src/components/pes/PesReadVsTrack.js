@@ -6,7 +6,7 @@ import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useSection } from '../../lib/useSection';
 import { SPECS } from '../../lib/covariateSpecs';
-import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
+import { ecatColor, prettyCategory, prettyExposure, readableOn } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
 // Reads x tracks -- the two things a proteomic exposure score has to do, on one
@@ -176,7 +176,7 @@ export default function PesReadVsTrack() {
             key={c}
             size="small"
             label={`${prettyCategory(c)} · ${n}`}
-            sx={{ backgroundColor: ecatColor(c), color: '#fff', fontWeight: 500, height: 20 }}
+            sx={{ backgroundColor: ecatColor(c), color: readableOn(ecatColor(c)), fontWeight: 500, height: 20 }}
           />
         ))}
       </Box>
@@ -191,7 +191,7 @@ export default function PesReadVsTrack() {
       from: (p) => p.meta.category,
       format: (v, p) => (
         <Chip size="small" label={v}
-              sx={{ backgroundColor: p.color, color: '#fff', height: 20, fontWeight: 500 }} />
+              sx={{ backgroundColor: p.color, color: readableOn(p.color), height: 20, fontWeight: 500 }} />
       ),
     },
     {

@@ -893,7 +893,7 @@ export default function EnrichTripartite() {
               </Box>
             </Box>
 
-            <Paper variant="outlined" sx={{ p: 1.25, bgcolor: '#FAFAFA' }}>
+            <Paper variant="outlined" sx={{ p: 1.25, bgcolor: (t) => t.palette.heap.panelAlt }}>
               <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, mb: 0.75 }}>
                 Two width scales, two different counts — they are not comparable
               </Typography>

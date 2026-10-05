@@ -7,6 +7,7 @@ import {
 } from '../Documentation';
 import ColumnarTable from '../../components/ColumnarTable';
 import { useSection } from '../../lib/useSection';
+import { readableOn } from '../../lib/palette';
 
 // The badge vocabulary, transcribed from the manuscript:
 //   HEAP_manuscript/sections/results_m5_mr.tex:12   (the ladder itself)
@@ -131,7 +132,7 @@ export default function EvidenceTiers() {
           rows={RUNGS.map((r) => [
             <Chip
               size="small" label={r.tier}
-              sx={{ fontWeight: 600, backgroundColor: KIND_COLOR[r.kind], color: '#fff' }}
+              sx={{ fontWeight: 600, backgroundColor: KIND_COLOR[r.kind], color: readableOn(KIND_COLOR[r.kind]) }}
             />,
             r.kind,
             r.adds,

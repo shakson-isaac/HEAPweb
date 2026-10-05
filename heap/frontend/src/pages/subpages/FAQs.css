@@ -1,3 +1,6 @@
+/* Colors come from the six variables in App.css, so this file works in both
+   modes. It used to hard-code #000 on #f9f9f9, which left every FAQ as a
+   white card with black text sitting on a dark page. */
 .faq-question {
   cursor: pointer;
   text-decoration: none; /* Removed underline */
@@ -5,12 +8,12 @@
   display: inline-block;
   font-size: 1.2rem;
   font-weight: bold;
-  color: #000; /* Black text for the question */
+  color: var(--ink);
 }
 
 .faq-question.active {
   font-weight: bold;
-  color: #1e7e34; /* Darker green for active state */
+  color: var(--accent);
 }
 
 .faq-answer {
@@ -18,7 +21,7 @@
   margin-bottom: 1rem;
   margin-top: 0.5rem;
   font-size: 1rem;
-  color: #333;
+  color: var(--soft);
   list-style-type: disc; /* Ensure bullet points are visible */
 }
 
@@ -38,10 +41,10 @@
 
 .faq-item {
   margin-bottom: 1.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--rule);
   padding: 1rem;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--panel-alt);
 }
 
 .faq-header {

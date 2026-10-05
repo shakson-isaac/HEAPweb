@@ -133,3 +133,24 @@ a:hover {
 [class$='-placeholder'] {
   color: var(--soft) !important;
 }
+
+/* The multi-select chips are a separate part again: left alone they keep a
+   light-gray pill with dark text inside an otherwise dark control. */
+[class$='-multiValue'] {
+  background-color: var(--panel-alt) !important;
+  border: 1px solid var(--rule) !important;
+}
+
+[class$='-MultiValueGeneric'],
+[class$='-multiValue'] div {
+  color: var(--ink) !important;
+}
+
+[class$='-MultiValueRemove']:hover {
+  background-color: var(--rule) !important;
+  color: var(--ink) !important;
+}
+
+[class$='-indicatorSeparator'] {
+  background-color: var(--rule) !important;
+}

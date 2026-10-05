@@ -90,7 +90,7 @@ function SigCell({ sig, color, dim }) {
   if (sig === '-') {
     return (
       <Box component="span" sx={{ ...common, display: 'inline-block', width: 13, height: 13,
-        position: 'relative', color: 'text.disabled', fontWeight: 700, lineHeight: '13px',
+        position: 'relative', color: 'text.secondary', fontWeight: 700, lineHeight: '13px',
         fontSize: 14, textAlign: 'center' }}>×</Box>
     );
   }

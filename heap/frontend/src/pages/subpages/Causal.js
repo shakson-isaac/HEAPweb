@@ -19,7 +19,7 @@ import PlatformConcordance from '../../components/PlatformConcordance';
 import MotifTrace from '../../components/MotifTrace';
 import TriadDAG from '../../components/TriadDAG';
 import { useSection } from '../../lib/useSection';
-import { ecatColor, prettyDisease } from '../../lib/palette';
+import { ecatColor, prettyDisease, readableOn } from '../../lib/palette';
 
 const STATUS_COLOR = {
   'Colocalized (shared variant)': '#1b7837',
@@ -421,7 +421,7 @@ export function TriadExplorer({
               <Chip
                 size="small"
                 label={String(triad.category).replace(/_/g, ' ')}
-                sx={{ bgcolor: ecatColor(triad.category), color: '#fff' }}
+                sx={{ bgcolor: ecatColor(triad.category), color: readableOn(ecatColor(triad.category)) }}
               />
             </Box>
             {motifKeys.map((k) => (

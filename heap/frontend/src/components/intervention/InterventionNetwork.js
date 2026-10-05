@@ -1214,7 +1214,15 @@ export default function InterventionNetwork() {
                 }}
                 />
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  <b style={{ color: CLASS_META[c].color }}>{CLASS_META[c].header.toLowerCase()}</b>
+                  {/* The swatch beside this keeps CLASS_META's print color; the
+                      label takes the readable variant, which differs by mode. */}
+                  <Box
+                    component="b"
+                    sx={{ color: (t) => (c === 'causal' ? t.palette.heap.textCausal
+                      : c === 'reporter' ? t.palette.heap.textReporter : t.palette.heap.textForward) }}
+                  >
+                    {CLASS_META[c].header.toLowerCase()}
+                  </Box>
                 </Typography>
               </Box>
             ))}

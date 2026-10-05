@@ -8,7 +8,7 @@ import PlotPanel from '../PlotPanel';
 import ColumnarTable from '../ColumnarTable';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useKeys, useSection, useShard } from '../../lib/useSection';
-import { ecatColor, prettyCategory, prettyExposure } from '../../lib/palette';
+import { ecatColor, prettyCategory, prettyExposure, readableOn } from '../../lib/palette';
 import { SpecPicker } from '../../lib/covariateSpecs';
 import useUrlState from '../../lib/useUrlState';
 
@@ -379,7 +379,7 @@ function ProteinMode() {
               <Chip
                 size="small"
                 label={`τ = ${meta.tau.toFixed(2)} — ${band.word}`}
-                sx={{ bgcolor: band.color, color: '#fff', fontWeight: 700 }}
+                sx={{ bgcolor: band.color, color: readableOn(band.color), fontWeight: 700 }}
               />
             ) : (
               // 4 of 2,659 panel proteins have no tau, and they are the four with

@@ -7,7 +7,7 @@ import SectionCard from '../SectionCard';
 import LinkedScatterTable from '../LinkedScatterTable';
 import { useKeys, useSection, useShard } from '../../lib/useSection';
 import {
-  ecatColor, prettyCategory, prettyDisease, prettyExposure,
+  ecatColor, prettyCategory, prettyDisease, prettyExposure, readableOn,
 } from '../../lib/palette';
 import useUrlState from '../../lib/useUrlState';
 
@@ -815,7 +815,7 @@ export default function InterventionConcordance() {
             size="small"
             label={prettyCategory(category)}
             sx={{
-              mt: 2, backgroundColor: ecatColor(category), color: '#fff', fontWeight: 600,
+              mt: 2, backgroundColor: ecatColor(category), color: readableOn(ecatColor(category)), fontWeight: 600,
             }}
           />
         )}

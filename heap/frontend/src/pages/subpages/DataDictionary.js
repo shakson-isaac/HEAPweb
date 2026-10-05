@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 import ColumnarTable from '../../components/ColumnarTable';
-import { ecatColor, prettyCategory } from '../../lib/palette';
+import { ecatColor, prettyCategory, readableOn } from '../../lib/palette';
 
 // The exposome feature manifest, transcribed at build time from the
 // supplementary table's own source file:
@@ -117,7 +117,7 @@ export default function DataDictionary() {
                 key={c}
                 size="small"
                 label={`${prettyCategory(c)} · ${n}`}
-                sx={{ backgroundColor: ecatColor(c), color: '#fff', fontWeight: 500 }}
+                sx={{ backgroundColor: ecatColor(c), color: readableOn(ecatColor(c)), fontWeight: 500 }}
               />
             ))}
         </Box>

@@ -129,7 +129,12 @@ export function Code({ children, label }) {
         variant="outlined"
         component="pre"
         sx={{
-          p: 1.5, m: 0, overflowX: 'auto', backgroundColor: '#f7f7f9',
+          p: 1.5, m: 0, overflowX: 'auto',
+          // A fixed light grey here was white-on-white in dark mode, measured at
+          // 1.09:1 -- the code blocks were unreadable on every documentation page.
+          backgroundColor: (t) => t.palette.heap.panelAlt,
+          color: (t) => t.palette.heap.ink,
+          borderColor: (t) => t.palette.heap.rule,
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
           fontSize: 12.5, lineHeight: 1.55, whiteSpace: 'pre',
         }}
@@ -145,7 +150,11 @@ export const Mono = ({ children }) => (
     component="code"
     sx={{
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      fontSize: '0.86em', backgroundColor: '#f1f1f4', px: 0.6, py: 0.15, borderRadius: 0.5,
+      fontSize: '0.86em', px: 0.6, py: 0.15, borderRadius: 0.5,
+      // Same failure as Code, and more of it: <Mono> appears in 50+ places and
+      // measured 1.04:1 in dark mode -- invisible, not merely low contrast.
+      backgroundColor: (t) => t.palette.heap.panelAlt,
+      color: (t) => t.palette.heap.ink,
     }}
   >
     {children}

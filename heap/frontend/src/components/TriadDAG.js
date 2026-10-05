@@ -628,16 +628,34 @@ export default function TriadDAG({
             return [
               <TableRow key={`h-${edge.key}`} sx={{ bgcolor: 'action.hover' }}>
                 <TableCell colSpan={5} sx={{ py: 0.75 }}>
-                  <Box component="span" sx={{ fontWeight: 700, color: DIR_COLOR[edge.dir] }}>
+                  {/* DIR_COLOR stays on the drawing, which sits on a white
+                      canvas. As TEXT on the page it measured 1.58:1 in dark
+                      mode, so the row label takes the readable variant. */}
+                  <Box
+                    component="span"
+                    sx={{
+                      fontWeight: 700,
+                      color: (t) => (edge.dir === 'forward'
+                        ? t.palette.heap.textDown : t.palette.heap.textUp),
+                    }}
+                  >
                     {edge.name}
                   </Box>
                   <Box component="span" sx={{ color: 'text.secondary', ml: 1 }}>
                     {pairing.flow}
                   </Box>
-                  <Box component="span" sx={{ color: 'text.disabled', ml: 1 }}>
+                  <Box component="span" sx={{ color: 'text.secondary', ml: 1 }}>
                     · {pairing.note}
                   </Box>
-                  <Box component="span" sx={{ float: 'right', color: st.id === 'tier1' ? DIR_COLOR[edge.dir] : 'text.secondary', fontWeight: 600 }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      float: 'right',
+                      fontWeight: 600,
+                      color: (t) => (st.id !== 'tier1' ? 'text.secondary'
+                        : edge.dir === 'forward' ? t.palette.heap.textDown : t.palette.heap.textUp),
+                    }}
+                  >
                     {st.short}
                   </Box>
                 </TableCell>
@@ -668,7 +686,7 @@ export default function TriadDAG({
                     <TableCell sx={{ whiteSpace: 'nowrap', color: 'text.secondary' }}>{cls}</TableCell>
                     <TableCell align="right" sx={{ whiteSpace: 'nowrap', fontWeight: sig ? 600 : 400 }}>
                       {b === null ? (
-                        <Box component="span" sx={{ color: 'text.disabled' }}>not estimated</Box>
+                        <Box component="span" sx={{ color: 'text.secondary' }}>not estimated</Box>
                       ) : (
                         <>
                           {b}{stars(est.padj)}
@@ -684,16 +702,17 @@ export default function TriadDAG({
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>
                       {(() => {
                         const t = tiers ? tiers[`tier_${col}_${panel === 'UKB' ? 'UKB' : 'DECODE'}`] : null;
-                        if (!t) return <Box component="span" sx={{ color: 'text.disabled' }}>{b === null ? '—' : (sig ? 'q < 0.05' : 'n.s.')}</Box>;
+                        if (!t) return <Box component="span" sx={{ color: 'text.secondary' }}>{b === null ? '—' : (sig ? 'q < 0.05' : 'n.s.')}</Box>;
                         const best = t === 'Tier1plus';
                         return (
                           <Box component="span" sx={{
                             fontWeight: best ? 700 : (t === 'Tier1' ? 600 : 400),
-                            color: best ? '#1b7837' : (t === 'Tier1' ? 'text.primary' : 'text.disabled'),
+                            color: best ? ((th) => th.palette.heap.textOk)
+                              : (t === 'Tier1' ? 'text.primary' : 'text.secondary'),
                           }}>
                             {TIER_LABEL[t] || t}
                             {best && (
-                              <Typography component="span" variant="caption" sx={{ display: 'block', color: '#1b7837' }}>
+                              <Typography component="span" variant="caption" sx={{ display: 'block', color: (th) => th.palette.heap.textOk }}>
                                 replicated in both panels
                               </Typography>
                             )}

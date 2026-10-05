@@ -50,7 +50,10 @@ function Flag({ on, children }) {
   return (
     <Box component="span" sx={{
       display: 'inline-flex', alignItems: 'center', gap: 0.5,
-      color: on ? '#1b7837' : '#b2182b', fontWeight: 600, whiteSpace: 'nowrap',
+      // Supported/absent, as text: the manuscript's green and red fall below
+      // 4.5:1 on a dark panel, so these read from the theme.
+      color: (t) => (on ? t.palette.heap.textOk : t.palette.heap.textUp),
+      fontWeight: 600, whiteSpace: 'nowrap',
     }}>
       {on ? '✓' : '✗'} {children}
     </Box>
@@ -145,7 +148,7 @@ export default function MotifTrace({ triad, tiers, tierTable }) {
                     <> — {v.reading}. Needs {v.need.join(', ')}
                       {v.forbid.length ? `; ${v.forbid.join(', ')} absent` : ''}.</>
                   ) : (
-                    <Box component="span" sx={{ color: '#b2182b' }}>
+                    <Box component="span" sx={{ color: (t) => t.palette.heap.textUp }}>
                       {' — '}{[
                         v.missing.length ? `${v.missing.join(', ')} below Tier 1` : null,
                         v.present.length ? `${v.present.join(', ')} present but must be absent` : null,

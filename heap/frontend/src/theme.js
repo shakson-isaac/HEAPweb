@@ -40,7 +40,9 @@ const TOKENS = {
     textDown: '#1b5a94',
     textCausal: '#a3162a',
     textReporter: '#44525b',
+    textForward: '#6a2f8c',
     textWarn: '#8a4b00',
+    textOk: '#1b7837',
   },
   dark: {
     paper: '#0e1512',
@@ -57,7 +59,9 @@ const TOKENS = {
     textDown: '#86b7e8',
     textCausal: '#f08a94',
     textReporter: '#aebfc8',
+    textForward: '#c89ae0',
     textWarn: '#f0b37a',
+    textOk: '#74c994',
   },
 };
 
