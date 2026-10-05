@@ -44,11 +44,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # and most reporters are both -- which is the point, and why the figure shows
 # one layer at a time rather than three colors at once.
 LAYERS = {
-    "causal": ("tier_PDcis_UKB", "tier_PDcis_DECODE",
-               "tier_PDtrans_UKB", "tier_PDtrans_DECODE"),
+    # The causal layer is NOT read from the tier table. It is the colocalized
+    # cis protein -> disease set, which is what \nCausalCore counts (eight) and
+    # what the paper's narrative means by a putative causal intermediate.
+    #
+    # Reading it from mr_triad_tiers gave six, because that table only holds
+    # COMPLETE exposure-protein-disease triads: ALCAM and SOST colocalize on a
+    # protein -> disease edge but never pair with an exposure there, so they
+    # were invisible. Six disagreed with the project's own published macro.
+    # (2026-10-05)
     "disease_reporter": ("tier_DP_UKB", "tier_DP_DECODE"),
     "exposome_reporter": ("tier_EP_UKB", "tier_EP_DECODE"),
 }
+COLOC_MIN = 0.8
 RANK = {"Tier1plus": 2, "Tier1": 1}
 
 
@@ -70,6 +78,7 @@ def main():
     args = ap.parse_args()
 
     tiers = read_section(args.out, "mr_triad_tiers")
+    coloc = read_section(args.out, "mr_coloc")
     arch = read_section(args.out, "geno_vs_expo_arch")
 
     missing = [c for cols in LAYERS.values() for c in cols if c not in tiers]
@@ -78,8 +87,23 @@ def main():
                          "schema changed, so this derivation is stale"
                          % ", ".join(missing))
 
+    # --- the causal set: colocalized cis protein -> disease -------------------
+    # `protID` is the PROTEIN side; `target` is the disease. Reading `target`
+    # for a protein symbol silently returns nothing, which is how the earlier
+    # version concluded ALCAM had no colocalization.
+    causal_best, causal_dis = {}, {}
+    for i, prot in enumerate(coloc["protID"]):
+        if coloc["edge_dir"][i] != "Pcis_to_D":
+            continue
+        if not str(coloc["status"][i]).startswith("Colocalized"):
+            continue
+        if float(coloc["PP.H4"][i]) < COLOC_MIN:
+            continue
+        causal_best[prot] = max(causal_best.get(prot, 0.0), float(coloc["PP.H4"][i]))
+        causal_dis.setdefault(prot, set()).add(coloc["target"][i])
+
     best = {}        # layer -> protein -> 1 (Tier 1) or 2 (Tier 1+)
-    diseases = {}    # protein -> set of diseases it reaches at Tier 1 as P -> D
+    diseases = {}    # unused for the causal layer; kept for the reporter layers
     for layer, cols in LAYERS.items():
         seen = best.setdefault(layer, {})
         for i, prot in enumerate(tiers["Protein"]):
@@ -103,29 +127,39 @@ def main():
     # The causal layer is small enough to name on the figure, so it carries its
     # coordinates and tier. The two reporter layers run to ~500 proteins each and
     # are drawn as a wash, so they only need the names.
+    # Whether each colocalized protein ALSO reaches Tier 1 on a cis P -> D edge
+    # in the triad table. Six of the eight do; ALCAM and SOST have no rows there
+    # at all, so this is recorded rather than assumed.
+    cis_cols = ("tier_PDcis_UKB", "tier_PDcis_DECODE")
+    tier1_cis = set()
+    for i, prot in enumerate(tiers["Protein"]):
+        if any(tiers[c][i] in ("Tier1", "Tier1plus") for c in cis_cols):
+            tier1_cis.add(prot)
+
     rows = []
-    for prot, rank in sorted(best["causal"].items(), key=lambda kv: (-kv[1], kv[0])):
+    for prot, pph4 in sorted(causal_best.items(), key=lambda kv: (-kv[1], kv[0])):
         if prot not in coord:
             continue
         g, e = coord[prot]
         rows.append(OrderedDict(
             protein=prot,
-            tier="Tier1plus" if rank == 2 else "Tier1",
-            n_diseases=len(diseases[prot]),
+            pp_h4=round(pph4, 3),
+            tier1_cis=prot in tier1_cis,
+            n_diseases=len(causal_dis[prot]),
             genetic=g,
             exposomic=e,
         ))
 
-    dropped = sorted(set(best["causal"]) - set(coord))
+    dropped = sorted(set(causal_best) - set(coord))
     obj = OrderedDict(
         version="v1",
-        definition=("Tier-1 MR evidence per direction, either pQTL arm. "
-                    "`causal` is protein -> disease (cis or trans) and is NOT "
-                    "the mediator motif count; `disease_reporter` is "
-                    "disease -> protein; `exposome_reporter` is exposure -> "
-                    "protein. The three overlap by design."),
-        n_tier1=sum(1 for r in rows if r["tier"] == "Tier1"),
-        n_tier1plus=sum(1 for r in rows if r["tier"] == "Tier1plus"),
+        definition=("`proteins` is the causal core: cis-pQTL colocalized with "
+                    "the disease signal at PP.H4 >= 0.8, either pQTL arm -- the "
+                    "set \\nCausalCore counts. `tier1_cis` records whether each "
+                    "also reaches Tier 1 on a cis P -> D edge. "
+                    "`disease_reporter` and `exposome_reporter` are Tier-1 "
+                    "D -> P and E -> P. The three overlap by design."),
+        n_tier1_cis=sum(1 for r in rows if r["tier1_cis"]),
         proteins=rows,
         disease_reporters=sorted(set(best["disease_reporter"]) & set(coord)),
         exposome_reporters=sorted(set(best["exposome_reporter"]) & set(coord)),
@@ -144,7 +178,7 @@ def main():
 
     n = os.path.getsize(path)
     print(f"  [M] hero_causal        causal {len(rows)} "
-          f"({obj['n_tier1plus']} at Tier 1+), disease reporters "
+          f"({obj['n_tier1_cis']} also Tier-1 cis), disease reporters "
           f"{len(obj['disease_reporters'])}, exposome reporters "
           f"{len(obj['exposome_reporters'])} -> {n/1024:.1f} KB")
     print("      causal: " + ", ".join(r["protein"] for r in rows))

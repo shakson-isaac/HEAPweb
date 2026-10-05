@@ -63,12 +63,15 @@ const HIT = 14;            // px: how close the cursor must be to pick a protein
 // own page background in both modes (graphical-object minimum).
 const LAYERS = [
   { id: 'causal', label: 'Causal intermediates', edge: 'P \u2192 D',
+    criterion: 'cis-pQTL colocalized, PP.H4 \u2265 0.8',
     gloss: 'the protein moves disease risk',
     hue: { light: '#a3123f', dark: '#f07aa0' } },
   { id: 'disease_reporter', label: 'Disease reporters', edge: 'D \u2192 P',
+    criterion: 'Tier 1',
     gloss: 'disease liability moves the protein',
     hue: { light: '#6a3d9a', dark: '#b894e8' } },
   { id: 'exposome_reporter', label: 'Exposome reporters', edge: 'E \u2192 P',
+    criterion: 'Tier 1',
     gloss: 'the exposure moves the protein',
     hue: { light: '#c2570f', dark: '#f0994f' } },
 ];
@@ -178,22 +181,32 @@ export default function ExposomeScatter() {
   // Labels are pushed apart vertically inside an x-bucket and given a leader
   // line back to their point when they move.
   const place = (entries) => {
-    const GAP = 11;
-    const buckets = new Map();
-    entries.forEach((e) => {
-      const k = Math.round(e.y0 / 1) && Math.floor(e.x0 / 56);
-      const b = buckets.get(k) || [];
-      b.push(e); buckets.set(k, b);
-    });
+    const GAP = 12.5;           // px between baselines; the glyph box is ~11
+    const CHAR = 5.9;           // px per character at the sizes used below
+    const OFF = 9;              // px: label sits this far right of its point
+    // Estimate each label's box and test for a real intersection. A fixed
+    // proximity threshold is a bad proxy for width -- "ADM" and "ALCAM" need
+    // very different clearances -- and bucketing by x missed any pair that
+    // straddled a bucket edge, which is how ALCAM and PCSK9 printed as
+    // "ALCAM CSK9" and ADM ran into FURIN.
     const out = [];
-    buckets.forEach((b) => {
-      b.sort((a, c) => a.y0 - c.y0);
-      let last = -Infinity;
-      b.forEach((e) => {
-        const y = Math.max(e.y0, last + GAP);
-        last = y;
-        out.push({ ...e, y, moved: Math.abs(y - e.y0) > 1.5 });
-      });
+    [...entries].sort((a, c) => a.y0 - c.y0).forEach((e) => {
+      const w = e.text.length * CHAR + 6;
+      let y = e.y0;
+      for (let guard = 0; guard < 60; guard += 1) {
+        let moved = false;
+        for (let i = 0; i < out.length; i += 1) {
+          const o = out[i];
+          const ow = o.text.length * CHAR + 6;
+          const xHit = e.x0 + OFF < o.x0 + OFF + ow && o.x0 + OFF < e.x0 + OFF + w;
+          if (xHit && Math.abs(o.y - y) < GAP) {
+            y = o.y + GAP;
+            moved = true;
+          }
+        }
+        if (!moved) break;
+      }
+      out.push({ ...e, y, moved: Math.abs(y - e.y0) > 1.5 });
     });
     return out;
   };
@@ -216,6 +229,9 @@ export default function ExposomeScatter() {
   const rest = hasLayer ? pts.filter((d) => !litNames.has(d.p)) : pts;
   litRef.current = lit;
   const labels = LABEL.map((name) => pts.find((d) => d.p === name)).filter(Boolean);
+  const hoverCausal = hover
+    ? (causal?.proteins || []).find((r) => r.protein === hover.p)
+    : null;
   const marked = named
     ? (causal?.proteins || [])
       .map((r) => ({ ...r, pt: pts.find((d) => d.p === r.protein) }))
@@ -307,6 +323,7 @@ export default function ExposomeScatter() {
               stroke={h.paper} strokeWidth={3} paintOrder="stroke"
             >
               {hover.p} — exposome {pct(hover.e)}, genetics {pct(hover.g)}
+              {hoverCausal ? `  ·  PP.H4 ${hoverCausal.pp_h4}${hoverCausal.tier1_cis ? ', Tier 1' : ''}` : ''}
             </text>
           </g>
         )}
@@ -356,10 +373,10 @@ export default function ExposomeScatter() {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', alignItems: 'baseline' }}>
           <Key color={hue} r={2.3} filled>
             <b>{counts[layer] != null ? counts[layer].toLocaleString() : '—'}</b>{' '}
-            {active.label.toLowerCase()} ({active.edge} at Tier 1) — {active.gloss}
+            {active.label.toLowerCase()} ({active.edge}, {active.criterion}) — {active.gloss}
           </Key>
           <Key color={h.accent} r={1.8} filled dim>
-            exposure-responsive, no Tier-1 edge this way
+            exposure-responsive, no evidence this way
           </Key>
           <Key color={h.soft} r={1.5} filled dim>
             below 1% exposomic variance
