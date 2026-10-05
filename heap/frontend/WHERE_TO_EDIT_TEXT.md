@@ -298,16 +298,16 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **150** — Causal evidence
 - **151** — Exposure GWAS
 - **155** — Interventional comparison
-- **178** — Proteome-based exposure scores (PES)
-- **198** — Exposure scores
-- **204** — Supporting analyses
-- **205** — Un-numbered in the manuscript. They support the modules above.
-- **211** — Tissue and pathway enrichment
-- **212** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
-- **213** — Tissues and pathways
-- **217** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
-- **218** — Exposure GWAS
-- **224** — Covariate adjustment
+- **183** — Proteome-based exposure scores (PES)
+- **203** — Exposure scores
+- **209** — Supporting analyses
+- **210** — Un-numbered in the manuscript. They support the modules above.
+- **216** — Tissue and pathway enrichment
+- **217** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
+- **218** — Tissues and pathways
+- **222** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
+- **223** — Exposure GWAS
+- **229** — Covariate adjustment
 
 ## `/documentation/models`
 

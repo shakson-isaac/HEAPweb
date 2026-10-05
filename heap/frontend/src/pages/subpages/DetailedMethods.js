@@ -142,8 +142,8 @@ export default function DetailedMethods() {
           <P>
             <b>Reading it.</b> An edge climbs from significance, through instrument robustness, to
             an established direction. For cis instruments we added a colocalization test at
-            PP.H4 ≥ 0.8, which {n('nColoc')} loci clear. Exposures that map few or no genome-wide
-            loci cannot be instrumented at all, including much of the deprivation and pollution set.
+            PP.H4 ≥ 0.8. Exposures that map few or no genome-wide loci cannot be instrumented at
+            all, including much of the deprivation and pollution set.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Every rung is defined on <Link to="/documentation/evidence-tiers">Evidence tiers</Link>;
@@ -154,21 +154,26 @@ export default function DetailedMethods() {
 
         <ModuleCard number="Module 5" name="Interventional comparison">
           <P>
-            We asked whether a trial moves the same proteins an exposure tracks observationally.
+            We asked whether the proteins that track an exposure actually move when a trial changes
+            that exposure.
           </P>
           <P>
-            We correlated UK Biobank exposure-protein effect sizes against measured proteomic
-            change in three interventional cohorts. HERITAGE is 20 weeks of endurance training, and
-            shares about 250 proteins with the Olink panel. STEP 1 and STEP 2 are 68-week
-            semaglutide trials, and share about 2,500. We computed Pearson correlations and
-            corrected them by Benjamini-Hochberg within each intervention.
+            We compared each exposure&apos;s whole protein signature against the protein shifts a
+            trial measured. HERITAGE reports log fold change across 20 weeks of endurance training.
+            STEP 1 and STEP 2 report protein change across 68 weeks of semaglutide. UK Biobank
+            measures on Olink and the trials on SomaScan, so we weighted every protein by the
+            reported agreement between the two platforms. We computed a Pearson correlation for
+            each exposure and trial, and corrected them by Benjamini-Hochberg. We then overlaid
+            Tier-1 MR and colocalization evidence, to see which of the shared proteins are
+            putatively causal for type 2 diabetes, obesity, lipoprotein disorders and hypertension.
           </P>
           <P>
-            <b>Reading it.</b> A between-person association and a within-person change under
-            treatment are different quantities. Both trials also published significance-selected
-            proteins, HERITAGE at q ≤ 0.01 and the GLP-1 effects at each trial&apos;s own
-            q &lt; 0.05. The correlations are therefore an upper bound, bounded further by how well
-            Olink and SomaScan agree on the shared proteins.
+            <b>Reading it.</b> The sign is the result. Strenuous sports moves proteins in the same
+            direction semaglutide does, while processed meat moves them the opposite way. Platform
+            overlap limits what can be compared at all, about 250 proteins for HERITAGE and 2,500
+            for STEP. Both trials published only the proteins that reached significance, and a
+            between-person association is not a within-person change under treatment. Treat the
+            correlation as an upper bound.
           </P>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Surfaces on <Link to="/results/intervention">Intervention</Link>.
