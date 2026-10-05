@@ -5,7 +5,7 @@ import { SERIF } from '../theme';
 import { DOC_PAGES } from '../lib/docPages';
 
 // The 192px icon, not the 1024px source: the masthead draws it at ~26px.
-const heapLogo = `${process.env.PUBLIC_URL}/icon-192.png`;
+const heapLogo = `${import.meta.env.BASE_URL}icon-192.png`;
 
 // Every destination in the Results menu. A list rather than ten hand-written
 // MenuItems so each one can be rendered as a real <Link>, the same way the

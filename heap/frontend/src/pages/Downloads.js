@@ -38,7 +38,7 @@ import { WEB_DATA_BASE } from '../lib/heapdata';
 // on every row.
 const PUBLIC_BUCKET = 'https://storage.googleapis.com/heap-data';
 const BUCKET_ROOT = (
-  process.env.REACT_APP_SUPP_DATA_URL
+  import.meta.env.VITE_SUPP_DATA_URL
   || (/\/web\/v\d+\/?$/.test(WEB_DATA_BASE)
     ? WEB_DATA_BASE.replace(/\/web\/v\d+\/?$/, '')
     : PUBLIC_BUCKET)

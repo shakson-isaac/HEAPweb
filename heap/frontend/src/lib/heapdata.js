@@ -14,7 +14,7 @@
 // Use toRows() at the point of use if you need record shape.
 
 const BASE = (
-  process.env.REACT_APP_WEB_DATA_URL ||
+  import.meta.env.VITE_WEB_DATA_URL ||
   'https://storage.googleapis.com/heap-data/web/v1'
 ).replace(/\/$/, '');
 
