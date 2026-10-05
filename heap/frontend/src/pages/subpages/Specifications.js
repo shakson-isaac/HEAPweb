@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+
 import { Box, Paper, Typography } from '@mui/material';
 import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 
@@ -168,11 +168,6 @@ export default function Specifications() {
             ),
           ])}
         />
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          <Mono>sex</Mono> and <Mono>uk_biobank_assessment_centre</Mono> are factors;{' '}
-          <Mono>age2</Mono>, <Mono>age_sex</Mono> and <Mono>age2_sex</Mono> are derived terms. See
-          also <Link to="/documentation/methods">Detailed methods</Link>.
-        </Typography>
       </Section>
     </DocPage>
   );

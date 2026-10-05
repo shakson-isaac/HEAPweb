@@ -19,7 +19,7 @@ server is running; `CI=true npm run build` before committing.
 that looks like a path or an id. Grep for the exact words to find one:
 `grep -rn "the words you see" --include=*.js src/`
 
-767 strings across 85 files.
+765 strings across 85 files.
 
 ---
 
@@ -282,33 +282,32 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **49** — The six modules
 - **50** — Module numbers follow the manuscript.
 - **52** — Variance decomposition
-- **58** — predictive decomposition
 - **72** — Main results
 - **73** — Lifestyle categories
 - **77** — Exposure–protein association
-- **83** — P ~ covariates + G_cis + G_trans + E + G_cis:E + G_trans:E
-- **92** — exposure × protein pairs
-- **93** — per model term
-- **98** — Genetic and exposomic architecture
-- **102** — Observational mediation (GEM)
-- **109** — P ~ PGS + PXS + covariates
-- **110** — D ~ P + PGS + PXS + covariates
-- **121** — Disease links
-- **125** — Mendelian randomization and colocalization
-- **145** — Evidence tiers
-- **146** — Causal evidence
-- **147** — Exposure GWAS
-- **151** — Interventional comparison
-- **174** — Proteome-based exposure scores (PES)
-- **193** — Exposure scores
-- **199** — Supporting analyses
-- **200** — Un-numbered in the manuscript. They support the modules above.
-- **206** — Tissue and pathway enrichment
-- **207** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
-- **208** — Tissues and pathways
-- **212** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
-- **213** — Exposure GWAS
-- **219** — Covariate adjustment
+- **84** — P ~ covariates + G_cis + G_trans + E + G_cis:E + G_trans:E
+- **94** — exposure × protein pairs
+- **95** — per model term
+- **100** — Genetic and exposomic architecture
+- **104** — Observational mediation (GEM)
+- **111** — P ~ PGS + PXS + covariates
+- **112** — D ~ P + PGS + PXS + covariates
+- **124** — Disease links
+- **128** — Mendelian randomization and colocalization
+- **149** — Evidence tiers
+- **150** — Causal evidence
+- **151** — Exposure GWAS
+- **155** — Interventional comparison
+- **178** — Proteome-based exposure scores (PES)
+- **198** — Exposure scores
+- **204** — Supporting analyses
+- **205** — Un-numbered in the manuscript. They support the modules above.
+- **211** — Tissue and pathway enrichment
+- **212** — Gene-set enrichment of the association results against GTEx tissue signatures and Reactome pathways, per exposure and per variance component.
+- **213** — Tissues and pathways
+- **217** — Genome-wide association for each exposure, with instrument-strength diagnostics, LDSC heritability and intercepts, and genetic correlation between exposures. It determines which exposures can enter Mendelian randomization.
+- **218** — Exposure GWAS
+- **224** — Covariate adjustment
 
 ## `/documentation/models`
 
@@ -334,7 +333,6 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **132** — Using the control
 - **144** — The exact covariates
 - **145** — Field names as they appear in covariate_sets.yml.
-- **174** — Detailed methods
 
 ## `/documentation/quickstart`
 
