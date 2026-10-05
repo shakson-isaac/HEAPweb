@@ -26,10 +26,17 @@ import { gradientIndex, proteinIndex, specLabel, specList } from '../../lib/varc
 // rather than offering a control that would silently do nothing.
 //
 // THE PROTEIN SET IS A CONTROL because it changes the headline number. Restricted
-// to the 2,051 proteins GREML also estimated, HEAP flags 608 exposure-responsive
-// and GREML 1,026 -- the published counts, reproduced. Across all 2,686 proteins
-// HEAP flags more, and a reader comparing against the paper needs to know which
-// set is on screen rather than discovering the gap.
+// to the 2,051 proteins GREML also estimated, HEAP flags 609 exposure-responsive
+// and GREML 1,026; across all 2,686 proteins HEAP flags 721. A reader comparing
+// against the paper needs to know which set is on screen rather than discovering
+// the gap.
+//
+// The counts here are recounted live from the payload and are NOT hard-coded.
+// The paper's \nExpRespHEAP is 608, one below what this panel draws. Checked
+// 2026-10-04 against the deposit (varcomp_specs.tsv): at full precision the
+// base-lasso exposomic R2 clears 0.01 for 609 of the 2,051, and no other spec
+// or threshold gives 608 -- so the panel is right and the macro is stale by one
+// protein. Left as is on purpose; do not "fix" the panel to 608.
 // ---------------------------------------------------------------------------
 
 const THR = 0.01;
