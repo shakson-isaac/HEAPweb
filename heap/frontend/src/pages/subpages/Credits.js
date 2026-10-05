@@ -120,18 +120,7 @@ function Head({ children }) {
 
 export default function Credits() {
   return (
-    <SectionCard
-      title="References and credits"
-      subtitle={
-        'What this site is built on: the external datasets, drawings and methods it uses. '
-        + 'To cite HEAP itself, see Cite.'
-      }
-    >
-      <Typography variant="body2" sx={{ maxWidth: 900, mb: 1 }}>
-        References come from the manuscript&rsquo;s bibliography, so the site and the paper credit
-        the same work in the same words.
-      </Typography>
-
+    <SectionCard title="References and credits">
       <Head>Data and methods</Head>
       <TableContainer sx={{ maxWidth: 1040 }}>
         <Table size="small">

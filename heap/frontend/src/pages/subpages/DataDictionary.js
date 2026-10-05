@@ -157,10 +157,6 @@ export default function DataDictionary() {
             .sort((a, b) => b[1] - a[1])
             .map(([r, n]) => [r, n])}
         />
-        <P>
-          The two pollution reasons record a substitution. A mean-across-years feature is analyzed
-          in place of the per-year measurements.
-        </P>
       </Section>
     </DocPage>
   );

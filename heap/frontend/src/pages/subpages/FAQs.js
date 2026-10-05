@@ -66,10 +66,7 @@ const FAQ_ITEMS = [
   {
     q: 'Does the estimate shrinking under "+ BMI" mean the effect is mediated by BMI?',
     a: [
-      'No. Attenuation after BMI adjustment is equally consistent with mediation, with confounding and with collider bias.',
-      <span key="b">
-        <Mono>+ BMI</Mono> is labeled a sensitivity specification everywhere on this site.
-      </span>,
+      'No. Attenuation after BMI adjustment is equally consistent with mediation, with confounding and with collider bias. Adjustment cannot separate the three.',
     ],
   },
   {
@@ -180,21 +177,6 @@ const FAQ_ITEMS = [
       'No. Each dataset carries a version string and a build date, so you can state which release you used. The citation is the paper.',
       <span key="b">
         Templates for a data statement are on <Link to="/documentation/cite">How to cite</Link>.
-      </span>,
-    ],
-  },
-  {
-    q: 'Where does each number on this site come from?',
-    a: [
-      <span key="a">
-        Nothing is typed by hand. Headline figures are read at page load from{' '}
-        <Mono>meta/headline.json.gz</Mono>, which is generated from the manuscript’s LaTeX
-        macros; every table and plot is read from a published payload object; and the covariate
-        definitions come straight from the analysis configuration.
-      </span>,
-      <span key="b">
-        Where a figure export and a supplementary table describe the same thing, the supplementary
-        table is what the site reads, and the page says so.
       </span>,
     ],
   },

@@ -24,7 +24,6 @@ export const DOC_PAGES = [
   { path: 'dictionary', label: 'Exposome dictionary', blurb: 'All 169 analyzed exposures, plus the candidates that were excluded.' },
   { group: true, path: 'api', label: 'Data API', blurb: 'Static file API over a public CDN, with R and Python examples.' },
   { path: 'methods', label: 'Detailed methods', blurb: 'The six analysis modules and what each one computes.' },
-  { path: 'changelog', label: 'Changelog', blurb: 'What changed between v1 and v2.' },
   { path: 'cite', label: 'How to cite', blurb: 'Preprint DOI, license, and dataset versioning.' },
   { path: 'credits', label: 'References and credits', blurb: 'The datasets, drawings and methods this site is built on.' },
   { path: 'faqs', label: 'FAQs', blurb: 'Short answers, each linking to the page with the detail.' },

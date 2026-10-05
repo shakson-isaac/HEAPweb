@@ -1,14 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import {
   AuthorNote, Code, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable,
   macro, useHeadline,
 } from '../Documentation';
 
 // Structural description of the resource only (standing decision S13). The
-// central scientific claim is quoted from the manuscript rather than restated,
-// and the site's own framing copy is left to the author.
+// site's own framing copy is left to the author.
+//
+// The manuscript's central claim was quoted here in a pull-quote until
+// 2026-10-04. It was cut: a finding about reporters and intermediates does not
+// tell a first-time visitor what this resource is or what they can do with it,
+// which is what an About page is for. The lead sentence does that job.
 export default function AboutHeap() {
   const { data: h, error } = useHeadline();
   const n = (k) => macro(h, k);
@@ -19,20 +23,6 @@ export default function AboutHeap() {
       lead="HEAP (Human Exposomic Architecture of the Proteome) measures how modifiable lifestyle and environmental exposures are reflected in the human plasma proteome. It links those signatures to incident disease, and grades each link by its genetic and interventional support."
     >
       <AuthorNote what="Landing framing — one paragraph, yours to write." />
-
-      <Section title="The claim, in the manuscript's own words">
-        <Paper variant="outlined" sx={{ p: 2, mb: 1, maxWidth: 820, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
-          <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65 }}>
-            Only a minority of exposure-responsive proteins were consistent with causal
-            intermediates, whereas many appeared to function as biological reporters of exposure
-            burden, disease liability, and early disease processes.
-          </Typography>
-        </Paper>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          From the manuscript. Each relationship on the site carries its own{' '}
-          <Link to="/documentation/evidence-tiers">evidence badge</Link>.
-        </Typography>
-      </Section>
 
       <Section
         title="What is in it"
@@ -56,19 +46,19 @@ export default function AboutHeap() {
         />
       </Section>
 
-      <Section title="Two pairs that are easy to conflate">
+      <Section title="Where the numbers differ between pages">
         <SimpleTable
-          head={['Count', 'Distinct from', 'Why they differ']}
+          head={['You may see', 'And elsewhere', 'Why they differ']}
           rows={[
             [
               <span>{n('nProteins')} proteins</span>,
               <span>{n('nProteinsPES')} proteins</span>,
-              'The first is the analyzed Olink panel behind the variance decomposition. The second is the longitudinal panel behind the exposure scores. Each count applies to its own panel.',
+              'Two panels. The first is the Olink panel behind the variance decomposition; the second is the longitudinal panel behind the exposure scores.',
             ],
             [
               <span>{n('nMotifTierOne')} mediator triads</span>,
               <span>{n('nMotifTriads')} mediator triads</span>,
-              'The first is the Tier-1 bar, which is the published headline. The second is the nominal-significance bar, a separate set.',
+              'Two bars. The first is Tier 1, the published headline; the second is nominal significance, a separate set.',
             ],
           ]}
         />
@@ -95,25 +85,21 @@ export default function AboutHeap() {
         />
       </Section>
 
-      <Section title="Rules this resource follows">
+      <Section title="Three rules for reading the site">
         <SimpleTable
-          head={['Rule', 'What it means here']}
+          head={['Rule', 'What it means']}
           rows={[
-            ['One badge per relationship', <span>Each relationship carries its evidence level, and association is kept visually separate from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
-            ['One primary specification', <span>All main results use the <Mono>base</Mono> covariate set; the other five are sensitivity layers behind a switcher. See <Link to="/documentation/models">Specifications</Link>.</span>],
-            ['+ BMI is a sensitivity layer', 'Attenuation after BMI adjustment can reflect mediation or confounding, so the BMI specification is labeled a sensitivity layer everywhere it appears.'],
-            ['Mediation is descriptive', <span>Observational mediation is reported as descriptive; causal adjudication is kept separate, in <Link to="/results/causal">Mendelian randomization and colocalization</Link>.</span>],
-            ['Untested and non-significant differ', 'Empty states say which of the two they are.'],
-            ['Numbers trace to a source', 'Every rendered number comes from a manuscript macro, a registry row or a payload file.'],
-            ['Published results only', 'A result appears here once it is in the manuscript or its supplement.'],
+            ['Every relationship carries one badge', <span>Association is badged separately from causal support. See <Link to="/documentation/evidence-tiers">Evidence tiers</Link>.</span>],
+            ['Every main result uses base', <span>The other five covariate sets are sensitivity layers behind a switcher. See <Link to="/documentation/models">Specifications</Link>.</span>],
+            ['Mediation is descriptive', <span>Causal adjudication is separate, in <Link to="/results/causal">Mendelian randomization and colocalization</Link>.</span>],
           ]}
         />
       </Section>
 
       <Section title="Getting the data">
         <P>
-          Every page draws from static gzipped JSON in a public bucket, with no key and no rate
-          limit. One line pulls a whole result:
+          Every result is a static gzipped JSON object in a public bucket. No key, no rate limit,
+          one line per result:
         </P>
         <Code label="R">
 {`jsonlite::fromJSON(
@@ -121,14 +107,9 @@ export default function AboutHeap() {
 )`}
         </Code>
         <P>
-          <Link to="/documentation/api">Data API</Link> gives the full URL scheme, with R and
-          Python examples.
-        </P>
-        <P>
-          The exposure GWAS summary statistics sit apart from the payload: 169 files, one per
-          exposure, 51 GB in total, in a requester-pays bucket where the transfer is billed to the
-          project the reader names. <Link to="/downloads">Downloads</Link> lists every exposure and
-          the command to fetch it.
+          <Link to="/documentation/api">Data API</Link> lists what you can fetch.{' '}
+          <Link to="/downloads">Downloads</Link> covers the 169 exposure GWAS, which are 51 GB and
+          sit in a requester-pays bucket where transfer is billed to the project you name.
         </P>
       </Section>
 
@@ -144,8 +125,7 @@ export default function AboutHeap() {
           The site code, the payload API and the datasets version independently. The payload path
           prefix (<Mono>web/v1/</Mono>) changes on a breaking schema change. Each dataset carries
           its own version and build date. Datasets have no separate DOI, so cite the paper. See{' '}
-          <Link to="/documentation/cite">How to cite</Link> and{' '}
-          <Link to="/documentation/changelog">Changelog</Link>.
+          <Link to="/documentation/cite">How to cite</Link>.
         </P>
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

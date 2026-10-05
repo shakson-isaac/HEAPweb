@@ -20,7 +20,6 @@ const Specifications = lazy(() => import('./subpages/Specifications'));
 const DataDictionary = lazy(() => import('./subpages/DataDictionary'));
 const ApiDocs = lazy(() => import('./subpages/ApiDocs'));
 const DetailedMethods = lazy(() => import('./subpages/DetailedMethods'));
-const Changelog = lazy(() => import('./subpages/Changelog'));
 const Cite = lazy(() => import('./subpages/Cite'));
 const Credits = lazy(() => import('./subpages/Credits'));
 const FAQs = lazy(() => import('./subpages/FAQs'));
@@ -312,7 +311,6 @@ function Documentation() {
             <Route path="data-dictionary" element={<DataDictionary />} />
             <Route path="api" element={<ApiDocs />} />
             <Route path="methods" element={<DetailedMethods />} />
-            <Route path="changelog" element={<Changelog />} />
             <Route path="cite" element={<Cite />} />
             <Route path="credits" element={<Credits />} />
             <Route path="references" element={<Credits />} />

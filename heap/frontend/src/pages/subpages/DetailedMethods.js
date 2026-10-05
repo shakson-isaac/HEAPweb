@@ -235,14 +235,9 @@ export default function DetailedMethods() {
           interactions, assessment center and 20 genetic principal components. Five supplementary
           sets add one adjustment each, and results are deposited under all of them.
         </P>
-        <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
-          Earlier versions of this site displayed the maximally adjusted model by default and
-          labeled the sets Type1–Type7. Both are retired. The primary model is <Mono>base</Mono>,
-          and adjustment for BMI is a sensitivity layer.
-        </Alert>
         <P>
           <Link to="/documentation/models">Specifications</Link> lists every set, its exact
-          covariates, the migration from the old naming, and which specifications are published.
+          covariates, and which specifications are published.
         </P>
       </Section>
 

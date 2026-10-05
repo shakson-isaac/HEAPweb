@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Box, Chip, Paper, Typography } from '@mui/material';
+import { Alert, Box, Chip, Typography } from '@mui/material';
 import {
   AuthorNote, DocPage, HeadlineFallback, Mono, P, Section, SimpleTable,
   macro, useHeadline,
@@ -69,34 +69,6 @@ const RUNGS = [
 // green is lightened from the print #124533 so it stays legible on a dark panel.
 const KIND_COLOR = { association: '#0072B2', causal: '#1b7a5a', external: '#D55E00' };
 
-function Rail() {
-  const nodes = ['Association', 'Replication', 'MR', 'Colocalization', 'External perturbation'];
-  return (
-    <Paper variant="outlined" sx={{ p: 2, mb: 1, maxWidth: 820 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-        {nodes.map((label, i) => (
-          <React.Fragment key={label}>
-            <Box sx={{ textAlign: 'center', minWidth: 92 }}>
-              <Box
-                sx={{
-                  width: 16, height: 16, borderRadius: '50%', mx: 'auto', mb: 0.5,
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  backgroundColor: i < 4 ? 'primary.main' : 'transparent',
-                }}
-              />
-              <Typography variant="caption" sx={{ display: 'block', lineHeight: 1.2 }}>{label}</Typography>
-            </Box>
-            {i < nodes.length - 1 && (
-              <Box sx={{ flex: '0 0 24px', height: 2, backgroundColor: 'primary.main', opacity: i < 3 ? 1 : 0.25 }} />
-            )}
-          </React.Fragment>
-        ))}
-      </Box>
-    </Paper>
-  );
-}
-
 function MotifCounts() {
   const { data, loading, error } = useSection('mr_motif_counts');
   if (loading) return <Typography variant="body2" color="text.secondary">Loading motif counts…</Typography>;
@@ -119,7 +91,7 @@ export default function EvidenceTiers() {
   return (
     <DocPage
       title="Evidence tiers"
-      lead="Every relationship on this site carries an evidence badge. This page defines each badge and the evidence it requires."
+      lead="Every relationship on this site carries a badge naming the strongest evidence obtained for it. Each badge below states what it required."
     >
       <HeadlineFallback error={error} />
 
@@ -139,13 +111,6 @@ export default function EvidenceTiers() {
             r.detail,
           ])}
         />
-      </Section>
-
-      <Section
-        title="How a relationship reads"
-        subtitle="Filled nodes are the evidence obtained for that relationship. An open node records evidence that was not obtained."
-      >
-        <Rail />
       </Section>
 
       <Section title="Cis and trans instruments">
@@ -171,12 +136,9 @@ export default function EvidenceTiers() {
         <P>
           The five MR motifs are signatures over the six directed edges of a triad, and each
           signature requires some edges to be absent. Absence is evaluated at the rung being drawn,
-          so a motif can match at one rung and not at another.
-        </P>
-        <P>
-          Counts are therefore not monotonic across rungs. Motif A (mediator) covers 6 triads at
-          Tier 1 and 69 at Tier 2, while motifs B and C shrink over the same step. Counts from two
-          rungs cannot be differenced.
+          so counts are not monotonic: motif A (mediator) covers 6 triads at Tier 1 and 69 at
+          Tier 2, while motifs B and C shrink over the same step. Counts from two rungs cannot be
+          differenced.
         </P>
         <P>
           The Tier-1 bar ({n('nMotifTierOne')} triads across {n('nMotifTierOneProt')} proteins) is
@@ -199,14 +161,9 @@ export default function EvidenceTiers() {
       </Section>
 
       <Section title="Observational mediation">
-        <Alert severity="info" sx={{ maxWidth: 820, mb: 1 }}>
-          Observational mediation estimates are descriptive and may reflect confounding, reverse
-          causation, or shared upstream causes. Causal support is evaluated separately using MR
-          and colocalization.
-        </Alert>
         <P>
-          A mediated fraction sits outside the ladder and does not raise a badge. A relationship
-          can carry a large mediated fraction with no MR support.
+          A mediated fraction sits outside this ladder and raises no badge. A relationship can
+          carry a large mediated fraction with no MR support at all.
         </P>
       </Section>
 
@@ -219,16 +176,6 @@ export default function EvidenceTiers() {
         second wording, but the two should be reconciled before the ED figure is restored.
       </AuthorNote>
 
-      <Section title="Badges the site does not use">
-        <SimpleTable
-          head={['Not used', 'What the site shows instead']}
-          rows={[
-            ['A generic "significant" badge', 'Replication, MR support and colocalization are badged separately.'],
-            ['A single causal label per protein', 'A motif profile per protein–disease pair, because the motif rule is defined per triad.'],
-            ['An empty cell', 'Untested relationships and tested relationships below significance are drawn differently.'],
-          ]}
-        />
-      </Section>
     </DocPage>
   );
 }

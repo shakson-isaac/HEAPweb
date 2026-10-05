@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Box, Chip, Paper, Typography } from '@mui/material';
+import { Box, Chip, Paper, Typography } from '@mui/material';
 import { DocPage, Mono, P, Section, SimpleTable } from '../Documentation';
 
 // Transcribed from HEAP/config/covariates/covariate_sets.yml (version 2.0), the
@@ -24,7 +24,7 @@ const SETS = [
     modules: 'modules 1, 2, 3, 5, 6, population architecture',
     covariates: BASE_CORE,
     adds: null,
-    note: 'Every main figure in the manuscript uses this set. It is the default across this site.',
+    note: 'Every main figure in the manuscript uses this set.',
   },
   {
     id: 'base_bmi',
@@ -79,7 +79,7 @@ const SETS = [
       'crime_score_england_f26416_0_0',
       'living_environment_score_england_f26417_0_0',
     ],
-    note: 'These nine variables belong to the Deprivation_Indices exposure and move into the covariate matrix at run time, so each is counted once. Wales and Scotland scores are dropped for more than 20% missingness. The set holds the overall England index alongside its seven domain sub-scores, so it is collinear by construction, and the SES coefficients are left uninterpreted. The remap is implemented in Module 2, so the set is offered there only.',
+    note: 'The nine variables belong to the Deprivation_Indices exposure and move into the covariate matrix at run time. Wales and Scotland scores are dropped for more than 20% missingness. The England index sits alongside its seven domain sub-scores, so the set is collinear by construction and the SES coefficients are left uninterpreted.',
   },
   {
     id: 'base_prevalent',
@@ -125,30 +125,21 @@ export default function Specifications() {
       </Section>
 
       <Section title="+ BMI is a sensitivity layer">
-        <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
-          Attenuation after BMI adjustment can arise from mediation, from confounding or from
-          collider bias. <Mono>base_bmi</Mono> is labeled a sensitivity layer wherever it appears
-          on this site.
-        </Alert>
         <P>
-          An estimate that shrinks under <Mono>base_bmi</Mono> is consistent with BMI on the causal
-          path, with BMI confounding the association, and with BMI as a collider. Adjustment cannot
-          separate the three. Mediation is reported descriptively in{' '}
-          <Link to="/results/mediation">Disease links</Link>, and causal adjudication in{' '}
+          An estimate that shrinks under <Mono>base_bmi</Mono> is equally consistent with BMI on
+          the causal path, BMI confounding the association, and BMI as a collider. Adjustment
+          cannot separate the three, so attenuation here is not evidence of mediation. Mediation
+          is estimated in <Link to="/results/mediation">Disease links</Link> and adjudicated in{' '}
           <Link to="/results/causal">Causal evidence</Link>.
         </P>
       </Section>
 
       <Section title="base_ses answers a different question">
-        <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
-          Adding deprivation to the covariate matrix removes it from the exposome, so{' '}
-          <Mono>base_ses</Mono> estimates a smaller exposome. It is a separate analysis, and it is
-          a default nowhere on this site.
-        </Alert>
         <P>
           The nine deprivation variables are exposures in HEAP. Moving them into the covariate
-          matrix deletes an exposure category from the model, which makes <Mono>base_ses</Mono>{' '}
-          mis-specified for the exposome as a whole. It is offered in Module 2 only.
+          matrix deletes a whole exposure category from the model, so <Mono>base_ses</Mono>{' '}
+          estimates a smaller exposome rather than testing the same one more strictly. It is
+          offered in Module 2 only, and is a default nowhere.
         </P>
       </Section>
 
@@ -195,26 +186,6 @@ export default function Specifications() {
           <Mono>age2</Mono>, <Mono>age_sex</Mono> and <Mono>age2_sex</Mono> are derived quadratic
           and interaction terms.
         </Typography>
-      </Section>
-
-      <Section title="Migration from the old Type1–Type7 naming">
-        <P>
-          The previous scheme numbered covariate sets Type1 to Type7, and the earlier version of
-          this website keyed its association pages on <Mono>Type6</Mono>. That scheme is retired.
-          The sets were renamed, so results produced under the old names remain valid. One
-          exception matters.
-        </P>
-        <SimpleTable
-          head={['Old', 'New', 'Note']}
-          rows={[
-            ['Type3', <Mono>base</Mono>, <span><b>Different model.</b> <Mono>base</Mono> drops BMI and fasting time from the old Type3, so a Type3 result and a base result come from different models.</span>],
-            ['Type4, Type5', <Mono>base_clinical</Mono>, 'Both fold into the maximal explicit adjustment.'],
-            ['Type6', <Mono>base_ses</Mono>, 'The set the old site served unlabelled as its default.'],
-            ['Type1 (age + sex)', '— dropped', 'No longer produced.'],
-            ['Type2 (no-PC metabolic)', '— dropped', 'No longer produced.'],
-            ['Type7 (medications as exposures)', '— dropped', 'No longer produced.'],
-          ]}
-        />
       </Section>
 
       <Section title="Three sensitivity axes">
