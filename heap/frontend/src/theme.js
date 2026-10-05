@@ -33,6 +33,14 @@ const TOKENS = {
     accent: '#0f766e',
     accentDark: '#0b5a54',
     selectedText: '#ffffff',
+    // A fill and a label need different colors. The direction red and blue are
+    // the manuscript's and stay on every swatch and marker; used as TEXT they
+    // fall below 4.5:1, so labels take these instead.
+    textUp: '#a3162a',
+    textDown: '#1b5a94',
+    textCausal: '#a3162a',
+    textReporter: '#44525b',
+    textWarn: '#8a4b00',
   },
   dark: {
     paper: '#0e1512',
@@ -44,6 +52,12 @@ const TOKENS = {
     accent: '#5fd4bd',
     accentDark: '#7ee0cc',
     selectedText: '#06120f',
+    // Lightened for a dark panel: the same meanings, legible against #141d1a.
+    textUp: '#f08a94',
+    textDown: '#86b7e8',
+    textCausal: '#f08a94',
+    textReporter: '#aebfc8',
+    textWarn: '#f0b37a',
   },
 };
 

@@ -702,8 +702,10 @@ export default function InterventionNetwork() {
           <Chip
             size="small"
             label={`${view.counts.proteins[0]} of ${view.counts.proteins[1]} proteins`}
-            color={view.counts.proteins[0] < view.counts.proteins[1] ? 'warning' : 'default'}
-            variant={view.counts.proteins[0] < view.counts.proteins[1] ? 'filled' : 'outlined'}
+            variant="outlined"
+            sx={view.counts.proteins[0] < view.counts.proteins[1]
+              ? { borderColor: (t) => t.palette.heap.textWarn, color: (t) => t.palette.heap.textWarn }
+              : undefined}
           />
           <Chip size="small" variant="outlined" label={`${view.counts.exposures[0]} of ${view.counts.exposures[1]} exposures`} />
           <Chip size="small" variant="outlined" label={`${drawnEdges} of ${view.counts.obs[1] + view.counts.interv[1] + view.nGenTotal} edges`} />
@@ -711,13 +713,19 @@ export default function InterventionNetwork() {
           <Chip size="small" variant="outlined" label={`trial ${view.counts.interv[0]}/${view.counts.interv[1]}`} />
           <Chip
             size="small"
-            sx={{ borderColor: CLASS_META.causal.color, color: CLASS_META.causal.color }}
+            sx={{
+              borderColor: (t) => t.palette.heap.textCausal,
+              color: (t) => t.palette.heap.textCausal,
+            }}
             variant="outlined"
             label={`forward ${view.counts.gen_fwd[0]}/${view.counts.gen_fwd[1]}`}
           />
           <Chip
             size="small"
-            sx={{ borderColor: CLASS_META.reporter.color, color: CLASS_META.reporter.color }}
+            sx={{
+              borderColor: (t) => t.palette.heap.textReporter,
+              color: (t) => t.palette.heap.textReporter,
+            }}
             variant="outlined"
             label={`reverse ${view.counts.gen_rev[0]}/${view.counts.gen_rev[1]}`}
           />

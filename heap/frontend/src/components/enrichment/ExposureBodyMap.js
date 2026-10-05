@@ -1745,7 +1745,15 @@ export default function ExposureBodyMap({
                 <Box sx={{ display: 'flex', gap: 1.5, mb: 1 }}>
                   {['up', 'down'].map((d) => (
                     <Box key={d} sx={{ flex: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: DIR_COLOR[d] }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          // The swatches below keep DIR_COLOR; the label uses the
+                          // readable variant, which differs by mode.
+                          color: (t) => (d === 'up' ? t.palette.heap.textUp : t.palette.heap.textDown),
+                        }}
+                      >
                         {d === 'up' ? 'up — enriched' : 'down — depleted'}
                       </Typography>
                       <Box sx={{ display: 'flex', mt: 0.25 }}>

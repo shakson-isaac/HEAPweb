@@ -103,3 +103,33 @@ a:hover {
 .js-plotly-plot .plotly .modebar {
   background: transparent !important;
 }
+
+/* react-select does not read the MUI theme. Left alone it keeps a white control
+   and a light-gray placeholder in dark mode, which is white-on-white at 2.3:1.
+   Its emotion classes end in a stable suffix per part, so they are styled here.
+   Setting only the placeholder color made it worse: the control has to move too. */
+[class$='-control'] {
+  background-color: var(--panel) !important;
+  border-color: var(--rule) !important;
+}
+
+[class$='-menu'],
+[class$='-MenuList'] {
+  background-color: var(--panel) !important;
+  color: var(--ink) !important;
+}
+
+[class$='-option']:hover,
+[class$='-option'][class*='focused'] {
+  background-color: var(--panel-alt) !important;
+}
+
+[class$='-singleValue'],
+[class$='-input'],
+[class$='-Input'] {
+  color: var(--ink) !important;
+}
+
+[class$='-placeholder'] {
+  color: var(--soft) !important;
+}
