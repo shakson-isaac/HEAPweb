@@ -56,13 +56,21 @@ const HIT = 14;            // px: how close the cursor must be to pick a protein
 
 // Plain words on the control, arrow notation in the legend. "D -> P" means
 // nothing to someone who has not read the paper; "disease reporters" does.
+// One hue per layer, and only one layer is ever drawn, so these never have to
+// be told apart inside the plot -- the color ties the marks to the button that
+// is pressed. All three are kept well away from the teal of the
+// exposure-responsive cloud underneath them, and each clears 3:1 against its
+// own page background in both modes (graphical-object minimum).
 const LAYERS = [
   { id: 'causal', label: 'Causal intermediates', edge: 'P \u2192 D',
-    gloss: 'the protein moves disease risk' },
+    gloss: 'the protein moves disease risk',
+    hue: { light: '#a3123f', dark: '#f07aa0' } },
   { id: 'disease_reporter', label: 'Disease reporters', edge: 'D \u2192 P',
-    gloss: 'disease liability moves the protein' },
+    gloss: 'disease liability moves the protein',
+    hue: { light: '#6a3d9a', dark: '#b894e8' } },
   { id: 'exposome_reporter', label: 'Exposome reporters', edge: 'E \u2192 P',
-    gloss: 'the exposure moves the protein' },
+    gloss: 'the exposure moves the protein',
+    hue: { light: '#c2570f', dark: '#f0994f' } },
 ];
 
 const sx = (v) => PAD + Math.sqrt(Math.min(v, X_MAX) / X_MAX) * (W - PAD - 14);
@@ -72,7 +80,7 @@ const pct = (v) => `${(v * 100).toFixed(v >= 0.1 ? 0 : 1)}%`;
 /** One legend entry: the mark as it is actually drawn, then its meaning. */
 function Key({ color, r = 2, filled, dim, ring, children }) {
   return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, color }}>
       <Box component="svg" width={14} height={14} sx={{ flex: '0 0 14px' }}>
         {ring ? (
           <>
@@ -191,6 +199,7 @@ export default function ExposomeScatter() {
   };
 
   const active = LAYERS.find((l) => l.id === layer) || LAYERS[0];
+  const hue = active.hue[h.mode === 'dark' ? 'dark' : 'light'];
   const counts = {
     causal: causal?.proteins?.length,
     disease_reporter: causal?.disease_reporters?.length,
@@ -255,7 +264,7 @@ export default function ExposomeScatter() {
         {lit.map((d) => (
           <circle
             key={d.p} cx={d.x} cy={d.y}
-            r={named ? 2 : 2.3} fill={h.accent} opacity={0.95}
+            r={named ? 2 : 2.3} fill={hue} opacity={0.95}
           />
         ))}
 
@@ -264,8 +273,8 @@ export default function ExposomeScatter() {
         {marked.map((r) => (
           <g key={r.protein}>
             <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none" stroke={h.paper} strokeWidth={2.4} />
-            <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none" stroke={h.ink} strokeWidth={1.5} />
-            <circle cx={r.pt.x} cy={r.pt.y} r={2} fill={h.ink} />
+            <circle cx={r.pt.x} cy={r.pt.y} r={5.2} fill="none" stroke={hue} strokeWidth={1.6} />
+            <circle cx={r.pt.x} cy={r.pt.y} r={2} fill={hue} />
           </g>
         ))}
 
@@ -274,14 +283,14 @@ export default function ExposomeScatter() {
             {l.moved && (
               <line
                 x1={l.x0 + 4} y1={l.y0} x2={l.x0 + 7.5} y2={l.y - 2.5}
-                stroke={l.bold ? h.ink : h.soft} strokeWidth={0.8} opacity={0.6}
+                stroke={l.bold ? hue : h.soft} strokeWidth={0.8} opacity={0.6}
               />
             )}
             <text
               x={l.x0 + 9} y={l.y + 3}
               fontSize={l.bold ? 9.5 : 9}
               fontWeight={l.bold ? 700 : 400}
-              fill={l.bold ? h.ink : h.soft}
+              fill={l.bold ? hue : h.soft}
               stroke={h.paper} strokeWidth={2.6} paintOrder="stroke"
             >
               {l.text}
@@ -323,7 +332,19 @@ export default function ExposomeScatter() {
           {LAYERS.map((l) => (
             <ToggleButton
               key={l.id} value={l.id}
-              sx={{ textTransform: 'none', fontSize: '0.74rem', px: 1.1, py: 0.5 }}
+              sx={{
+                textTransform: 'none', fontSize: '0.74rem', px: 1.1, py: 0.5,
+                // The pressed button wears the layer's color, so the marks on
+                // the plot are tied to the control that produced them.
+                '&.Mui-selected': {
+                  backgroundColor: l.hue[h.mode === 'dark' ? 'dark' : 'light'],
+                  color: h.paper,
+                  '&:hover': {
+                    backgroundColor: l.hue[h.mode === 'dark' ? 'dark' : 'light'],
+                    opacity: 0.9,
+                  },
+                },
+              }}
             >
               {l.label}
             </ToggleButton>
@@ -333,7 +354,7 @@ export default function ExposomeScatter() {
         {/* The legend carries what the caption used to say, but keyed to the
             marks actually on screen, and it changes with the layer. */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', alignItems: 'baseline' }}>
-          <Key color={h.accent} r={2.3} filled>
+          <Key color={hue} r={2.3} filled>
             <b>{counts[layer] != null ? counts[layer].toLocaleString() : '—'}</b>{' '}
             {active.label.toLowerCase()} ({active.edge} at Tier 1) — {active.gloss}
           </Key>
@@ -344,7 +365,7 @@ export default function ExposomeScatter() {
             below 1% exposomic variance
           </Key>
           {named && (
-            <Key ring>
+            <Key ring color={hue}>
               named above — click opens its triads
             </Key>
           )}
