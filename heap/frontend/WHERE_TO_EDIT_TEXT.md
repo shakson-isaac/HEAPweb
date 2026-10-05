@@ -19,7 +19,7 @@ server is running; `CI=true npm run build` before committing.
 that looks like a path or an id. Grep for the exact words to find one:
 `grep -rn "the words you see" --include=*.js src/`
 
-765 strings across 85 files.
+768 strings across 85 files.
 
 ---
 
@@ -116,39 +116,42 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **41** — pQTLs — SomaScan
 - **42** — deCODE plasma protein QTLs, the external replication panel for protein-involving MR edges.
 - **43** — Ferkingstad E et al. Large-scale integration of the plasma proteome with genetics and disease. Nature Genetics (2021); Eldjarn GH et al. Large-scale plasma proteomics comparisons through genetics and disease associations. Nature (2023).
-- **46** — Cross-platform reliability
-- **47** — Olink–SomaScan assay correlations, used to weight the intervention concordance and to size its points.
-- **48** — Wang B et al. Comparative studies of 2168 plasma proteins measured by two affinity-based platforms in 4000 Chinese adults. Nature Communications (2025); Eldjarn GH et al. Nature (2023).
-- **51** — pQTLs — Olink
-- **52** — UK Biobank plasma proteomics — the protein measurements behind every result on this site, and the Olink arm of every MR edge.
-- **53** — Sun BB et al. Plasma proteomic associations with genetics and health in the UK Biobank. Nature (2023).
-- **56** — Split-sample MR design
-- **57** — The sample-independent design the exposure instruments follow, so no participant contributes to both sides of an estimate.
-- **58** — Deng Y-T et al. Atlas of the plasma proteome in health and disease in 53,026 adults. Cell (2025).
-- **61** — Exercise trial
-- **62** — HERITAGE — protein changes after 20 weeks of endurance training, one arm of the intervention concordance.
-- **63** — Sarzynski MA et al. The HERITAGE Family Study. Medicine & Science in Sports & Exercise (2022); Robbins JM et al. Plasma proteomic changes in response to exercise training are associated with cardiorespiratory fitness adaptations. JCI Insight (2023).
-- **66** — GLP-1 trials
-- **67** — STEP 1 and STEP 2 — protein changes under semaglutide, the other two intervention arms. The proteomic measurements are Maretty et al.; the trials themselves are Wilding and Davies.
-- **68** — Maretty L et al. Proteomic changes upon treatment with semaglutide in individuals with obesity. Nature Medicine (2025); Wilding JPH et al. NEJM (2021); Davies M et al. Lancet (2021).
-- **72** — coloc.abf, the posterior behind every PP.H4 and the regional plots that show it.
-- **73** — Giambartolomei C et al. Bayesian test for colocalisation between pairs of genetic association studies. PLoS Genetics (2014).
-- **76** — Linkage disequilibrium
-- **77** — PLINK against the 1000 Genomes European reference panel — the r² coloring on every regional colocalization plot.
-- **78** — Chang CC et al. Second-generation PLINK. GigaScience (2015).
-- **82** — clusterProfiler, which computed every tissue and pathway GSEA including the leading-edge proteins.
-- **83** — Xu S et al. Using clusterProfiler to characterize multiomics data. Nature Protocols (2024).
-- **86** — Causal inference
-- **87** — The two-sample Mendelian randomization framework the evidence tiers are built on.
-- **88** — Davey Smith G, Hemani G. Mendelian randomization: genetic anchors for causal inference. Human Molecular Genetics (2014).
-- **94** — Human body and brain anatomograms
-- **95** — The body map in Tissues & Pathways.
-- **96** — EBI Expression Atlas anatomogram
-- **99** — SVGs redistributed unmodified. The highlighting is ours, the drawings theirs.
-- **120** — References and credits
-- **121** — Data and methods
-- **127** — Where it is used here
-- **147** — Diagrams and drawings
+- **46** — Protein polygenic scores
+- **47** — OmicsPred scores for each plasma protein in UK Biobank, split into cis and trans components. They are the genetic side of the variance decomposition and the PGS term in every mediation model.
+- **48** — Xu Y et al. An atlas of genetic scores to predict multi-omic traits. Nature (2023).
+- **51** — Cross-platform reliability
+- **52** — Olink–SomaScan assay correlations, used to weight the intervention concordance and to size its points.
+- **53** — Wang B et al. Comparative studies of 2168 plasma proteins measured by two affinity-based platforms in 4000 Chinese adults. Nature Communications (2025); Eldjarn GH et al. Nature (2023).
+- **56** — pQTLs — Olink
+- **57** — UK Biobank plasma proteomics — the protein measurements behind every result on this site, and the Olink arm of every MR edge.
+- **58** — Sun BB et al. Plasma proteomic associations with genetics and health in the UK Biobank. Nature (2023).
+- **61** — Split-sample MR design
+- **62** — The sample-independent design the exposure instruments follow, so no participant contributes to both sides of an estimate.
+- **63** — Deng Y-T et al. Atlas of the plasma proteome in health and disease in 53,026 adults. Cell (2025).
+- **66** — Exercise trial
+- **67** — HERITAGE — protein changes after 20 weeks of endurance training, one arm of the intervention concordance.
+- **68** — Sarzynski MA et al. The HERITAGE Family Study. Medicine & Science in Sports & Exercise (2022); Robbins JM et al. Plasma proteomic changes in response to exercise training are associated with cardiorespiratory fitness adaptations. JCI Insight (2023).
+- **71** — GLP-1 trials
+- **72** — STEP 1 and STEP 2 — protein changes under semaglutide, the other two intervention arms. The proteomic measurements are Maretty et al.; the trials themselves are Wilding and Davies.
+- **73** — Maretty L et al. Proteomic changes upon treatment with semaglutide in individuals with obesity. Nature Medicine (2025); Wilding JPH et al. NEJM (2021); Davies M et al. Lancet (2021).
+- **77** — coloc.abf, the posterior behind every PP.H4 and the regional plots that show it.
+- **78** — Giambartolomei C et al. Bayesian test for colocalisation between pairs of genetic association studies. PLoS Genetics (2014).
+- **81** — Linkage disequilibrium
+- **82** — PLINK against the 1000 Genomes European reference panel — the r² coloring on every regional colocalization plot.
+- **83** — Chang CC et al. Second-generation PLINK. GigaScience (2015).
+- **87** — clusterProfiler, which computed every tissue and pathway GSEA including the leading-edge proteins.
+- **88** — Xu S et al. Using clusterProfiler to characterize multiomics data. Nature Protocols (2024).
+- **91** — Causal inference
+- **92** — The two-sample Mendelian randomization framework the evidence tiers are built on.
+- **93** — Davey Smith G, Hemani G. Mendelian randomization: genetic anchors for causal inference. Human Molecular Genetics (2014).
+- **99** — Human body and brain anatomograms
+- **100** — The body map in Tissues & Pathways.
+- **101** — EBI Expression Atlas anatomogram
+- **104** — SVGs redistributed unmodified. The highlighting is ours, the drawings theirs.
+- **125** — References and credits
+- **126** — Data and methods
+- **132** — Where it is used here
+- **152** — Diagrams and drawings
 
 ## `/documentation/dictionary`
 

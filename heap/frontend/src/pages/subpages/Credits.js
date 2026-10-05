@@ -43,6 +43,11 @@ const REFS = [
     cite: 'Ferkingstad E et al. Large-scale integration of the plasma proteome with genetics and disease. Nature Genetics (2021); Eldjarn GH et al. Large-scale plasma proteomics comparisons through genetics and disease associations. Nature (2023).',
   },
   {
+    what: 'Protein polygenic scores',
+    used: 'OmicsPred scores for each plasma protein in UK Biobank, split into cis and trans components. They are the genetic side of the variance decomposition and the PGS term in every mediation model.',
+    cite: 'Xu Y et al. An atlas of genetic scores to predict multi-omic traits. Nature (2023).',
+  },
+  {
     what: 'Cross-platform reliability',
     used: 'Olink–SomaScan assay correlations, used to weight the intervention concordance and to size its points.',
     cite: 'Wang B et al. Comparative studies of 2168 plasma proteins measured by two affinity-based platforms in 4000 Chinese adults. Nature Communications (2025); Eldjarn GH et al. Nature (2023).',
