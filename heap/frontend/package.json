@@ -7,33 +7,19 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.1",
     "@mui/material": "^7.0.1",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@testing-library/user-event": "^13.5.0",
-    "buffer": "^6.0.3",
-    "plotly.js": "^3.0.1",
+    "plotly.js": "^4.1.2",
     "react": "^19.1.0",
     "react-data-table-component": "^7.7.0",
     "react-dom": "^19.1.0",
-    "react-plotly.js": "^2.6.0",
+    "react-plotly.js": "^4.1.0",
     "react-router-dom": "^7.18.4",
-    "react-scripts": "5.0.1",
-    "react-select": "^5.10.1",
-    "stream-browserify": "^3.0.0",
-    "web-vitals": "^2.1.4"
+    "react-select": "^5.10.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "browserslist": {
     "production": [
@@ -48,9 +34,17 @@
     ]
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.1",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.3",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "vite": "^7.3.6",
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "brace-expansion": "^1.1.21",
+    "postcss-selector-parser": "^7.1.6"
   }
 }

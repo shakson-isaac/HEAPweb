@@ -23,7 +23,7 @@ import useUrlState from '../../lib/useUrlState';
 // fails even though only the URL export is used. Serving them as static assets
 // sidesteps the transform entirely and keeps ~1.7 MB of anatomy out of the
 // bundle, which was the intent anyway.
-const ASSET_BASE = `${process.env.PUBLIC_URL || ''}/anatomogram`;
+const ASSET_BASE = `${import.meta.env.BASE_URL}anatomogram`;
 const maleSvgUrl = `${ASSET_BASE}/homo_sapiens.male.svg`;
 const femaleSvgUrl = `${ASSET_BASE}/homo_sapiens.female.svg`;
 const brainSvgUrl = `${ASSET_BASE}/homo_sapiens.brain.svg`;

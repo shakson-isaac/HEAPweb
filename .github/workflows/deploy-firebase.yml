@@ -59,9 +59,11 @@ jobs:
       run: |
         cd heap/frontend
         # Sharded result payloads, published from O2 by tools/sync_gcs.py.
+        # Vite only inlines variables prefixed VITE_, hence the rename; the
+        # SECRET keeps its old name so nothing needs recreating in GitHub.
         # Public bucket, so this is not a secret; the secret only exists so the
         # bucket can be moved without editing the frontend.
-        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" > .env
+        echo "VITE_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" > .env
         # Deliberately not `cat .env`. The file holds no secret today, and the
         # habit is what leaks one the day it does.
         echo "wrote heap/frontend/.env"
