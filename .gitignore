@@ -212,3 +212,6 @@ core.*
 heap-ci*.json
 gcp-*.json
 service-account*.json
+
+# Firebase CLI deploy cache. Local state, regenerated on every deploy.
+.firebase/
