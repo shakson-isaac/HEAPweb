@@ -20,15 +20,6 @@
   align-items: center;
 }
 
-.home-kicker {
-  font-size: 0.72rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--soft);
-  margin-bottom: 14px;
-}
-
 .home-title {
   font-family: 'Newsreader', Georgia, serif;
   font-size: clamp(2.3rem, 4.4vw, 3.3rem);

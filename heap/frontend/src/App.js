@@ -13,8 +13,10 @@ import Header from './components/Header';
 import './App.css';  // Ensure this path is correct
 import Documentation from './pages/Documentation';
 
-// The theme is rebuilt only when the mode changes, and `data-mode` on <html>
-// lets the plain CSS files (App.css, Home.css) follow the same switch.
+// `data-mode` on <html> is what the plain CSS files (App.css, Home.css) read.
+// It is pinned to light -- see lib/colorMode.js -- and `colorScheme` is set
+// alongside it so the browser's own chrome (scrollbars, form controls, the
+// autofill tint) stays light even when the operating system is in dark mode.
 function Themed() {
   const { mode } = useColorMode();
   const theme = useMemo(() => makeTheme(mode), [mode]);
