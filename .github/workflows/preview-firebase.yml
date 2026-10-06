@@ -156,11 +156,9 @@ jobs:
       if: steps.creds.outputs.available == 'true'
       run: |
         cd heap/frontend  # Navigate to the frontend directory
-        echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
-        # Sharded result payloads, published from O2 by tools/sync_gcs.py.
-        # Public bucket, so this is not a secret; the secret only exists so the
-        # bucket can be moved without editing the frontend.
-        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" >> .env
+        # The Flask backend was deleted on 2026-10-05; nothing in src/ calls it.
+        # Vite only exposes variables prefixed VITE_, and only those are inlined.
+        echo "VITE_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" > .env
         cat .env
 
     # Step 7: Build React app
