@@ -1,10 +1,6 @@
 name: Deploy Frontend to Firebase Hosting
 
 on:
-  workflow_run:
-    workflows: ["Deploy Backend to Google Cloud Run"]
-    types:
-      - completed
   push:
     # Only the default branch deploys. Without this, a push to ANY
     # branch touching these paths would redeploy the live site.
@@ -14,22 +10,67 @@ on:
       - 'heap/frontend/**'
       - '.github/workflows/deploy-firebase.yml'
 
+# Least privilege. This job reads the repository and deploys to Firebase with
+# a Google service account. It never writes anything back to GitHub, so it
+# does not need the repository default token scope.
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    # STEP ORDER IS A SECURITY PROPERTY HERE. Authentication is deliberately
+    # the LAST thing before the deploy.
+    #
+    # Until 2026-10-06 this workflow authenticated at step 2 and ran `npm
+    # install` at step 5. That put the install scripts of ~1,650 packages in a
+    # job that had already exported GOOGLE_APPLICATION_CREDENTIALS for a
+    # service account holding roles/firebasehosting.admin. A single
+    # compromised transitive dependency could have read that credential and
+    # published to heap.bio. None of those packages ship to a browser, which
+    # is true and was the wrong thing to measure: they run here, next to the
+    # key.
+    #
+    # Nothing third-party now executes while the credential exists. Install,
+    # build and the Firebase CLI download all happen first.
     steps:
-    # Step 1: Checkout code
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    # Step 2: Authenticate with Google Cloud (for Google Cloud services)
-    - name: Authenticate with Google Cloud
-      uses: google-github-actions/auth@v1
+    - name: Set up Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: heap/frontend/package-lock.json
 
-    # Step 3: Set up Firebase CLI
+    - name: Install dependencies
+      run: |
+        cd heap/frontend
+        # `npm ci`, not `npm install`. `npm install` is free to resolve a `^`
+        # range above the lockfile, so the deployed bundle would not be
+        # reproducible from the committed tree and would not necessarily match
+        # the lockfile Dependabot analyses. `npm ci` installs the lockfile
+        # exactly and fails if package.json and the lockfile disagree.
+        npm ci
+
+    - name: Write the build environment
+      run: |
+        cd heap/frontend
+        # Sharded result payloads, published from O2 by tools/sync_gcs.py.
+        # Public bucket, so this is not a secret; the secret only exists so the
+        # bucket can be moved without editing the frontend.
+        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" > .env
+        # Deliberately not `cat .env`. The file holds no secret today, and the
+        # habit is what leaks one the day it does.
+        echo "wrote heap/frontend/.env"
+
+    - name: Build React app
+      run: |
+        cd heap/frontend
+        npm run build  # This creates the static files in 'build' folder
+
     - name: Set up Firebase CLI
       run: |
         # Installed from the npm registry, not the firebase.tools shell
@@ -43,39 +84,15 @@ jobs:
         # Fail here, loudly, rather than at deploy time.
         firebase --version
 
-    # Step 4: Install Node.js and dependencies
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+    # --- the credential exists from here down, and nothing else runs ---
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
       with:
-        node-version: '22' # Update to Node.js 22
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Step 5: Install dependencies
-    - name: Install dependencies
-      run: |
-        cd heap/frontend  # Navigate to the frontend directory
-        npm install  # Install the app dependencies
-    
-    # Step 5.1:
-    - name: Create .env file with backend URL
-      run: |
-        cd heap/frontend  # Navigate to the frontend directory
-        echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" > .env
-        # Sharded result payloads, published from O2 by tools/sync_gcs.py.
-        # Public bucket, so this is not a secret; the secret only exists so the
-        # bucket can be moved without editing the frontend.
-        echo "REACT_APP_WEB_DATA_URL=${{ secrets.REACT_APP_WEB_DATA_URL || 'https://storage.googleapis.com/heap-data/web/v1' }}" >> .env
-        cat .env
-  
-    # Step 6: Build React app
-    - name: Build React app
-      run: |
-        cd heap/frontend  # Navigate to the frontend directory
-        npm run build  # This creates the static files in 'build' folder
-
-    # Step 7: Firebase Deployment
     - name: Deploy to Firebase Hosting
       run: |
-        cd heap/frontend  # Navigate to the frontend directory
+        cd heap/frontend
         # Uses the service account from google-github-actions/auth above, not a
         # deprecated `firebase login:ci` token.
         firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
