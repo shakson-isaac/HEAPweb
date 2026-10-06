@@ -21,6 +21,23 @@ export default defineConfig({
   build: {
     outDir: 'build',        // Firebase Hosting serves `build`; firebase.json says so
     sourcemap: false,
+    // Vite gzips every emitted chunk just to print a size column. On the 1.58 MB
+    // Plotly chunk that is real work for a number nobody reads in CI, and it is
+    // the documented first thing to turn off on a slow build.
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1800,
+    rollupOptions: {
+      output: {
+        // Plotly is built from source (lib/core plus registered traces), so its
+        // module tree dominates the build. Pinning it to its own chunk keeps it
+        // out of the route chunks and lets the rest be processed independently.
+        manualChunks(id) {
+          if (id.includes('node_modules/plotly.js')) return 'plotly';
+          if (id.includes('node_modules/react-plotly.js')) return 'plotly';
+          return undefined;
+        },
+      },
+    },
   },
   server: { port: 3000 },
   test: {
