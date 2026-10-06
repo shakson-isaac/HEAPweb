@@ -9,8 +9,7 @@ Preprint: https://doi.org/10.1101/2025.05.07.25327178
 ## Layout
 
 ```
-heap/backend/     Flask API on Cloud Run: legacy blob serving + paginated Cloud SQL tables
-heap/frontend/    React app on Firebase Hosting
+heap/frontend/    React app on Firebase Hosting — the whole site
 tools/            Result payload pipeline (runs on O2, where the analysis output lives)
 docs/             DATA_PIPELINE.md — how results reach the site
 ```
@@ -32,8 +31,12 @@ python3 tools/sync_gcs.py --prune   # build/web/v1/**  ->  gs://heap-data/web/v1
 
 | workflow | trigger | target |
 |----------|---------|--------|
-| `deploy-backend.yml` | `heap/backend/**` | Cloud Run `flask-backend` (+ Cloud SQL) |
-| `deploy-firebase.yml` | `heap/frontend/**` | Firebase Hosting |
+| `preview-firebase.yml` | any pull request touching `heap/frontend/**` | a temporary Firebase preview channel |
+| `deploy-firebase.yml` | push to `main` touching `heap/frontend/**` | Firebase Hosting (heap.bio) |
+
+The site is static: a CDN serving files, with no server-side component. The Flask API on
+Cloud Run and its Cloud SQL instance were retired in October 2026, when the result payload
+moved to public GCS that the browser reads directly.
 
 Data is published from O2, not by CI — GitHub runners cannot see the analysis output.
 
@@ -41,7 +44,7 @@ Data is published from O2, not by CI — GitHub runners cannot see the analysis 
 
 ```bash
 cd heap/frontend
-npm install
-cp .env.example .env      # point at a backend and the payload bucket
+npm ci
+cp .env.example .env      # point at the payload bucket
 npm start
 ```

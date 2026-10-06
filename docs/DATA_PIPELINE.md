@@ -5,9 +5,9 @@ How results get from the analysis on O2 onto the site. Two halves that meet at G
 ```
 O2  (data lives here)                          GCP / GitHub  (code lives here)
 ──────────────────────────────────             ─────────────────────────────────
-R: heap_export_website()                       push heap/backend/**
-  -> HEAP/figures/website/*.json                 -> deploy-backend.yml
-     128 figures, 1.1 GB                         -> Cloud Run  flask-backend
+R: heap_export_website()
+  -> HEAP/figures/website/*.json
+     128 figures, 1.1 GB
         |
         |  tools/build_payload.py               push heap/frontend/**
         v                                         -> deploy-firebase.yml
