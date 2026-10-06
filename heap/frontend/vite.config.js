@@ -2,17 +2,21 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // Vite replaced Create React App on 2026-10-05. react-scripts@5.0.1 was last
-// published in April 2022 and has no patched release, so the ~70 build-time
-// advisories under it could not be fixed -- only removed with the tool.
+// published in April 2022 and has no patched release, so roughly seventy
+// build-time advisories under it could not be fixed, only removed with the
+// tool.
 //
-// THE ONE THING THAT WILL BITE: this project keeps JSX in .js files, 74 of
-// them. Vite's esbuild treats .js as plain JavaScript and fails on the first
-// angle bracket, so both settings below are required -- `loader` for our own
-// source, and the optimizeDeps override for any dependency that ships JSX in
-// .js (react-plotly.js does).
+// JSX LIVES IN .jsx FILES. Under CRA it lived in .js, which Vite's esbuild
+// treats as plain JavaScript -- it fails on the first angle bracket. Forcing
+// the jsx loader onto every .js file works but costs a great deal: the build
+// step ran 195-334s in CI that way, against 24-42s for CRA, because all 1,754
+// modules went through the JSX loader. Renaming the 73 files that actually
+// contain JSX lets esbuild use its fast path for everything else.
+//
+// `optimizeDeps` stays. react-plotly.js ships JSX inside .js, and that is a
+// dependency we do not control.
 export default defineConfig({
-  plugins: [react({ include: /\.(js|jsx)$/ })],
-  esbuild: { loader: 'jsx', include: /src\/.*\.jsx?$/, exclude: [] },
+  plugins: [react()],
   optimizeDeps: { esbuildOptions: { loader: { '.js': 'jsx' } } },
   build: {
     outDir: 'build',        // Firebase Hosting serves `build`; firebase.json says so
