@@ -424,12 +424,12 @@ that looks like a path or an id. Grep for the exact words to find one:
 - **225** — HEAP summary statistics
 - **226** — Browse results on this site and download.
 - **228** — Main Results
-- **278** — Browse results
-- **279** — Download data
-- **290** — Four ways in
-- **319** — Citation and license
-- **320** — Cite and reuse
-- **332** — Data usage agreement and licenses:
+- **277** — Browse results
+- **278** — Download data
+- **289** — Four ways in
+- **318** — Citation and license
+- **319** — Cite and reuse
+- **331** — Data usage agreement and licenses:
 
 ## `/downloads`
 

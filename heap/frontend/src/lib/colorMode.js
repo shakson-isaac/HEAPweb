@@ -1,46 +1,24 @@
 // ---------------------------------------------------------------------------
-// Light or dark, decided by the visitor's own device.
+// The site renders in light only.
 //
-// There is no switch on this site. The mode comes from `prefers-color-scheme`,
-// which Safari, Chrome, Firefox and Edge all report from the operating system
-// setting, and it follows a change made mid-visit -- turn on Dark Mode in macOS
-// and the open tab flips with it.
+// It used to follow `prefers-color-scheme`, so a visitor with Dark Mode on got
+// a dark site with no way to opt out. That was turned off on 2026-10-06 after
+// reader feedback: the dark rendering was not helping people read the results.
 //
-// Nothing is stored. A site that remembers a choice has to offer one; without a
-// switch there is nothing to remember, and no state that can disagree with the
-// system.
-//
-// matchMedia can throw in hardened privacy settings, so every call is wrapped.
-// A failure means light.
+// The mechanism is kept rather than deleted, because this is a presentation
+// decision that may be revisited. `theme.js` still carries a full set of dark
+// tokens and every component still reads its colors from the theme, so
+// restoring it means changing MODE below back to the system query -- nothing
+// else. Leaving the plumbing in place is what keeps that true.
 // ---------------------------------------------------------------------------
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 
-const MQ = '(prefers-color-scheme: dark)';
+const MODE = 'light';
 
-function systemMode() {
-  try { return window.matchMedia(MQ).matches ? 'dark' : 'light'; } catch { return 'light'; }
-}
-
-const ColorModeContext = createContext({ mode: 'light' });
+const ColorModeContext = createContext({ mode: MODE });
 
 export function ColorModeProvider({ children }) {
-  const [mode, setMode] = useState(systemMode);
-
-  useEffect(() => {
-    let mql;
-    try { mql = window.matchMedia(MQ); } catch { return undefined; }
-    const onChange = (e) => setMode(e.matches ? 'dark' : 'light');
-    // Safari below 14 only has the deprecated addListener.
-    if (mql.addEventListener) mql.addEventListener('change', onChange);
-    else if (mql.addListener) mql.addListener(onChange);
-    return () => {
-      if (!mql) return;
-      if (mql.removeEventListener) mql.removeEventListener('change', onChange);
-      else if (mql.removeListener) mql.removeListener(onChange);
-    };
-  }, []);
-
-  const value = useMemo(() => ({ mode }), [mode]);
+  const value = useMemo(() => ({ mode: MODE }), []);
   return <ColorModeContext.Provider value={value}>{children}</ColorModeContext.Provider>;
 }
 
