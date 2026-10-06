@@ -266,7 +266,6 @@ const Home = () => {
     <div className="home">
       <section className="home-hero">
         <div className="home-hero-text">
-          <div className="home-kicker">UK Biobank · {participantsText(macros)} participants</div>
           <h1 className="home-title">{HERO_TITLE}</h1>
           <p className="home-sub">
             <strong>H</strong>uman <strong>E</strong>xposomic <strong>A</strong>rchitecture
