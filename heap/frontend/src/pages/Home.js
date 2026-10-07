@@ -81,7 +81,6 @@ const STAT_TILES = [
   { key: 'nExposures', label: 'exposures' },
   { key: 'nReplAssoc', label: 'replicated associations' },
   { key: 'nDiseasesGEM', label: 'incident diseases' },
-  { key: 'nColoc', label: 'colocalized loci' },
 ];
 
 /** A macro's printed form. Never falls back to a typed-in number -- absent means absent. */
