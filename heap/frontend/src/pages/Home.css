@@ -161,10 +161,17 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  padding: 4px 24px 6px 0;
+  /* Symmetric 24px, so each rule sits centered in its gutter rather than
+     flush against the next column's text. The first card drops its left
+     padding to stay aligned with the section heading and the stat bar. */
+  padding: 4px 24px 6px 24px;
   border-right: 1px solid var(--rule);
   text-decoration: none;
   color: inherit;
+}
+
+.home-card:first-child {
+  padding-left: 0;
 }
 
 .home-card:last-child {
@@ -278,8 +285,15 @@
   }
 
   .home-card {
-    padding: 14px 18px 14px 0;
+    padding: 14px 18px 14px 18px;
     border-bottom: 1px solid var(--rule);
+  }
+
+  /* Two columns here, so the LEFT column is every odd card, not just the
+     first. Each of those sits against the page margin and takes no left
+     padding; the right column clears the rule. */
+  .home-card:nth-child(odd) {
+    padding-left: 0;
   }
 
   .home-card:nth-child(2n) {
