@@ -1,6 +1,7 @@
 // src/App.js
 import React, { useMemo } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import usePageViews from './lib/analytics';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { makeTheme } from './theme';
@@ -12,6 +13,13 @@ import NotFound from './pages/NotFound';
 import Header from './components/Header';
 import './App.css';  // Ensure this path is correct
 import Documentation from './pages/Documentation';
+
+/** Renders nothing. Exists so usePageViews() runs inside the Router context --
+    it calls useLocation(), which throws anywhere above <Router>. */
+function PageViews() {
+  usePageViews();
+  return null;
+}
 
 // `data-mode` on <html> is what the plain CSS files (App.css, Home.css) read.
 // It is pinned to light -- see lib/colorMode.js -- and `colorScheme` is set
@@ -30,6 +38,7 @@ function Themed() {
       <CssBaseline />
       <div className="app-container">
         <Router>
+          <PageViews />
           <Header />
           <main className="main-content">
             <Routes>
