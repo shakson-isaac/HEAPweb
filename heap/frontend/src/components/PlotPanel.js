@@ -68,7 +68,11 @@ export default function PlotPanel({ data, layout, height = 420, config, onPointC
     <Plot
       data={withTitleObjects(data)}
       layout={withTitleObjects(merge(base, { height, ...layout }))}
-      config={{ displaylogo: false, responsive: true, ...config }}
+      // `showSendToCloud` defaults to TRUE in plotly 4; it was false through
+      // v3, and `plotlyServerURL` now points at cloud.plotly.com. Left alone,
+      // every chart here would grow a modebar button that ships the figure's
+      // data to a third party. Unpublished results are on these axes.
+      config={{ displaylogo: false, responsive: true, showSendToCloud: false, ...config }}
       style={{ width: '100%' }}
       useResizeHandler
       onClick={onPointClick ? (ev) => {
