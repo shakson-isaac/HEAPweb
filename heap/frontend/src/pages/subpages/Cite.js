@@ -1,17 +1,20 @@
 import React from 'react';
 import { Paper, Typography } from '@mui/material';
 import {
-  AuthorNote, Code, DocPage, Mono, P, Section, SimpleTable,
+  Code, DocPage, P, Section, SimpleTable,
 } from '../Documentation';
 
 const DOI = '10.1101/2025.05.07.25327178';
 const DOI_URL = `https://doi.org/${DOI}`;
 const TITLE = 'Human Plasma Proteomics Links Modifiable Lifestyle Exposome to Disease Risk';
 const AUTHORS = [
-  'Shakson Isaac', 'Randall J. Ellis', 'Alexander Gusev',
-  'Venkatesh L. Murthy', 'Miriam S. Udler', 'Chirag J. Patel',
+  'Shakson Isaac', 'Randall J. Ellis', 'Yon Ho Jee', 'Venkatesh L. Murthy',
+  'Miriam S. Udler', 'Benjamin M. Neale', 'Shamil Sunyaev', 'Alexander Gusev',
+  'Alicia R. Martin', 'Chirag J. Patel',
 ];
 
+// Authors match medRxiv v2 (posted 2026-11-13; first posted 2025).
+//
 // Trimmed 2026-10-05 to the preprint, the BibTeX, the license and one sentence
 // on citing the data. The page also carried three build identifiers read live
 // from catalog.json.gz, two data-statement templates and sections on citing a
@@ -34,8 +37,10 @@ export default function Cite() {
         </Paper>
         <Code label="BibTeX">
 {`@article{isaac_heap,
-  author  = {Isaac, Shakson and Ellis, Randall J. and Gusev, Alexander and
-             Murthy, Venkatesh L. and Udler, Miriam S. and Patel, Chirag J.},
+  author  = {Isaac, Shakson and Ellis, Randall J. and Jee, Yon Ho and
+             Murthy, Venkatesh L. and Udler, Miriam S. and Neale, Benjamin M. and
+             Sunyaev, Shamil and Gusev, Alexander and Martin, Alicia R. and
+             Patel, Chirag J.},
   title   = {${TITLE}},
   journal = {medRxiv},
   year    = {2025},
@@ -44,14 +49,6 @@ export default function Cite() {
 }`}
         </Code>
       </Section>
-
-      <AuthorNote what="Confirm the author list before this page goes public.">
-        The names above are the six authors currently in <Mono>main.tex</Mono>. That file also
-        carries an open note to update the credit statement with additional co-authors, so the
-        list here may be incomplete relative to what is posted. It also needs checking against the
-        posted preprint version, since the site should cite what a reader will actually find at
-        the DOI.
-      </AuthorNote>
 
       <Section title="License">
         <P>
